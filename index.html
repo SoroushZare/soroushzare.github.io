@@ -1,172 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soroush Zare | Innovator & Researcher</title>
-    <meta name="description" content="Soroush Zare, PhD Candidate at the University of Virginia, specializing in AI, Robotics, and Brain-Computer Interfaces.">
-    <meta name="keywords" content="Soroush Zare, AI, Robotics, Brain-Computer Interfaces, EEG, Exoskeleton, Researcher, University of Virginia">
-    <script type="application/ld+json">
-    {
-       "@context": "https://schema.org",
-       "@type": "Person",
-       "name": "Soroush Zare",
-       "image": "https://soroushzare.github.io/Profile.jpg",
-       "jobTitle": "Graduate Research Assistant",
-       "affiliation": {
-         "@type": "Organization",
-         "name": "University of Virginia"
-       },
-       "url": "https://soroushzare.github.io",
-       "sameAs": [
-         "https://www.linkedin.com/in/soroush-zare/",
-         "https://scholar.google.com/citations?user=63FzJooAAAAJ&hl=en",
-         "https://github.com/SoroushZare",
-         "https://orcid.org/0009-0005-2752-0887"
-       ],
-       "email": "mailto:cyj7tf@virginia.edu"
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soroush Zare | AI & Robotics Researcher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
     }
-    </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f8f8;
-            line-height: 1.6;
-        }
-        .container {
-            display: flex;
-        }
-        .sidebar {
-            width: 220px;
-            background-color: #f1f1f1;
-            padding: 15px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            height: 100vh;
-            position: fixed;
-        }
-        .content {
-            padding: 20px;
-            margin-left: 240px;
-            width: calc(100% - 240px);
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 50%;
-            margin-bottom: 20px;
-        }
-        h1, h2 {
-            color: #1e90ff;
-        }
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-        p {
-            margin-bottom: 20px;
-        }
-        .social-icons {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .social-icons a {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            transition: transform 0.3s ease, filter 0.3s ease;
-        }
-        .social-icons a img {
-            width: 100%;
-            height: 100%;
-        }
-        .social-icons a:hover {
-            transform: scale(1.2);
-            filter: brightness(1.2);
-        }
-        .publications, .scholarly-contributions, .professional-services {
-            margin-top: 40px;
-        }
-        .publications ul, .scholarly-contributions ul, .professional-services ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .publications li, .scholarly-contributions li, .professional-services li {
-            margin-bottom: 15px;
-        }
-        .highlight {
-            font-weight: bold;
-            color: #1e90ff;
-        }
-        a {
-            color: #1e90ff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    body {
+      background: #f4f6f8;
+      color: #1e1e1e;
+      line-height: 1.6;
+    }
+    header {
+      background: #0b1120;
+      color: white;
+      padding: 2rem 1rem;
+      text-align: center;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+    header h1 {
+      font-size: 2.5rem;
+    }
+    header p {
+      font-size: 1.2rem;
+      color: #cbd5e1;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 1rem 0;
+    }
+    nav a {
+      text-decoration: none;
+      color: #475569;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+    nav a:hover {
+      color: #1d4ed8;
+    }
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    section {
+      margin-bottom: 3rem;
+      animation: fadeInUp 1s ease-in-out;
+    }
+    h2 {
+      margin-bottom: 1rem;
+      color: #0f172a;
+      border-left: 4px solid #3b82f6;
+      padding-left: 0.5rem;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 1rem;
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .profile-img {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1rem;
+      display: block;
+    }
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: #e2e8f0;
+      font-size: 0.9rem;
+      color: #475569;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <img src="https://soroushzare.github.io/Profile.jpg" alt="Soroush Zare">
-            <div class="social-icons">
-                <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank">
-                    <img src="linkedin-icon.png" alt="LinkedIn">
-                </a>
-                <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ&hl=en" target="_blank">
-                    <img src="GoogleScholar.png" alt="Google Scholar">
-                </a>
-                <a href="https://github.com/SoroushZare" target="_blank">
-                    <img src="github-icon.png" alt="GitHub">
-                </a>
-                <a href="mailto:cyj7tf@virginia.edu" target="_blank">
-                    <img src="Email.png" alt="Email">
-                </a>
-                <a href="https://orcid.org/0009-0005-2752-0887" target="_blank">
-                    <img src="orcid.svg" alt="ORCID">
-                </a>
-            </div>
-        </div>
-        <div class="content">
-            <h1>Welcome to My Research Journey</h1>
-            <p>
-                I am <span class="highlight">Soroush Zare</span>, a PhD Candidate at the University of Virginia in the Department of Mechanical and Aerospace Engineering. 
-                My work focuses on <strong>artificial intelligence</strong>, <strong>robotics</strong>, and <strong>brain-computer interfaces (BCIs)</strong>, with a mission to revolutionize assistive healthcare technologies.
-            </p>
-            
-            <h2>Publications</h2>
-            <p>Explore my latest innovations and breakthroughs:</p>
-            <ul>
-                <li>NeuroFlex: EEG-Based Motor Imagery Control of a Soft Glove for Hand Rehabilitation, <a href="https://www.mdpi.com/journal/sensors" target="_blank">Sensors</a> (Under review)</li>
-                <li><a href="https://doi.org/10.1109/CHASE60773.2024.00033" target="_blank">EEG Motor Imagery Classification using Integrated Transformer-CNN for Assistive Technology Control</a>, IEEE/ACM CHASE (2024)</li>
-                <li><a href="https://ieeexplore.ieee.org/document/10780629" target="_blank">A Low-Cost Wearable Exoskeleton for Sitting and Standing Assistance</a>, IEEE-EMBS BSN (2024)</li>
-                <li><a href="https://doi.org/10.1088/2516-1091/acc70a" target="_blank">Wearable Upper Limb Robotics for Pervasive Health: A Review</a>, Progress in Biomedical Engineering (2023)</li>
-            </ul>
+  <header>
+    <img src="Profile.jpg" alt="Soroush Zare" class="profile-img">
+    <h1>Soroush Zare</h1>
+    <p>Ph.D. Candidate | AI, Robotics & Brain-Computer Interfaces</p>
+  </header>
 
-            <h2>Scholarly Contributions</h2>
-            <p>I actively contribute to the academic community by serving as a reviewer for these esteemed journals and conferences:</p>
-            <ul>
-                <li><strong>Reviewer</strong> for <a href="https://iopscience.iop.org/journal/1741-2552" target="_blank">Journal of Neural Engineering</a></li>
-                <li><strong>Reviewer</strong> for <a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank">Mechanism and Machine Theory</a></li>
-                <li><strong>Reviewer</strong> for <a href="https://bsn.embs.org/2024/" target="_blank">IEEE BSN 2024 Conference</a></li>
-                <li><strong>Reviewer</strong> for <a href="https://conferences.computer.org/chase2024/" target="_blank">IEEE/ACM CHASE 2024 Conference</a></li>
-                <li><strong>Reviewer</strong> for <a href="https://dl.acm.org/journal/health" target="_blank">ACM Transactions on Computing for Healthcare</a></li>
-                <li><strong>Reviewer</strong> for <a href="https://iopscience.iop.org/journal/2057-1976" target="_blank">Journal of Biomedical Physics & Engineering Express</a></li>
-                <li><strong>Reviewer</strong> for <a href="https://journals.sagepub.com/home/JVC" target="_blank">Journal of Vibration and Control</a></li>
-                <li><strong>Reviewer</strong> for <a href="https://www.sciencedirect.com/journal/smart-health" target="_blank">Smart Health</a></li>
-                <li>
-                    <strong>IOP Trusted Reviewer</strong>: Recognized by the Institute of Physics (IOP) for consistent and impactful peer reviews. 
-                    <a href="https://api.accredible.com/v1/frontend/credential_website_embed_image/certificate/128861151" target="_blank">View Certificate</a>
-                </li>
-                <li><strong>Reviewer</strong> for ASEE Annual Conference & Exposition (2023)</li>
-                <li><strong>Reviewer</strong> for AIIPCC 2022</li>
-                <li><strong>Reviewer</strong> for MEIE 2022</li>
-            </ul>
-        </div>
-    </div>
+  <nav>
+    <a href="#about">About</a>
+    <a href="#projects">Projects</a>
+    <a href="#publications">Publications</a>
+    <a href="#skills">Skills</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <div class="container">
+    <section id="about">
+      <h2>About Me</h2>
+      <div class="card">
+        <p>I’m a Ph.D. candidate at the University of Virginia, working at the frontier of AI-driven robotics, wearable exoskeletons, and EEG-based brain-computer interfaces. With a strong foundation in reinforcement learning, transformer-based signal processing, and embedded systems, my work focuses on decoding motor intention and enabling adaptive human-robot collaboration in real-world settings.</p>
+      </div>
+    </section>
+
+    <section id="projects">
+      <h2>Featured Projects</h2>
+      <div class="card">
+        <strong>EEG-Controlled Soft Exoskeleton</strong>
+        <p>Designed a transformer-reinforced system to control a soft upper limb exoskeleton using EEG signals for real-time rehabilitation.</p>
+      </div>
+      <div class="card">
+        <strong>UR5 Robotic Arm with Deep RL</strong>
+        <p>Built and simulated grasping mechanisms for UR5 using ROS & Gazebo. Integrated DRL for autonomous object manipulation.</p>
+      </div>
+      <div class="card">
+        <strong>NeuroMotion Platform</strong>
+        <p>Built a high-resolution EEG interface for intention detection, enabling real-time assistive technology control.</p>
+      </div>
+    </section>
+
+    <section id="publications">
+      <h2>Publications</h2>
+      <div class="card">
+        <p><strong>EEG-Based Motor Imagery Control of Wearable Exoskeleton</strong> – IEEE Transactions on Medical Robotics and Bionics (in preparation)</p>
+        <p><strong>Understanding Motion Intention from Motor Imagery EEG using CNN</strong> – *Smart Health*, Elsevier (under review)</p>
+        <p><strong>NeuroFlex</strong> – *Sensors*, MDPI</p>
+        <p>View all on <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ" target="_blank">Google Scholar</a></p>
+      </div>
+    </section>
+
+    <section id="skills">
+      <h2>Technical Skills</h2>
+      <div class="card">
+        <ul>
+          <li><strong>AI & ML:</strong> Python, PyTorch, TensorFlow, Reinforcement Learning, Transformers, Deep Learning</li>
+          <li><strong>Robotics:</strong> ROS, Gazebo, Motion Planning, Kinematics, PID/MPC Control</li>
+          <li><strong>Biomedical:</strong> EEG Processing, Brain-Computer Interfaces, Signal Analysis</li>
+          <li><strong>Embedded:</strong> Arduino, Raspberry Pi, Jetson, Real-Time Systems</li>
+          <li><strong>Design Tools:</strong> SolidWorks, ANSYS, Simulink</li>
+          <li><strong>Other:</strong> Git, Docker, Linux, 3D Printing</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <div class="card">
+        <p>Email: <a href="mailto:soroush@virginia.edu">soroush@virginia.edu</a></p>
+        <p><a href="https://github.com/SoroushZare">GitHub</a> | <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ">Google Scholar</a> | <a href="https://www.linkedin.com/in/soroush-zare/">LinkedIn</a></p>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Soroush Zare. All rights reserved.</p>
+  </footer>
 </body>
 </html>
