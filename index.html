@@ -4,8 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Soroush Zare | AI • BCI • Robotics</title>
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <!-- Google tag (gtag.js) -->
+
+  <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LH3SQLMWTD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -13,6 +16,7 @@
     gtag('js', new Date());
     gtag('config', 'G-LH3SQLMWTD');
   </script>
+
   <style>
     :root {
       --bg-color-dark: #121212;
@@ -25,12 +29,11 @@
       color: var(--text-color-dark);
     }
 
-    * { box-sizing: border-box; scroll-behavior: smooth; }
-
-    body {
-      font-family: Arial, sans-serif;
+    html, body {
       margin: 0;
       padding: 0;
+      font-family: Arial, sans-serif;
+      scroll-behavior: smooth;
       opacity: 0;
       animation: fadeIn 1s ease-in-out forwards;
     }
@@ -127,6 +130,10 @@
       color: #aaa;
     }
 
+    .counter {
+      margin-top: 20px;
+    }
+
     .toggle-mode {
       position: absolute;
       top: 10px;
@@ -139,114 +146,105 @@
       border-radius: 20px;
       font-size: 0.8em;
     }
-
-    @media (max-width: 600px) {
-      .social a {
-        font-size: 20px;
-      }
-    }
   </style>
 </head>
+
 <body>
+  <button class="toggle-mode" onclick="toggleTheme()">Toggle Mode</button>
 
-<button class="toggle-mode" onclick="toggleTheme()">Toggle Mode</button>
+  <header>
+    <img src="https://soroushzare.github.io/Profile.jpg" alt="Soroush Zare">
+    <h1>Soroush Zare</h1>
+    <p>PhD Candidate @ University of Virginia | AI • BCI • Robotics</p>
+    <div class="social">
+      <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank"><i class="fab fa-linkedin"></i></a>
+      <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ&hl=en" target="_blank"><i class="fas fa-graduation-cap"></i></a>
+      <a href="https://github.com/SoroushZare" target="_blank"><i class="fab fa-github"></i></a>
+      <a href="mailto:cyj7tf@virginia.edu"><i class="fas fa-envelope"></i></a>
+      <a href="https://orcid.org/0009-0005-2752-0887" target="_blank"><i class="fab fa-orcid"></i></a>
+    </div>
+  </header>
 
-<header>
-  <img src="https://soroushzare.github.io/Profile.jpg" alt="Soroush Zare">
-  <h1>Soroush Zare</h1>
-  <p>PhD Candidate @ University of Virginia | AI • BCI • Robotics</p>
-  <div class="social">
-    <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank"><i class="fab fa-linkedin"></i></a>
-    <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ&hl=en" target="_blank"><i class="fas fa-graduation-cap"></i></a>
-    <a href="https://github.com/SoroushZare" target="_blank"><i class="fab fa-github"></i></a>
-    <a href="mailto:cyj7tf@virginia.edu"><i class="fas fa-envelope"></i></a>
-    <a href="https://orcid.org/0009-0005-2752-0887" target="_blank"><i class="fab fa-orcid"></i></a>
+  <nav>
+    <a href="#about">About</a>
+    <a href="#projects">Projects</a>
+    <a href="#publications">Publications</a>
+    <a href="#reviews">Reviewer Roles</a>
+    <a href="#talks">Talks</a>
+    <a href="#awards">Awards</a>
+  </nav>
+
+  <section id="about">
+    <h2>About</h2>
+    <p>I design brain-machine interfaces and adaptive control strategies using EEG, reinforcement learning, and robotics. My mission is to revolutionize neurorehabilitation and intelligent assistive technologies.</p>
+  </section>
+
+  <section id="projects">
+    <h2>Projects</h2>
+    <ul>
+      <li>🧠 <b>EEGDiffFormer:</b> Transformer-based EEG decoder for intent validation and robotic adaptation.</li>
+      <li>💪 <b>NeuroMotion:</b> EEG-driven soft exoskeleton that adapts using RL.</li>
+      <li>🚴 <b>VR-Bike EEG Study:</b> EEG-integrated VR biking for neuroplasticity.</li>
+      <li>🤖 <b>Smart Grasping (UR5):</b> Deep RL grasping in Gazebo with a real UR5 robot.</li>
+    </ul>
+  </section>
+
+  <section id="publications">
+    <h2>Publications</h2>
+    <ul>
+      <li><a href="https://www.mdpi.com/journal/sensors">NeuroFlex</a>, Sensors (2025)</li>
+      <li><a href="https://doi.org/10.1109/CHASE60773.2024.00033">Transformer-CNN BCI</a>, IEEE CHASE (2024)</li>
+      <li><a href="https://ieeexplore.ieee.org/document/10780629">Wearable Exoskeleton</a>, IEEE BSN (2024)</li>
+      <li><a href="https://doi.org/10.1088/2516-1091/acc70a">Pervasive Health Robotics</a>, PBME (2023)</li>
+      <li><a href="https://doi.org/10.1017/S0263574722000649">Control of Suspended CDPR</a>, Robotica (2022)</li>
+    </ul>
+  </section>
+
+  <section id="reviews">
+    <h2>Reviewer Roles</h2>
+    <ul>
+      <li><a href="https://advancedscience.com">Advanced Science</a></li>
+      <li><a href="https://iopscience.iop.org/journal/1741-2552">Journal of Neural Engineering</a></li>
+      <li><a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory">Mechanism and Machine Theory</a></li>
+      <li><a href="https://dl.acm.org/journal/health">ACM Transactions on Computing for Healthcare</a></li>
+      <li><a href="https://www.sciencedirect.com/journal/smart-health">Smart Health</a></li>
+      <li><a href="https://bsn.embs.org/2024/">IEEE BSN 2024</a></li>
+      <li><a href="https://conferences.computer.org/chase2024/">IEEE/ACM CHASE 2024</a></li>
+    </ul>
+  </section>
+
+  <section id="talks">
+    <h2>Talks</h2>
+    <ul>
+      <li>🎤 MAE Graduate Seminar: EEG-Driven Robotics Control for Intent Validation</li>
+      <li>⚡ Link Lab Research Day 2023: Flash Talk – BCI & Adaptive Soft Exoskeleton</li>
+    </ul>
+  </section>
+
+  <section id="awards">
+    <h2>Awards</h2>
+    <ul>
+      <li>🏅 NSF Student Travel Award – CHASE 2024</li>
+      <li>🎓 GRADESTAR Fellowship (2023–2024)</li>
+      <li>🏆 Chairperson’s Fellowship – UVA</li>
+      <li>👑 ScienceFather Best Researcher Award</li>
+    </ul>
+  </section>
+
+  <div class="footer">
+    <p>© 2025 Soroush Zare • Built with 💙 and HTML/CSS</p>
+    <div class="counter">
+      <h2 style="color: var(--link-color-dark);">Visitor Counter</h2>
+      <img src="https://hitwebcounter.com/counter/counter.php?page=11557747&style=0006&nbdigits=5&type=ip&initCount=0" title="web counter" alt="Visitor Counter" border="0" />
+    </div>
   </div>
-</header>
 
-<nav>
-  <a href="#about">About</a>
-  <a href="#projects">Projects</a>
-  <a href="#publications">Publications</a>
-  <a href="#reviews">Reviewer Roles</a>
-  <a href="#talks">Talks</a>
-  <a href="#awards">Awards</a>
-</nav>
-
-<section id="about">
-  <h2>About</h2>
-  <p>I design brain-machine interfaces and adaptive control strategies using EEG, reinforcement learning, and robotics. My mission is to revolutionize neurorehabilitation and intelligent assistive technologies.</p>
-</section>
-
-<section id="projects">
-  <h2>Projects</h2>
-  <ul>
-    <li>🧠 <b>EEGDiffFormer:</b> Transformer-based EEG decoder for intent validation and robotic adaptation.</li>
-    <li>💪 <b>NeuroMotion:</b> EEG-driven soft exoskeleton that adapts using RL.</li>
-    <li>🚴 <b>VR-Bike EEG Study:</b> EEG-integrated VR biking for neuroplasticity.</li>
-    <li>🤖 <b>Smart Grasping (UR5):</b> Grasp simulation using deep RL in Gazebo with a physical UR5 robot.</li>
-  </ul>
-</section>
-
-<section id="publications">
-  <h2>Publications</h2>
-  <ul>
-    <li><a href="https://www.mdpi.com/journal/sensors">NeuroFlex</a>, Sensors (2025)</li>
-    <li><a href="https://doi.org/10.1109/CHASE60773.2024.00033">Transformer-CNN BCI</a>, IEEE CHASE (2024)</li>
-    <li><a href="https://ieeexplore.ieee.org/document/10780629">Wearable Exoskeleton</a>, IEEE BSN (2024)</li>
-    <li><a href="https://doi.org/10.1088/2516-1091/acc70a">Pervasive Health Robotics</a>, PBME (2023)</li>
-    <li><a href="https://doi.org/10.1017/S0263574722000649">Control of Suspended CDPR</a>, Robotica (2022)</li>
-  </ul>
-</section>
-
-<section id="reviews">
-  <h2>Reviewer Roles</h2>
-  <ul>
-    <li><a href="https://advancedscience.com">Advanced Science</a></li>
-    <li><a href="https://iopscience.iop.org/journal/1741-2552">Journal of Neural Engineering</a></li>
-    <li><a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory">Mechanism and Machine Theory</a></li>
-    <li><a href="https://dl.acm.org/journal/health">ACM Transactions on Computing for Healthcare</a></li>
-    <li><a href="https://www.sciencedirect.com/journal/smart-health">Smart Health</a></li>
-    <li><a href="https://bsn.embs.org/2024/">IEEE BSN 2024</a></li>
-    <li><a href="https://conferences.computer.org/chase2024/">IEEE/ACM CHASE 2024</a></li>
-  </ul>
-</section>
-
-<section id="talks">
-  <h2>Talks</h2>
-  <ul>
-    <li>🎤 MAE Graduate Seminar: EEG-Driven Robotics Control for Intent Validation</li>
-    <li>⚡ Link Lab Research Day 2023: Flash Talk – BCI & Adaptive Soft Exoskeleton</li>
-  </ul>
-</section>
-
-<section id="awards">
-  <h2>Awards</h2>
-  <ul>
-    <li>🏅 NSF Student Travel Award – CHASE 2024</li>
-    <li>🎓 GRADESTAR Fellowship (2023–2024)</li>
-    <li>🏆 Chairperson’s Fellowship – UVA</li>
-    <li>👑 ScienceFather Best Researcher Award</li>
-  </ul>
-</section>
-
-<div class="footer">
-  <p>© 2025 Soroush Zare • Built with 💙 and HTML/CSS</p>
-  <div style="margin-top: 15px;">
-    <h2 style="color: var(--link-color-dark); margin-bottom: 5px;">Visitor Counter</h2>
-    <a href="https://www.hitwebcounter.com" target="_blank">
-      <img src="https://hitwebcounter.com/counter/counter.php?page=1234567&style=0036&nbdigits=6&type=page&initCount=0" title="Free Counter" Alt="web counter"   border="0" />
-    </a>
-  </div>
-</div>
-
-<script>
-  function toggleTheme() {
-    const html = document.documentElement;
-    const current = html.getAttribute('data-theme');
-    html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-  }
-</script>
-
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+  </script>
 </body>
 </html>
