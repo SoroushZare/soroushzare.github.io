@@ -1,24 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Soroush Zare | AI • BCI • Robotics</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <style>
-    * {
-      box-sizing: border-box;
-      scroll-behavior: smooth;
+    :root {
+      --bg-color-light: #f1f7f8;
+      --text-color-light: #111;
+      --link-color-light: #007bff;
+
+      --bg-color-dark: #121212;
+      --text-color-dark: #e6e6e6;
+      --link-color-dark: #4dabf7;
     }
-    body {
-      font-family: Arial, sans-serif;
+
+    [data-theme="light"] {
+      background-color: var(--bg-color-light);
+      color: var(--text-color-light);
+    }
+
+    [data-theme="dark"] {
+      background-color: var(--bg-color-dark);
+      color: var(--text-color-dark);
+    }
+
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: #f1f7f8;
-      color: #111;
+      font-family: Arial, sans-serif;
+      scroll-behavior: smooth;
       opacity: 0;
       animation: fadeIn 1s ease-in-out forwards;
     }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -28,36 +44,41 @@
       text-align: center;
       padding: 50px 20px 20px;
     }
+
     header img {
       width: 130px;
       border-radius: 50%;
       margin-bottom: 15px;
     }
+
     header h1 {
       font-size: 2em;
-      color: #007bff;
+      color: var(--link-color-dark);
       margin: 0;
     }
+
     header p {
       font-size: 1rem;
       margin: 5px 0 10px;
     }
 
     nav {
-      background: #fff;
-      border-top: 1px solid #ddd;
-      padding: 10px;
       text-align: center;
+      padding: 12px;
       position: sticky;
       top: 0;
+      background-color: inherit;
       z-index: 100;
+      border-top: 1px solid #444;
     }
+
     nav a {
       margin: 0 10px;
-      color: #007bff;
       text-decoration: none;
       font-weight: bold;
+      color: var(--link-color-dark);
     }
+
     nav a:hover {
       text-decoration: underline;
     }
@@ -66,27 +87,18 @@
       margin-top: 15px;
       display: flex;
       justify-content: center;
-      gap: 15px;
+      gap: 20px;
     }
 
     .social a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 45px;
-      height: 45px;
-      font-size: 20px;
-      border-radius: 50%;
-      background-color: #007bff;
-      color: white;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 0 rgba(0, 123, 255, 0.5);
+      font-size: 22px;
+      color: var(--link-color-dark);
+      transition: transform 0.3s, filter 0.3s;
     }
 
     .social a:hover {
-      transform: scale(1.2);
-      box-shadow: 0 0 12px rgba(0, 123, 255, 0.7);
-      background-color: #0056b3;
+      transform: scale(1.3);
+      filter: drop-shadow(0 0 6px var(--link-color-dark));
     }
 
     section {
@@ -96,7 +108,7 @@
     }
 
     h2 {
-      color: #007bff;
+      color: var(--link-color-dark);
       margin-top: 40px;
     }
 
@@ -112,30 +124,43 @@
       text-align: center;
       padding: 30px 10px;
       font-size: 0.9em;
-      color: #666;
+      color: #999;
     }
 
     .counter {
       margin-top: 10px;
     }
 
+    .toggle-mode {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 20px;
+      font-size: 0.8em;
+    }
+
     @media (max-width: 600px) {
       .social a {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+        font-size: 20px;
       }
     }
   </style>
 </head>
 <body>
 
+<button class="toggle-mode" onclick="toggleTheme()">Toggle Mode</button>
+
 <header>
   <img src="https://soroushzare.github.io/Profile.jpg" alt="Soroush Zare">
   <h1>Soroush Zare</h1>
   <p>PhD Candidate @ University of Virginia | AI • BCI • Robotics</p>
   <div class="social">
-    <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+    <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank"><i class="fab fa-linkedin"></i></a>
     <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ&hl=en" target="_blank"><i class="fas fa-graduation-cap"></i></a>
     <a href="https://github.com/SoroushZare" target="_blank"><i class="fab fa-github"></i></a>
     <a href="mailto:cyj7tf@virginia.edu"><i class="fas fa-envelope"></i></a>
@@ -215,6 +240,14 @@
     <img src="https://www.cutercounter.com/hits.php?id=hrxcoax&nd=6&style=1" alt="visitor counter">
   </div>
 </div>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+  }
+</script>
 
 </body>
 </html>
