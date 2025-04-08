@@ -1,11 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Soroush Zare | AI & Robotics Researcher</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --text-color: #1e1e1e;
+      --card-bg: #ffffff;
+      --header-bg: #0b1120;
+      --header-text: white;
+      --link-hover: #1d4ed8;
+    }
+    [data-theme="dark"] {
+      --bg-color: #111827;
+      --text-color: #f1f5f9;
+      --card-bg: #1e293b;
+      --header-bg: #0f172a;
+      --header-text: #f1f5f9;
+      --link-hover: #60a5fa;
+    }
     * {
       margin: 0;
       padding: 0;
@@ -13,13 +29,14 @@
       font-family: 'Inter', sans-serif;
     }
     body {
-      background: #f4f6f8;
-      color: #1e1e1e;
+      background: var(--bg-color);
+      color: var(--text-color);
       line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
     }
     header {
-      background: #0b1120;
-      color: white;
+      background: var(--header-bg);
+      color: var(--header-text);
       padding: 2rem 1rem;
       text-align: center;
       animation: fadeIn 1.5s ease-in-out;
@@ -29,7 +46,18 @@
     }
     header p {
       font-size: 1.2rem;
-      color: #cbd5e1;
+      opacity: 0.8;
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      background: transparent;
+      border: 1px solid var(--header-text);
+      color: var(--header-text);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
     }
     nav {
       display: flex;
@@ -39,12 +67,12 @@
     }
     nav a {
       text-decoration: none;
-      color: #475569;
+      color: var(--text-color);
       font-weight: 600;
       transition: color 0.3s;
     }
     nav a:hover {
-      color: #1d4ed8;
+      color: var(--link-hover);
     }
     .container {
       max-width: 900px;
@@ -57,12 +85,12 @@
     }
     h2 {
       margin-bottom: 1rem;
-      color: #0f172a;
-      border-left: 4px solid #3b82f6;
+      color: var(--text-color);
+      border-left: 4px solid var(--link-hover);
       padding-left: 0.5rem;
     }
     .card {
-      background: white;
+      background: var(--card-bg);
       padding: 1.5rem;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -83,9 +111,9 @@
     footer {
       text-align: center;
       padding: 2rem 1rem;
-      background: #e2e8f0;
+      background: var(--card-bg);
       font-size: 0.9rem;
-      color: #475569;
+      color: var(--text-color);
     }
     @keyframes fadeIn {
       0% { opacity: 0; }
@@ -96,9 +124,16 @@
       100% { opacity: 1; transform: translateY(0); }
     }
   </style>
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
+    }
+  </script>
 </head>
 <body>
   <header>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
     <img src="Profile.jpg" alt="Soroush Zare" class="profile-img">
     <h1>Soroush Zare</h1>
     <p>Ph.D. Candidate | AI, Robotics & Brain-Computer Interfaces</p>
@@ -116,7 +151,7 @@
     <section id="about">
       <h2>About Me</h2>
       <div class="card">
-        <p>I’m a Ph.D. candidate at the University of Virginia, working at the frontier of AI-driven robotics, wearable exoskeletons, and EEG-based brain-computer interfaces. With a strong foundation in reinforcement learning, transformer-based signal processing, and embedded systems, my work focuses on decoding motor intention and enabling adaptive human-robot collaboration in real-world settings.</p>
+        <p>I’m a Ph.D. candidate at the University of Virginia, working at the frontier of AI-driven robotics, wearable exoskeletons, and EEG-based brain-computer interfaces. My research blends reinforcement learning, multimodal AI, and embedded systems to enable intelligent, adaptive assistive technologies.</p>
       </div>
     </section>
 
@@ -124,25 +159,25 @@
       <h2>Featured Projects</h2>
       <div class="card">
         <strong>EEG-Controlled Soft Exoskeleton</strong>
-        <p>Designed a transformer-reinforced system to control a soft upper limb exoskeleton using EEG signals for real-time rehabilitation.</p>
+        <p>Controlled an upper-limb exoskeleton using motor imagery EEG with transformer-based RL for neuro-rehab.</p>
       </div>
       <div class="card">
-        <strong>UR5 Robotic Arm with Deep RL</strong>
-        <p>Built and simulated grasping mechanisms for UR5 using ROS & Gazebo. Integrated DRL for autonomous object manipulation.</p>
-      </div>
-      <div class="card">
-        <strong>NeuroMotion Platform</strong>
-        <p>Built a high-resolution EEG interface for intention detection, enabling real-time assistive technology control.</p>
+        <strong>Smart Grasping UR5 Arm</strong>
+        <p>Simulated robotic manipulation with DRL using ROS/Gazebo, improving grasp accuracy in real-time environments.</p>
       </div>
     </section>
 
     <section id="publications">
       <h2>Publications</h2>
       <div class="card">
-        <p><strong>EEG-Based Motor Imagery Control of Wearable Exoskeleton</strong> – IEEE Transactions on Medical Robotics and Bionics (in preparation)</p>
-        <p><strong>Understanding Motion Intention from Motor Imagery EEG using CNN</strong> – *Smart Health*, Elsevier (under review)</p>
-        <p><strong>NeuroFlex</strong> – *Sensors*, MDPI</p>
-        <p>View all on <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ" target="_blank">Google Scholar</a></p>
+        <ul>
+          <li><a href="https://www.sciencedirect.com/journal/smart-health" target="_blank">Understanding Human Motion Intention from EEG</a> – <em>Smart Health</em> (under review)</li>
+          <li><a href="https://www.mdpi.com/1424-8220/25/3/610" target="_blank">NeuroFlex: EEG Soft Glove Control</a> – <em>Sensors</em></li>
+          <li><a href="https://doi.org/10.1109/CHASE60773.2024.00033" target="_blank">Transformer-CNN for Assistive Tech</a> – <em>IEEE CHASE 2024</em></li>
+          <li><a href="https://ieeexplore.ieee.org/document/10780629" target="_blank">Low-Cost Exoskeleton</a> – <em>IEEE BSN 2024</em></li>
+          <li><a href="https://doi.org/10.1088/2516-1091/acc70a" target="_blank">Review of Upper Limb Robotics</a> – <em>Progress in Biomedical Engineering</em></li>
+          <li><a href="https://doi.org/10.1017/S0263574722000649" target="_blank">Cable-Driven Robot for Object Tracking</a> – <em>Robotica</em></li>
+        </ul>
       </div>
     </section>
 
@@ -150,10 +185,10 @@
       <h2>Technical Skills</h2>
       <div class="card">
         <ul>
-          <li><strong>AI & ML:</strong> Python, PyTorch, TensorFlow, Reinforcement Learning, Transformers, Deep Learning</li>
-          <li><strong>Robotics:</strong> ROS, Gazebo, Motion Planning, Kinematics, PID/MPC Control</li>
-          <li><strong>Biomedical:</strong> EEG Processing, Brain-Computer Interfaces, Signal Analysis</li>
-          <li><strong>Embedded:</strong> Arduino, Raspberry Pi, Jetson, Real-Time Systems</li>
+          <li><strong>Programming & AI:</strong> Python, PyTorch, TensorFlow, RL, Transformers</li>
+          <li><strong>Robotics:</strong> ROS, Gazebo, MPC, PID, Motion Planning</li>
+          <li><strong>Biomedical:</strong> EEG, BCI Systems, Signal Processing</li>
+          <li><strong>Embedded Systems:</strong> Arduino, Jetson, Real-Time Systems</li>
           <li><strong>Design Tools:</strong> SolidWorks, ANSYS, Simulink</li>
           <li><strong>Other:</strong> Git, Docker, Linux, 3D Printing</li>
         </ul>
@@ -164,13 +199,17 @@
       <h2>Contact</h2>
       <div class="card">
         <p>Email: <a href="mailto:soroush@virginia.edu">soroush@virginia.edu</a></p>
-        <p><a href="https://github.com/SoroushZare">GitHub</a> | <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ">Google Scholar</a> | <a href="https://www.linkedin.com/in/soroush-zare/">LinkedIn</a></p>
+        <p>
+          <a href="https://github.com/SoroushZare" target="_blank">GitHub</a> | 
+          <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ" target="_blank">Google Scholar</a> | 
+          <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank">LinkedIn</a>
+        </p>
       </div>
     </section>
   </div>
 
   <footer>
-    <p>&copy; 2025 Soroush Zare. All rights reserved.</p>
+    <p>&copy; 2025 Soroush Zare. Reviewer for <a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank">Advanced Science</a>, <a href="https://iopscience.iop.org/journal/1741-2552" target="_blank">Journal of Neural Engineering</a>, <a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank">Mechanism and Machine Theory</a>, and more.</p>
   </footer>
 </body>
 </html>
