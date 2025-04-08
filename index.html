@@ -1,98 +1,52 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Soroush Zare | Portfolio</title>
+  <title>Soroush Zare | Researcher</title>
   <link rel="stylesheet" href="style.css" />
   <script defer src="script.js"></script>
 </head>
-<body>
-  <header class="hero">
-    <img class="profile-pic" src="Profile.jpg" alt="Soroush Zare" />
+<body class="dark-mode">
+  <div id="preloader"></div>
+  <header>
+    <img src="profile.jpg" alt="Soroush Zare" class="profile-pic" />
     <h1>Soroush Zare</h1>
     <p>PhD Candidate @ University of Virginia | AI • BCI • Robotics</p>
     <div class="social-icons">
-      <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank"><img src="icons/linkedin.svg" alt="LinkedIn" /></a>
-      <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ&hl=en" target="_blank"><img src="icons/scholar.svg" alt="Google Scholar" /></a>
-      <a href="https://github.com/SoroushZare" target="_blank"><img src="icons/github.svg" alt="GitHub" /></a>
-      <a href="mailto:cyj7tf@virginia.edu"><img src="icons/email.svg" alt="Email" /></a>
-      <a href="https://orcid.org/0009-0005-2752-0887" target="_blank"><img src="icons/orcid.svg" alt="ORCID" /></a>
+      <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank"><img src="icons/linkedin.svg" alt="LinkedIn"></a>
+      <a href="https://scholar.google.com/citations?user=63FzJooAAAAJ&hl=en" target="_blank"><img src="icons/scholar.svg" alt="Google Scholar"></a>
+      <a href="https://github.com/SoroushZare" target="_blank"><img src="icons/github.svg" alt="GitHub"></a>
+      <a href="mailto:cyj7tf@virginia.edu"><img src="icons/email.svg" alt="Email"></a>
+      <a href="https://orcid.org/0009-0005-2752-0887" target="_blank"><img src="icons/orcid.svg" alt="ORCID"></a>
     </div>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#publications">Publications</a>
+      <a href="#review">Reviewer Roles</a>
+      <a href="#talks">Talks</a>
+      <a href="#awards">Awards</a>
+    </nav>
+    <label class="switch">
+      <input type="checkbox" id="modeToggle" checked>
+      <span class="slider round"></span>
+    </label>
   </header>
 
-  <nav class="nav">
-    <a href="#about">About</a>
-    <a href="#projects">Projects</a>
-    <a href="#publications">Publications</a>
-    <a href="#reviewer">Reviewer Roles</a>
-    <a href="#talks">Talks</a>
-    <a href="#awards">Awards</a>
-    <button id="toggleMode">🌗 Toggle Mode</button>
-  </nav>
-
   <main>
-    <section id="about">
-      <h2>About</h2>
-      <p>I design brain-machine interfaces and adaptive control strategies using EEG, reinforcement learning, and robotics. My mission is to revolutionize neurorehabilitation and intelligent assistive technologies.</p>
-    </section>
-
-    <section id="projects">
-      <h2>Projects</h2>
-      <ul>
-        <li><strong>🧠 EEGDiffFormer:</strong> Transformer-based EEG decoder for intent validation and robotic adaptation. Integrated with UR5 arm control.</li>
-        <li><strong>💪 NeuroMotion:</strong> EEG-driven soft exoskeleton using RL for stroke rehab applications.</li>
-        <li><strong>🚴 VR-Bike EEG Study:</strong> Virtual biking interface with real-time EEG for neuroplasticity and intent control.</li>
-        <li><strong>🤖 Smart Grasping (UR5):</strong> Grasp simulation using deep RL in Gazebo, integrated with UR5 via ROS2.</li>
-      </ul>
-    </section>
-
-    <section id="publications">
-      <h2>Publications</h2>
-      <ul>
-        <li><a href="https://www.mdpi.com/1424-8220/25/3/610" target="_blank">NeuroFlex: Feasibility of EEG-Based Motor Imagery Control of a Soft Glove</a>, Sensors (2025)</li>
-        <li><a href="https://doi.org/10.1109/CHASE60773.2024.00033" target="_blank">EEG Motor Imagery Classification using Integrated Transformer-CNN</a>, IEEE CHASE (2024)</li>
-        <li><a href="https://ieeexplore.ieee.org/document/10780629" target="_blank">A Low-Cost Wearable Exoskeleton for Sitting and Standing</a>, BSN (2024)</li>
-        <li><a href="https://doi.org/10.1088/2516-1091/acc70a" target="_blank">Wearable Upper Limb Robotics for Pervasive Health: A Review</a>, PBME (2023)</li>
-        <li><a href="https://doi.org/10.1017/S0263574722000649" target="_blank">Control of Suspended CDPR for Object Tracking</a>, Robotica (2022)</li>
-      </ul>
-    </section>
-
-    <section id="reviewer">
-      <h2>Reviewer Roles</h2>
-      <ul>
-        <li><a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank">Advanced Science</a></li>
-        <li><a href="https://iopscience.iop.org/journal/1741-2552" target="_blank">Journal of Neural Engineering</a></li>
-        <li><a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank">Mechanism and Machine Theory</a></li>
-        <li><a href="https://dl.acm.org/journal/health" target="_blank">ACM Transactions on Computing for Healthcare</a></li>
-        <li><a href="https://www.sciencedirect.com/journal/smart-health" target="_blank">Smart Health</a></li>
-        <li><a href="https://bsn.embs.org/2024/" target="_blank">IEEE BSN 2024</a></li>
-        <li><a href="https://conferences.computer.org/chase2024/" target="_blank">IEEE/ACM CHASE 2024</a></li>
-      </ul>
-    </section>
-
-    <section id="talks">
-      <h2>Talks</h2>
-      <ul>
-        <li><a href="https://engineering.virginia.edu/news-events/events/mae-seminar-graduate-students-soroush-zare-kevin-fletcher-and-gabriella-wynn-uva" target="_blank">MAE Graduate Seminar:</a> EEG-Driven Robotics Control for Intent Validation and Adaptive Rehabilitation</li>
-        <li><a href="https://engineering.virginia.edu/labs-groups/link-lab-research-day/past-research-day-events" target="_blank">Link Lab Research Day 2023:</a> Flash Talk – BCI and Adaptive Soft Exoskeleton</li>
-      </ul>
-    </section>
-
-    <section id="awards">
-      <h2>Awards</h2>
-      <ul>
-        <li>NSF Student Travel Award – CHASE 2024</li>
-        <li>GRADESTAR Fellowship (2023–2024)</li>
-        <li>Chairperson’s Fellowship – UVA</li>
-        <li><a href="https://popularscientist.com/soroush-zare-engineering-best-researcher-award-6623/" target="_blank">ScienceFather Best Researcher Award</a></li>
-      </ul>
-    </section>
+    <section id="about" class="reveal"><h2>About</h2><p>I design brain-machine interfaces ...</p></section>
+    <section id="projects" class="reveal"><h2>Projects</h2><p>Project details here...</p></section>
+    <section id="publications" class="reveal"><h2>Publications</h2><p>Publication list here...</p></section>
+    <section id="review" class="reveal"><h2>Reviewer Roles</h2><p>Reviewer list here...</p></section>
+    <section id="talks" class="reveal"><h2>Talks</h2><p>Talks go here...</p></section>
+    <section id="awards" class="reveal"><h2>Awards</h2><p>Awards info here...</p></section>
   </main>
 
   <footer>
     <p>© 2025 Soroush Zare • Built with 💙 and HTML/CSS</p>
-    <img src="https://hitwebcounter.com/counter/counter.php?page=1234567&style=0006&nbdigits=5&type=page&initCount=0" title="Web Counter" alt="web counter" />
+    <div id="visitor-counter">00001</div>
   </footer>
 </body>
 </html>
