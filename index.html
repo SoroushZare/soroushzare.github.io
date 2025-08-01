@@ -448,11 +448,13 @@
       box-shadow: 0 4px 12px var(--accent-glow);
     }
 
-    /* Parallax effect for sections */
+    /* Parallax effect for sections - temporarily disabled */
+    /*
     .parallax-section {
       transform: translateZ(0);
       will-change: transform;
     }
+    */
 
     /* Smooth scroll indicator */
     .scroll-indicator {
@@ -538,7 +540,7 @@
   <a href="#awards">Awards</a>
 </nav>
 
-<section id="about" class="parallax-section">
+<section id="about">
   <h2>About</h2>
   <p>I design brain-machine interfaces and adaptive control strategies using EEG, reinforcement learning, and robotics. My mission is to revolutionize neurorehabilitation and intelligent assistive technologies. I am currently a member of the <a href="https://engineering.virginia.edu/labs-groups/wearlab" target="_blank">WEARLab</a> at the University of Virginia, where we focus on wearable robotics and intelligent rehabilitation systems.</p>
   
@@ -553,7 +555,7 @@
   </div>
 </section>
 
-<section id="projects" class="parallax-section">
+<section id="projects">
   <h2>Projects</h2>
   <!-- 🚀 FEATURED VIDEO -->
   <h3>🤖 Linux for Robotics: Obstacle Avoidance Demo</h3>
@@ -586,7 +588,7 @@
   </ul>
 </section>
 
-<section id="publications" class="parallax-section">
+<section id="publications">
   <h2>Publications</h2>
   <ul>
     <li><a href="https://www.mdpi.com/journal/sensors">NeuroFlex</a>, Sensors (2025)</li>
@@ -597,7 +599,7 @@
   </ul>
 </section>
 
-<section id="reviews" class="parallax-section">
+<section id="reviews">
   <h2>Reviewer Roles</h2>
   <ul>
     <li><a href="https://advancedscience.com">Advanced Science</a></li>
@@ -610,7 +612,7 @@
   </ul>
 </section>
 
-<section id="talks" class="parallax-section">
+<section id="talks">
   <h2>Talks</h2>
   <ul>
     <li>🎤 MAE Graduate Seminar @ UVA: <a href="https://engineering.virginia.edu/news-events/events/mae-seminar-graduate-students-soroush-zare-kevin-fletcher-and-gabriella-wynn-uva" target="_blank">EEG-Driven Robotics Control for Intent Validation and Adaptive Rehabilitation Using Feedback-Driven Learning</a></li>
@@ -618,7 +620,7 @@
   </ul>
 </section>
 
-<section id="awards" class="parallax-section">
+<section id="awards">
   <h2>Awards</h2>
   <ul>
     <li>🥇 <a href="https://engineering.virginia.edu/news-events/news/photos-mechanical-and-aerospace-engineering-awards-banquet" target="_blank">Outstanding Graduate Research Award – UVA MAE Awards Banquet (2025)</a></li>
@@ -689,7 +691,9 @@
     scrollIndicator.style.width = scrollPercent + '%';
   });
 
+  // Disable parallax effect temporarily to fix navigation issues
   // Parallax effect
+  /*
   window.addEventListener('scroll', () => {
     const scrolled = window.pageYOffset;
     const parallaxSections = document.querySelectorAll('.parallax-section');
@@ -700,6 +704,7 @@
       section.style.transform = `translateY(${yPos}px)`;
     });
   });
+  */
 
   // Smooth scroll for navigation links
   document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
