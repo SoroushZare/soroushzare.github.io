@@ -568,13 +568,41 @@
 <button class="toggle-mode" onclick="toggleTheme()">🌙</button>
 
 <!-- Opening Animation Overlay -->
-<div id="openingAnimation" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #000428, #004e92); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div id="openingText" style="text-align: center; opacity: 0; transform: translateY(30px); transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);">
+<div id="openingAnimation" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(20px); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  
+  <!-- Signal/Hand Animation -->
+  <div id="signalAnimation" style="text-align: center; opacity: 0; transform: scale(0.8); transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);">
+    <div style="font-size: 4rem; margin-bottom: 20px; animation: pulse 2s infinite;">🧠</div>
+    <div style="font-size: 3rem; margin-bottom: 20px; animation: wave 1.5s infinite;">👋</div>
+    <div style="width: 200px; height: 4px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); margin: 20px auto; border-radius: 2px; animation: signal 2s infinite;"></div>
+  </div>
+  
+  <!-- Text Animation -->
+  <div id="openingText" style="text-align: center; opacity: 0; transform: translateY(30px); transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1); position: absolute;">
     <h1 style="font-size: 3.5rem; font-weight: 700; margin: 0; background: linear-gradient(135deg, #4da3ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 0 30px rgba(77, 163, 255, 0.5);">Hello, I'm Soroush.</h1>
     <p style="font-size: 1.5rem; margin: 20px 0 0 0; opacity: 0.9; font-weight: 300; letter-spacing: 1px;">I read minds for a living.</p>
     <div style="margin-top: 40px; font-size: 1rem; opacity: 0.7; font-weight: 300;">Loading neural pathways...</div>
   </div>
 </div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(10deg); }
+  75% { transform: rotate(-10deg); }
+}
+
+@keyframes signal {
+  0% { opacity: 0; transform: scaleX(0); }
+  50% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(0); }
+}
+</style>
 
 <header>
   <img src="https://soroushzare.github.io/Profile.jpg" alt="Soroush Zare">
@@ -855,22 +883,38 @@
   // Opening Animation
   window.addEventListener('load', () => {
     const openingAnimation = document.getElementById('openingAnimation');
+    const signalAnimation = document.getElementById('signalAnimation');
     const openingText = document.getElementById('openingText');
     
-    // Start the animation sequence
+    // Sequence: Blur -> Signal -> Text -> Vanish
+    
+    // 1. Start with blur effect (already applied via CSS)
+    // 2. Show signal/hand animation after 0.5s
+    setTimeout(() => {
+      signalAnimation.style.opacity = '1';
+      signalAnimation.style.transform = 'scale(1)';
+    }, 500);
+    
+    // 3. Show text after 2.5s (while signal is still playing)
     setTimeout(() => {
       openingText.style.opacity = '1';
       openingText.style.transform = 'translateY(0)';
-    }, 500);
+    }, 2500);
     
-    // Hide the overlay after animation
+    // 4. Hide signal animation after 3.5s
+    setTimeout(() => {
+      signalAnimation.style.opacity = '0';
+      signalAnimation.style.transform = 'scale(0.8)';
+    }, 3500);
+    
+    // 5. Hide everything after 5s
     setTimeout(() => {
       openingAnimation.style.opacity = '0';
       openingAnimation.style.transform = 'scale(1.1)';
       setTimeout(() => {
         openingAnimation.style.display = 'none';
       }, 1000);
-    }, 4000);
+    }, 5000);
   });
 
   // Theme toggle functionality
