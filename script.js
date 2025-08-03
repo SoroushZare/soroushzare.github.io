@@ -73,116 +73,6 @@ class SmoothScrolling {
   }
 }
 
-// View Counter
-class ViewCounter {
-  constructor() {
-    this.viewCountElement = document.getElementById('viewCount');
-    this.init();
-  }
-
-  init() {
-    // Use a simple counter service to track actual views
-    this.fetchActualViews();
-  }
-
-  async fetchActualViews() {
-    try {
-      // Show a consistent, realistic view count across all browsers
-      // This ensures the same number appears everywhere
-      const viewCount = this.getConsistentViewCount();
-      this.animateCount(viewCount);
-    } catch (error) {
-      console.log('View counter failed, using consistent estimate');
-      const estimate = this.getConsistentViewCount();
-      this.animateCount(estimate);
-    }
-  }
-
-  getConsistentViewCount() {
-    // Return your actual Google Analytics pageview count
-    // Go to your GA dashboard: https://analytics.google.com/analytics/web/#/p484917076/reports/intelligenthome
-    // Look for "Pageviews" or "Sessions" and update this number
-    const actualGAViews = 2835; // Replace this with your real GA pageview count
-    
-    return actualGAViews;
-  }
-
-  // Google Analytics Integration
-  async getGoogleAnalyticsViews() {
-    try {
-      // Use a reliable counter service that provides consistent counts
-      const response = await fetch('https://api.countapi.xyz/get/soroushzare.github.io/visits');
-      const data = await response.json();
-      
-      if (data && data.value) {
-        return data.value;
-      } else {
-        // Fallback to a realistic estimate based on typical academic website traffic
-        return this.getRealisticEstimate();
-      }
-    } catch (error) {
-      console.log('GA API failed, using estimate');
-      return this.getRealisticEstimate();
-    }
-  }
-
-  getRealisticEstimate() {
-    // Calculate realistic estimate based on website age and typical academic traffic
-    // This ensures all browsers show the same number
-    const websiteAgeDays = Math.floor((Date.now() - new Date('2023-01-01').getTime()) / (1000 * 60 * 60 * 24));
-    const estimatedViews = Math.max(websiteAgeDays * 3, 75); // 3 views per day since launch, minimum 75
-    return estimatedViews;
-  }
-
-  async tryAlternativeService() {
-    try {
-      // Alternative counter service
-      const response = await fetch('https://api.countapi.xyz/get/soroushzare.github.io/visits');
-      const data = await response.json();
-      
-      if (data && data.value) {
-        this.animateCount(data.value);
-      } else {
-        // If all APIs fail, show a realistic estimate
-        this.showRealisticEstimate();
-      }
-    } catch (error) {
-      console.log('Alternative API failed, showing estimate');
-      this.showRealisticEstimate();
-    }
-  }
-
-  showRealisticEstimate() {
-    // Show a realistic estimate based on website age and typical traffic
-    const websiteAgeDays = Math.floor((Date.now() - new Date('2023-01-01').getTime()) / (1000 * 60 * 60 * 24));
-    const estimatedViews = Math.max(websiteAgeDays * 2, 50); // 2 views per day since launch, minimum 50
-    
-    this.animateCount(estimatedViews);
-  }
-
-  getVisitKey() {
-    // Create a unique key for today's visit
-    const today = new Date().toDateString();
-    return 'visited_' + today;
-  }
-
-  animateCount(targetCount) {
-    let currentDisplay = 0;
-    const increment = targetCount / 50; // Animate over 50 steps
-    const duration = 1000; // 1 second
-    const stepTime = duration / 50;
-
-    const timer = setInterval(() => {
-      currentDisplay += increment;
-      if (currentDisplay >= targetCount) {
-        currentDisplay = targetCount;
-        clearInterval(timer);
-      }
-      this.viewCountElement.textContent = Math.floor(currentDisplay).toLocaleString();
-    }, stepTime);
-  }
-}
-
 // Website Stats
 class WebsiteStats {
   constructor() {
@@ -201,47 +91,95 @@ class WebsiteStats {
 
   updateTime() {
     const now = new Date();
-    const timeString = now.toLocaleTimeString('en-US', { 
+    const timeString = now.toLocaleTimeString('en-US', {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit'
     });
     
-    // You can add this to the stats container if needed
+    // You can add time display if needed
     // document.getElementById('currentTime').textContent = timeString;
   }
 }
 
-// Initialize everything when DOM is loaded
+// Main Initialization
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize particle system
   const particleSystem = new ParticleSystem();
   
   // Initialize scroll animations
   const scrollAnimations = new ScrollAnimations();
-  
-  // Initialize smooth scrolling
   const smoothScrolling = new SmoothScrolling();
-  
-  // Initialize view counter
-  const viewCounter = new ViewCounter();
-  
-  // Initialize website stats
   const websiteStats = new WebsiteStats();
   
+  // Add hover effects to stats container
+  document.querySelectorAll('.stats-container').forEach(container => {
+    container.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-5px)';
+      this.style.boxShadow = '0 10px 25px rgba(77, 163, 255, 0.2)';
+    });
+    container.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = 'none';
+    });
+  });
+
+  // Add hover effects to list items within scrollable content
+  document.querySelectorAll('.scrollable-content li').forEach(item => {
+    item.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateX(5px)';
+      this.style.transition = 'transform 0.3s ease';
+    });
+    item.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateX(0)';
+    });
+  });
+
+  // Add hover effects to project info sections
+  document.querySelectorAll('.info-section').forEach(section => {
+    section.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-5px)';
+      this.style.boxShadow = '0 10px 25px rgba(77, 163, 255, 0.2)';
+    });
+    section.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = 'none';
+    });
+  });
+
+  // Add hover effects to project links
+  document.querySelectorAll('.project-link').forEach(link => {
+    link.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-3px)';
+      this.style.boxShadow = '0 10px 25px var(--accent-glow)';
+    });
+    link.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = 'none';
+    });
+  });
+
+  // Add pulse animation for stats
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+  `;
+  document.head.appendChild(style);
+
   // Active navigation highlighting
   const updateActiveNav = () => {
     const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
+    const navLinks = document.querySelectorAll('.nav a');
     
     let current = '';
-    const scrollPosition = window.pageYOffset + window.innerHeight / 2;
-    
     sections.forEach(section => {
       const sectionTop = section.offsetTop;
-      const sectionBottom = sectionTop + section.offsetHeight;
-      
-      if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+      const sectionHeight = section.clientHeight;
+      if (window.pageYOffset >= sectionTop - 200) {
         current = section.getAttribute('id');
       }
     });
@@ -256,119 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('scroll', updateActiveNav);
   updateActiveNav();
-  
-  // Add hover effects to glass cards
-  document.querySelectorAll('.glass-card').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-10px) scale(1.02)';
-    });
-    
-    card.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0) scale(1)';
-    });
-  });
-  
-  // Add click effects to social links
-  document.querySelectorAll('.social-link').forEach(link => {
-    link.addEventListener('click', function() {
-      this.style.transform = 'translateY(-5px) scale(1.2)';
-      setTimeout(() => {
-        this.style.transform = 'translateY(-5px) scale(1.1)';
-      }, 150);
-    });
-  });
-  
-  // Add typing effect to header
-  const headerTitle = document.querySelector('.header h1');
-  const originalText = headerTitle.textContent;
-  headerTitle.textContent = '';
-  
-  let i = 0;
+
+  // Typewriter effect for hero section
   const typeWriter = () => {
-    if (i < originalText.length) {
-      headerTitle.textContent += originalText.charAt(i);
-      i++;
-      setTimeout(typeWriter, 100);
-    }
+    const text = "PhD Candidate @ University of Virginia | AI • BCI • Robotics";
+    const element = document.querySelector('.hero-subtitle');
+    if (!element) return;
+    
+    element.textContent = '';
+    let i = 0;
+    
+    const typeInterval = setInterval(() => {
+      if (i < text.length) {
+        element.textContent += text.charAt(i);
+        i++;
+      } else {
+        clearInterval(typeInterval);
+      }
+    }, 50);
   };
-  
-  // Start typing effect immediately
+
+  // Start typewriter effect after a short delay
   setTimeout(typeWriter, 500);
-
-  // Add smooth hover effects to stats container
-  const statsContainer = document.querySelector('.stats-container');
-  if (statsContainer) {
-    statsContainer.addEventListener('mouseenter', function() {
-      this.style.transform = 'scale(1.05)';
-      this.style.boxShadow = '0 10px 30px rgba(77, 163, 255, 0.3)';
-    });
-    
-    statsContainer.addEventListener('mouseleave', function() {
-      this.style.transform = 'scale(1)';
-      this.style.boxShadow = 'none';
-    });
-  }
-
-  // Add pulse effect to view count
-  const viewCountElement = document.getElementById('viewCount');
-  if (viewCountElement) {
-    viewCountElement.addEventListener('animationend', function() {
-      this.style.animation = 'none';
-    });
-    
-    // Add pulse animation when count updates
-    setTimeout(() => {
-      viewCountElement.style.animation = 'pulse 0.5s ease-in-out';
-    }, 1000);
-  }
-
-  // Add CSS for pulse animation
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-  `;
-  document.head.appendChild(style);
-
-  // Add hover effects to scrollable content items
-  document.querySelectorAll('.scrollable-content li').forEach(item => {
-    item.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateX(5px)';
-      this.style.background = 'rgba(77, 163, 255, 0.2)';
-    });
-    
-    item.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateX(0)';
-      this.style.background = 'rgba(77, 163, 255, 0.1)';
-    });
-  });
-
-  // Add hover effects to project info sections
-  document.querySelectorAll('.info-section').forEach(section => {
-    section.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-5px)';
-      this.style.boxShadow = '0 10px 25px rgba(77, 163, 255, 0.2)';
-    });
-    
-    section.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = 'none';
-    });
-  });
-
-  // Add hover effects to project links
-  document.querySelectorAll('.project-link').forEach(link => {
-    link.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-3px)';
-      this.style.boxShadow = '0 10px 25px var(--accent-glow)';
-    });
-    
-    link.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = 'none';
-    });
-  });
 }); 
