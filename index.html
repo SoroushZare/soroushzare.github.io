@@ -1454,19 +1454,12 @@ body.animation-active {
   // Update view count when page loads
   document.addEventListener('DOMContentLoaded', updateViewCount);
 
-  // Contact form handling with improved reliability
+  // Contact form handling - instant email client opening
   document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
     const statusDiv = document.getElementById('statusMessage');
-    const submitButton = this.querySelector('button[type="submit"]');
-    const originalText = submitButton.innerHTML;
-    
-    // Show loading state
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-    submitButton.disabled = true;
-    statusDiv.innerHTML = '';
     
     // Prepare email data
     const emailData = {
@@ -1490,38 +1483,29 @@ Sent from Soroush Zare's website contact form
     // Create mailto link
     const mailtoLink = `mailto:soroushzrz@gmail.com?subject=${encodeURIComponent('Contact Form: ' + emailData.subject)}&body=${encodeURIComponent(emailBody)}`;
     
-    // Try to open email client immediately
+    // Open email client instantly
     try {
-      const tempLink = document.createElement('a');
-      tempLink.href = mailtoLink;
-      tempLink.style.display = 'none';
-      document.body.appendChild(tempLink);
-      tempLink.click();
-      document.body.removeChild(tempLink);
+      window.location.href = mailtoLink;
       
       // Show success message
-      statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Email client opened! Your message is pre-filled. Please send the email.</span>';
-      submitButton.innerHTML = originalText;
-      submitButton.disabled = false;
+      statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Email client opened! Your message is pre-filled.</span>';
       
       // Reset form
       document.getElementById('contactForm').reset();
       
-      // Clear success message after 10 seconds
+      // Clear success message after 8 seconds
       setTimeout(() => {
         statusDiv.innerHTML = '';
-      }, 10000);
+      }, 8000);
       
     } catch (error) {
       // If that fails, show direct email instruction
-      statusDiv.innerHTML = '<span style="color: #f44336;">⚠️ Please email me directly at soroushzrz@gmail.com with your message.</span>';
-      submitButton.innerHTML = originalText;
-      submitButton.disabled = false;
+      statusDiv.innerHTML = '<span style="color: #f44336;">⚠️ Please email me directly at soroushzrz@gmail.com</span>';
       
-      // Clear error message after 10 seconds
+      // Clear error message after 8 seconds
       setTimeout(() => {
         statusDiv.innerHTML = '';
-      }, 10000);
+      }, 8000);
     }
   });
 </script>
