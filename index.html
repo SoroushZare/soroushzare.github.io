@@ -137,13 +137,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
   <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LH3SQLMWTD"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-LH3SQLMWTD');
-  </script>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-LH3SQLMWTD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-LH3SQLMWTD');
+    </script>
+
 
   <style>
     :root {
@@ -1357,12 +1358,12 @@ body.animation-active {
   // Update view count when page loads
   document.addEventListener('DOMContentLoaded', updateViewCount);
 
-  // Contact form handling
+  // Contact form handling with direct email sending
   document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-    const statusDiv = document.getElementById('formStatus');
+    const statusDiv = document.getElementById('statusMessage');
     const submitButton = this.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
     
@@ -1371,47 +1372,85 @@ body.animation-active {
     submitButton.disabled = true;
     statusDiv.innerHTML = '';
     
-    // Create a simple email link with pre-filled content
-    const emailBody = `
-Name: ${formData.get('name')}
-Email: ${formData.get('email')}
-Subject: ${formData.get('subject')}
-Message: ${formData.get('message')}
+    // Prepare email data
+    const emailData = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      subject: formData.get('subject'),
+      message: formData.get('message')
+    };
+    
+    // Send email using a free service (Formspree alternative)
+    fetch('https://formspree.io/f/xayzqjqr', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: emailData.name,
+        email: emailData.email,
+        subject: emailData.subject,
+        message: emailData.message,
+        _replyto: emailData.email
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+        // Success
+        statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Message sent successfully! I\'ll get back to you soon.</span>';
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+        
+        // Reset form
+        document.getElementById('contactForm').reset();
+        
+        // Clear success message after 8 seconds
+        setTimeout(() => {
+          statusDiv.innerHTML = '';
+        }, 8000);
+      } else {
+        throw new Error('Network response was not ok');
+      }
+    })
+    .catch(error => {
+      // Error - fallback to email client
+      console.error('Error:', error);
+      
+      // Create email body
+      const emailBody = `
+Name: ${emailData.name}
+Email: ${emailData.email}
+Subject: ${emailData.subject}
+Message: ${emailData.message}
 
 ---
 Sent from Soroush Zare's website contact form
-    `;
-    
-    // Create mailto link
-    const mailtoLink = `mailto:soroushzrz@gmail.com?subject=${encodeURIComponent('Contact Form: ' + formData.get('subject'))}&body=${encodeURIComponent(emailBody)}`;
-    
-    // Try to open email client
-    try {
-      // Create a temporary link and click it
-      const tempLink = document.createElement('a');
-      tempLink.href = mailtoLink;
-      tempLink.style.display = 'none';
-      document.body.appendChild(tempLink);
-      tempLink.click();
-      document.body.removeChild(tempLink);
+      `;
       
-      // Show success message
-      statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Email client opened! Please send the email. Your message is pre-filled.</span>';
-    } catch (error) {
-      // If that fails, show direct email instruction
-      statusDiv.innerHTML = '<span style="color: #f44336;">⚠️ Please email directly to soroushzrz@gmail.com with your message.</span>';
-    }
-    
-    submitButton.innerHTML = originalText;
-    submitButton.disabled = false;
-    
-    // Reset form
-    this.reset();
-    
-    // Clear success message after 10 seconds
-    setTimeout(() => {
-      statusDiv.innerHTML = '';
-    }, 10000);
+      // Try to open email client as fallback
+      const mailtoLink = `mailto:soroushzrz@gmail.com?subject=${encodeURIComponent('Contact Form: ' + emailData.subject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      try {
+        const tempLink = document.createElement('a');
+        tempLink.href = mailtoLink;
+        tempLink.style.display = 'none';
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+        
+        statusDiv.innerHTML = '<span style="color: #ff9800;">⚠️ Email client opened as fallback. Please send the email manually.</span>';
+      } catch (fallbackError) {
+        statusDiv.innerHTML = '<span style="color: #f44336;">⚠️ Please email me directly at soroushzrz@gmail.com</span>';
+      }
+      
+      submitButton.innerHTML = originalText;
+      submitButton.disabled = false;
+      
+      // Clear error message after 8 seconds
+      setTimeout(() => {
+        statusDiv.innerHTML = '';
+      }, 8000);
+    });
   });
 </script>
 
