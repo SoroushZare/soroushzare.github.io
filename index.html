@@ -567,6 +567,15 @@
 <div class="scroll-indicator"></div>
 <button class="toggle-mode" onclick="toggleTheme()">🌙</button>
 
+<!-- Opening Animation Overlay -->
+<div id="openingAnimation" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #000428, #004e92); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; color: white; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div id="openingText" style="text-align: center; opacity: 0; transform: translateY(30px); transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);">
+    <h1 style="font-size: 3.5rem; font-weight: 700; margin: 0; background: linear-gradient(135deg, #4da3ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 0 30px rgba(77, 163, 255, 0.5);">Hello, I'm Soroush.</h1>
+    <p style="font-size: 1.5rem; margin: 20px 0 0 0; opacity: 0.9; font-weight: 300; letter-spacing: 1px;">I read minds for a living.</p>
+    <div style="margin-top: 40px; font-size: 1rem; opacity: 0.7; font-weight: 300;">Loading neural pathways...</div>
+  </div>
+</div>
+
 <header>
   <img src="https://soroushzare.github.io/Profile.jpg" alt="Soroush Zare">
   <h1>Soroush Zare</h1>
@@ -843,6 +852,27 @@
 </div>
 
 <script>
+  // Opening Animation
+  window.addEventListener('load', () => {
+    const openingAnimation = document.getElementById('openingAnimation');
+    const openingText = document.getElementById('openingText');
+    
+    // Start the animation sequence
+    setTimeout(() => {
+      openingText.style.opacity = '1';
+      openingText.style.transform = 'translateY(0)';
+    }, 500);
+    
+    // Hide the overlay after animation
+    setTimeout(() => {
+      openingAnimation.style.opacity = '0';
+      openingAnimation.style.transform = 'scale(1.1)';
+      setTimeout(() => {
+        openingAnimation.style.display = 'none';
+      }, 1000);
+    }, 4000);
+  });
+
   // Theme toggle functionality
   function toggleTheme() {
     const html = document.documentElement;
