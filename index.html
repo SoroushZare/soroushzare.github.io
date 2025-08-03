@@ -592,41 +592,57 @@
     <div style="width: 200px; height: 4px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); margin: 20px auto; border-radius: 2px; animation: signal 2s infinite;"></div>
   </div>
   
-  <!-- EEG Brain Topography with Signals -->
-  <div id="brainTopography" style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); opacity: 0; transition: all 1s ease;">
-    <!-- Brain Outline -->
-    <div style="position: relative; width: 200px; height: 150px;">
-      <!-- Brain Shape -->
-      <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 180px; height: 120px; background: radial-gradient(ellipse at center, rgba(77, 163, 255, 0.1) 0%, transparent 70%); border: 2px solid rgba(77, 163, 255, 0.3); border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;"></div>
+  <!-- Realistic EEG Brain Topography with Multiple Waves -->
+  <div id="brainTopography" style="position: absolute; top: 8%; left: 50%; transform: translateX(-50%); opacity: 0; transition: all 1s ease;">
+    <!-- Brain Outline with Realistic Shape -->
+    <div style="position: relative; width: 280px; height: 200px;">
+      <!-- Realistic Brain Shape -->
+      <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 240px; height: 160px; background: radial-gradient(ellipse at center, rgba(77, 163, 255, 0.15) 0%, rgba(77, 163, 255, 0.05) 50%, transparent 80%); border: 3px solid rgba(77, 163, 255, 0.4); border-radius: 60% 60% 40% 40% / 70% 70% 30% 30%; box-shadow: 0 0 20px rgba(77, 163, 255, 0.2);"></div>
       
-      <!-- EEG Electrodes -->
-      <div class="eeg-electrode" style="position: absolute; top: 15px; left: 30px; width: 8px; height: 8px; background: #4da3ff; border-radius: 50%; animation: electrode1 2s infinite;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 15px; right: 30px; width: 8px; height: 8px; background: #00d4ff; border-radius: 50%; animation: electrode2 2.2s infinite;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 45px; left: 20px; width: 8px; height: 8px; background: #4da3ff; border-radius: 50%; animation: electrode3 1.8s infinite;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 45px; right: 20px; width: 8px; height: 8px; background: #00d4ff; border-radius: 50%; animation: electrode4 2.1s infinite;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 75px; left: 50%; transform: translateX(-50%); width: 8px; height: 8px; background: #4da3ff; border-radius: 50%; animation: electrode5 1.9s infinite;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 105px; left: 30px; width: 8px; height: 8px; background: #00d4ff; border-radius: 50%; animation: electrode6 2.3s infinite;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 105px; right: 30px; width: 8px; height: 8px; background: #4da3ff; border-radius: 50%; animation: electrode7 1.7s infinite;"></div>
+      <!-- Brain Surface EEG Waves -->
+      <div class="brain-wave-surface" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 200px; height: 120px; border-radius: 60% 60% 40% 40% / 70% 70% 30% 30%; overflow: hidden;">
+        <!-- Multiple EEG Wave Patterns -->
+        <div class="eeg-pattern" style="position: absolute; top: 10px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: brainWave1 1.8s infinite;"></div>
+        <div class="eeg-pattern" style="position: absolute; top: 25px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); animation: brainWave2 2.1s infinite;"></div>
+        <div class="eeg-pattern" style="position: absolute; top: 40px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: brainWave3 1.5s infinite;"></div>
+        <div class="eeg-pattern" style="position: absolute; top: 55px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); animation: brainWave4 2.3s infinite;"></div>
+        <div class="eeg-pattern" style="position: absolute; top: 70px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: brainWave5 1.9s infinite;"></div>
+        <div class="eeg-pattern" style="position: absolute; top: 85px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); animation: brainWave6 2.0s infinite;"></div>
+        <div class="eeg-pattern" style="position: absolute; top: 100px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: brainWave7 1.7s infinite;"></div>
+      </div>
       
-      <!-- Signal Lines -->
-      <div class="signal-line" style="position: absolute; top: 19px; left: 34px; width: 2px; height: 40px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine1 1.5s infinite;"></div>
-      <div class="signal-line" style="position: absolute; top: 19px; right: 34px; width: 2px; height: 40px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine2 1.7s infinite;"></div>
-      <div class="signal-line" style="position: absolute; top: 49px; left: 24px; width: 2px; height: 35px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine3 1.3s infinite;"></div>
-      <div class="signal-line" style="position: absolute; top: 49px; right: 24px; width: 2px; height: 35px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine4 1.9s infinite;"></div>
-      <div class="signal-line" style="position: absolute; top: 79px; left: 50%; transform: translateX(-50%); width: 2px; height: 30px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine5 1.6s infinite;"></div>
-      <div class="signal-line" style="position: absolute; top: 109px; left: 34px; width: 2px; height: 25px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine6 1.4s infinite;"></div>
-      <div class="signal-line" style="position: absolute; top: 109px; right: 34px; width: 2px; height: 25px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine7 1.8s infinite;"></div>
+      <!-- EEG Electrodes (More Realistic Placement) -->
+      <div class="eeg-electrode" style="position: absolute; top: 10px; left: 25px; width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode1 2s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 10px; right: 25px; width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode2 2.2s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 35px; left: 15px; width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode3 1.8s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 35px; right: 15px; width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode4 2.1s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode5 1.9s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 85px; left: 25px; width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode6 2.3s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 85px; right: 25px; width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode7 1.7s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 110px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode8 2.0s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
+      
+      <!-- Signal Lines with More Realistic Paths -->
+      <div class="signal-line" style="position: absolute; top: 15px; left: 30px; width: 3px; height: 50px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine1 1.5s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 15px; right: 30px; width: 3px; height: 50px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine2 1.7s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 40px; left: 20px; width: 3px; height: 45px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine3 1.3s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 40px; right: 20px; width: 3px; height: 45px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine4 1.9s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 65px; left: 50%; transform: translateX(-50%); width: 3px; height: 40px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine5 1.6s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 90px; left: 30px; width: 3px; height: 35px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine6 1.4s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 90px; right: 30px; width: 3px; height: 35px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine7 1.8s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 115px; left: 50%; transform: translateX(-50%); width: 3px; height: 30px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine8 1.5s infinite; border-radius: 2px;"></div>
     </div>
     
-    <!-- EEG Waveform Display -->
-    <div style="margin-top: 20px; width: 300px; height: 60px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 10px; border: 1px solid rgba(77, 163, 255, 0.3);">
+    <!-- Enhanced EEG Waveform Display -->
+    <div style="margin-top: 25px; width: 350px; height: 80px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 15px; border: 2px solid rgba(77, 163, 255, 0.4); box-shadow: 0 0 15px rgba(77, 163, 255, 0.2);">
       <div style="position: relative; width: 100%; height: 100%;">
-        <!-- Alpha Waves -->
-        <div class="eeg-wave" style="position: absolute; top: 10px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: alphaWave 2s infinite;"></div>
-        <!-- Beta Waves -->
-        <div class="eeg-wave" style="position: absolute; top: 25px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); animation: betaWave 1.5s infinite;"></div>
-        <!-- Theta Waves -->
-        <div class="eeg-wave" style="position: absolute; top: 40px; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: thetaWave 2.5s infinite;"></div>
+        <!-- Alpha Waves (8-13 Hz) -->
+        <div class="eeg-wave" style="position: absolute; top: 10px; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: alphaWave 2s infinite; border-radius: 2px;"></div>
+        <!-- Beta Waves (13-30 Hz) -->
+        <div class="eeg-wave" style="position: absolute; top: 25px; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); animation: betaWave 1.5s infinite; border-radius: 2px;"></div>
+        <!-- Theta Waves (4-8 Hz) -->
+        <div class="eeg-wave" style="position: absolute; top: 40px; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); animation: thetaWave 2.5s infinite; border-radius: 2px;"></div>
+        <!-- Delta Waves (0.5-4 Hz) -->
+        <div class="eeg-wave" style="position: absolute; top: 55px; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); animation: deltaWave 3s infinite; border-radius: 2px;"></div>
       </div>
     </div>
   </div>
@@ -786,6 +802,65 @@
   0% { transform: translateX(-100%); opacity: 0; }
   50% { opacity: 1; }
   100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes deltaWave {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+/* Brain Surface Wave Animations */
+@keyframes brainWave1 {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes brainWave2 {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes brainWave3 {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes brainWave4 {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes brainWave5 {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes brainWave6 {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes brainWave7 {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes electrode8 {
+  0%, 100% { transform: scale(1); opacity: 0.7; box-shadow: 0 0 5px #00d4ff; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 15px #00d4ff; }
+}
+
+@keyframes signalLine8 {
+  0%, 100% { opacity: 0.3; transform: scaleY(0.5); }
+  50% { opacity: 1; transform: scaleY(1); }
 }
 
 /* Prevent body scroll during animation */
