@@ -119,8 +119,12 @@ class ViewCounter {
       localStorage.setItem(visitKey, 'true');
     }
     
+    // Add a base count to simulate existing traffic and provide realistic starting point
+    const baseCount = 250; // Simulate existing traffic
+    const displayCount = Math.max(currentViews, baseCount);
+    
     // Update display with animation
-    this.animateCount(currentViews);
+    this.animateCount(displayCount);
   }
 
   getVisitKey() {
