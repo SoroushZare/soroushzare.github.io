@@ -824,7 +824,9 @@
     
     <div style="background: rgba(77, 163, 255, 0.05); padding: 30px; border-radius: 16px; border: 1px solid rgba(77, 163, 255, 0.2);">
       
-      <form id="contactForm">
+      <form id="contactForm" action="https://formspree.io/f/xpzgwqjq" method="POST">
+        <input type="hidden" name="_replyto" value="cyj7tf@virginia.edu">
+        <input type="hidden" name="_subject" value="New Contact Form Submission - Soroush Zare Website">
         <div style="margin-bottom: 20px;">
           <label for="name" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--link-dark);">Name *</label>
           <input type="text" id="name" name="name" required style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; transition: all 0.3s ease;">
@@ -1012,45 +1014,47 @@
     const originalText = submitButton.innerHTML;
     
     // Show loading state
-    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...';
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
     submitButton.disabled = true;
     statusDiv.innerHTML = '';
     
-    // Create email body
-    const emailBody = `
-Name: ${formData.get('name')}
-Email: ${formData.get('email')}
-Subject: ${formData.get('subject')}
-Message: ${formData.get('message')}
-
----
-Sent from Soroush Zare's website contact form
-    `;
-    
-    // Create mailto link
-    const mailtoLink = `mailto:cyj7tf@virginia.edu?subject=${encodeURIComponent('Contact Form: ' + formData.get('subject'))}&body=${encodeURIComponent(emailBody)}`;
-    
-    // Try to open email client
-    try {
-      window.location.href = mailtoLink;
+    // Submit form to Formspree
+    fetch(this.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        // Show success message
+        statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Message sent successfully! I will get back to you soon.</span>';
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+        
+        // Reset form
+        this.reset();
+        
+        // Clear success message after 8 seconds
+        setTimeout(() => {
+          statusDiv.innerHTML = '';
+        }, 8000);
+      } else {
+        throw new Error('Network response was not ok');
+      }
+    })
+    .catch(error => {
+      // Show error message
+      statusDiv.innerHTML = '<span style="color: #f44336;">✗ Error sending message. Please try again or email directly at cyj7tf@virginia.edu</span>';
+      submitButton.innerHTML = originalText;
+      submitButton.disabled = false;
       
-      // Show success message
-      statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Email client opened! Please send the email manually. The form is pre-filled with your message.</span>';
-    } catch (error) {
-      // Fallback if mailto doesn't work
-      statusDiv.innerHTML = '<span style="color: #f44336;">⚠️ Please email directly to cyj7tf@virginia.edu with your message.</span>';
-    }
-    
-    submitButton.innerHTML = originalText;
-    submitButton.disabled = false;
-    
-    // Reset form
-    this.reset();
-    
-    // Clear success message after 10 seconds
-    setTimeout(() => {
-      statusDiv.innerHTML = '';
-    }, 10000);
+      // Clear error message after 8 seconds
+      setTimeout(() => {
+        statusDiv.innerHTML = '';
+      }, 8000);
+    });
   });
 </script>
 
