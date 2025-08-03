@@ -81,6 +81,29 @@ class ViewCounter {
   }
 
   init() {
+    // Use a simple counter service to track actual views
+    this.fetchActualViews();
+  }
+
+  async fetchActualViews() {
+    try {
+      // Use a simple counter service (you can replace with your preferred service)
+      const response = await fetch('https://api.countapi.xyz/hit/soroushzare.github.io/visits');
+      const data = await response.json();
+      
+      if (data && data.value) {
+        this.animateCount(data.value);
+      } else {
+        // Fallback to local storage if API fails
+        this.fallbackToLocal();
+      }
+    } catch (error) {
+      console.log('Using fallback view counter');
+      this.fallbackToLocal();
+    }
+  }
+
+  fallbackToLocal() {
     // Get current view count from localStorage
     let currentViews = localStorage.getItem('pageViews') || 0;
     currentViews = parseInt(currentViews);
@@ -96,13 +119,8 @@ class ViewCounter {
       localStorage.setItem(visitKey, 'true');
     }
     
-    // Add a base count to simulate existing traffic
-    // This provides a more realistic starting point for new visitors
-    const baseCount = 150; // Simulate existing traffic
-    const displayCount = Math.max(currentViews, baseCount);
-    
     // Update display with animation
-    this.animateCount(displayCount);
+    this.animateCount(currentViews);
   }
 
   getVisitKey() {
