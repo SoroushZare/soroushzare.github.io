@@ -586,24 +586,19 @@
     <div style="position: absolute; top: 60%; right: 10%; width: 2px; height: 30px; background: linear-gradient(to bottom, transparent, #00d4ff, transparent); animation: neural4 2s infinite;"></div>
   </div>
   
-  <!-- Signal/Hand Animation (Higher Position) -->
-  <div id="signalAnimation" style="text-align: center; opacity: 0; transform: scale(0.8); transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); position: absolute; top: 25%;">
-    <div style="font-size: 4rem; margin-bottom: 20px; animation: pulse 2s infinite;">🧠</div>
-    <div style="font-size: 3rem; margin-bottom: 20px; animation: wave 1.5s infinite;">👋</div>
-    <div style="width: 200px; height: 4px; background: linear-gradient(90deg, transparent, #4da3ff, transparent); margin: 20px auto; border-radius: 2px; animation: signal 2s infinite;"></div>
-  </div>
+  
   
   <!-- Realistic EEG Brain Topography with Multiple Waves -->
-  <div id="brainTopography" style="position: absolute; top: 8%; left: 50%; transform: translateX(-50%); opacity: 0; transition: all 1s ease;">
+  <div id="brainTopography" style="position: absolute; top: 5%; left: 50%; transform: translateX(-50%); opacity: 0; transition: all 1s ease;">
     <!-- Brain Outline with Realistic Shape -->
-    <div style="position: relative; width: 280px; height: 200px;">
+    <div style="position: relative; width: 400px; height: 280px;">
       <!-- Realistic Brain Shape -->
-      <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 240px; height: 160px; background: radial-gradient(ellipse at center, rgba(77, 163, 255, 0.15) 0%, rgba(77, 163, 255, 0.05) 50%, transparent 80%); border: 3px solid rgba(77, 163, 255, 0.4); border-radius: 60% 60% 40% 40% / 70% 70% 30% 30%; box-shadow: 0 0 20px rgba(77, 163, 255, 0.2);"></div>
+      <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 340px; height: 220px; background: radial-gradient(ellipse at center, rgba(77, 163, 255, 0.15) 0%, rgba(77, 163, 255, 0.05) 50%, transparent 80%); border: 4px solid rgba(77, 163, 255, 0.4); border-radius: 60% 60% 40% 40% / 70% 70% 30% 30%; box-shadow: 0 0 30px rgba(77, 163, 255, 0.3);"></div>
       
       <!-- Realistic EEG Signal Display -->
-      <div class="eeg-signal-display" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 220px; height: 140px; background: rgba(0, 0, 0, 0.1); border-radius: 8px; padding: 10px; border: 1px solid rgba(77, 163, 255, 0.3);">
+      <div class="eeg-signal-display" style="position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 300px; height: 180px; background: rgba(0, 0, 0, 0.1); border-radius: 10px; padding: 15px; border: 2px solid rgba(77, 163, 255, 0.4);">
         <!-- EEG Channel Labels -->
-        <div style="position: absolute; left: -40px; top: 0; width: 35px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; font-size: 10px; color: #4da3ff; font-weight: 600;">
+        <div style="position: absolute; left: -50px; top: 0; width: 45px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; font-size: 12px; color: #4da3ff; font-weight: 600;">
           <span>POz</span>
           <span>Fz</span>
           <span>Cz</span>
@@ -616,80 +611,80 @@
         </div>
         
         <!-- Realistic EEG Waveforms -->
-        <div class="eeg-channel" style="position: absolute; top: 5px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 8px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,2 20,8 T40,4 T60,10 T80,2 T100,6 T120,8 T140,4 T160,10 T180,2 T200,6" stroke="#4da3ff" stroke-width="1" fill="none" style="animation: eegWave1 3s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,3 30,10 T60,5 T90,12.5 T120,3 T150,10 T180,5 T210,12.5 T240,3 T270,10" stroke="#4da3ff" stroke-width="1.5" fill="none" style="animation: eegWave1 3s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 20px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 28px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,10 20,2 T40,8 T60,4 T80,10 T100,2 T120,6 T140,10 T160,4 T180,8 T200,2" stroke="#00d4ff" stroke-width="1" fill="none" style="animation: eegWave2 2.8s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,12.5 30,3 T60,10 T90,5 T120,12.5 T150,3 T180,7.5 T210,12.5 T240,5 T270,3" stroke="#00d4ff" stroke-width="1.5" fill="none" style="animation: eegWave2 2.8s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 35px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 48px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,4 20,10 T40,2 T60,8 T80,4 T100,10 T120,2 T140,8 T160,4 T180,10 T200,2" stroke="#4da3ff" stroke-width="1" fill="none" style="animation: eegWave3 3.2s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,5 30,12.5 T60,3 T90,10 T120,5 T150,12.5 T180,3 T210,10 T240,5 T270,3" stroke="#4da3ff" stroke-width="1.5" fill="none" style="animation: eegWave3 3.2s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 50px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 68px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,8 20,2 T40,10 T60,4 T80,8 T100,2 T120,10 T140,4 T160,8 T180,2 T200,10" stroke="#00d4ff" stroke-width="1" fill="none" style="animation: eegWave4 2.9s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,10 30,3 T60,12.5 T90,5 T120,10 T150,3 T180,12.5 T210,5 T240,10 T270,3" stroke="#00d4ff" stroke-width="1.5" fill="none" style="animation: eegWave4 2.9s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 65px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 88px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,2 20,10 T40,4 T60,8 T80,2 T100,10 T120,4 T140,8 T160,2 T180,10 T200,4" stroke="#4da3ff" stroke-width="1" fill="none" style="animation: eegWave5 3.1s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,3 30,12.5 T60,5 T90,10 T120,3 T150,12.5 T180,5 T210,10 T240,3 T270,5" stroke="#4da3ff" stroke-width="1.5" fill="none" style="animation: eegWave5 3.1s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 80px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 108px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,10 20,2 T40,8 T60,4 T80,10 T100,2 T120,8 T140,4 T160,10 T180,2 T200,8" stroke="#00d4ff" stroke-width="1" fill="none" style="animation: eegWave6 2.7s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,12.5 30,3 T60,10 T90,5 T120,12.5 T150,3 T180,10 T210,5 T240,12.5 T270,3" stroke="#00d4ff" stroke-width="1.5" fill="none" style="animation: eegWave6 2.7s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 95px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 128px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,4 20,10 T40,2 T60,8 T80,4 T100,10 T120,2 T140,8 T160,4 T180,10 T200,2" stroke="#4da3ff" stroke-width="1" fill="none" style="animation: eegWave7 3.3s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,5 30,12.5 T60,3 T90,10 T120,5 T150,12.5 T180,3 T210,10 T240,5 T270,3" stroke="#4da3ff" stroke-width="1.5" fill="none" style="animation: eegWave7 3.3s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 110px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 148px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,8 20,2 T40,10 T60,4 T80,8 T100,2 T120,10 T140,4 T160,8 T180,2 T200,10" stroke="#00d4ff" stroke-width="1" fill="none" style="animation: eegWave8 2.6s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,10 30,3 T60,12.5 T90,5 T120,10 T150,3 T180,12.5 T210,5 T240,10 T270,3" stroke="#00d4ff" stroke-width="1.5" fill="none" style="animation: eegWave8 2.6s infinite;"></path>
           </svg>
         </div>
         
-        <div class="eeg-channel" style="position: absolute; top: 125px; left: 0; width: 100%; height: 12px; overflow: hidden;">
+        <div class="eeg-channel" style="position: absolute; top: 168px; left: 0; width: 100%; height: 15px; overflow: hidden;">
           <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0;">
-            <path class="eeg-waveform" d="M0,6 Q10,2 20,10 T40,4 T60,8 T80,2 T100,10 T120,4 T140,8 T160,2 T180,10 T200,4" stroke="#4da3ff" stroke-width="1" fill="none" style="animation: eegWave9 3.0s infinite;"></path>
+            <path class="eeg-waveform" d="M0,7.5 Q15,3 30,12.5 T60,5 T90,10 T120,3 T150,12.5 T180,5 T210,10 T240,3 T270,5" stroke="#4da3ff" stroke-width="1.5" fill="none" style="animation: eegWave9 3.0s infinite;"></path>
           </svg>
         </div>
       </div>
       
       <!-- EEG Electrodes (More Realistic Placement) -->
-      <div class="eeg-electrode" style="position: absolute; top: 10px; left: 25px; width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode1 2s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 10px; right: 25px; width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode2 2.2s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 35px; left: 15px; width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode3 1.8s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 35px; right: 15px; width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode4 2.1s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode5 1.9s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 85px; left: 25px; width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode6 2.3s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 85px; right: 25px; width: 10px; height: 10px; background: #4da3ff; border-radius: 50%; animation: electrode7 1.7s infinite; box-shadow: 0 0 10px #4da3ff;"></div>
-      <div class="eeg-electrode" style="position: absolute; top: 110px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; background: #00d4ff; border-radius: 50%; animation: electrode8 2.0s infinite; box-shadow: 0 0 10px #00d4ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 15px; left: 35px; width: 12px; height: 12px; background: #4da3ff; border-radius: 50%; animation: electrode1 2s infinite; box-shadow: 0 0 12px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 15px; right: 35px; width: 12px; height: 12px; background: #00d4ff; border-radius: 50%; animation: electrode2 2.2s infinite; box-shadow: 0 0 12px #00d4ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 50px; left: 20px; width: 12px; height: 12px; background: #4da3ff; border-radius: 50%; animation: electrode3 1.8s infinite; box-shadow: 0 0 12px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 50px; right: 20px; width: 12px; height: 12px; background: #00d4ff; border-radius: 50%; animation: electrode4 2.1s infinite; box-shadow: 0 0 12px #00d4ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 85px; left: 50%; transform: translateX(-50%); width: 12px; height: 12px; background: #4da3ff; border-radius: 50%; animation: electrode5 1.9s infinite; box-shadow: 0 0 12px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 120px; left: 35px; width: 12px; height: 12px; background: #00d4ff; border-radius: 50%; animation: electrode6 2.3s infinite; box-shadow: 0 0 12px #00d4ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 120px; right: 35px; width: 12px; height: 12px; background: #4da3ff; border-radius: 50%; animation: electrode7 1.7s infinite; box-shadow: 0 0 12px #4da3ff;"></div>
+      <div class="eeg-electrode" style="position: absolute; top: 155px; left: 50%; transform: translateX(-50%); width: 12px; height: 12px; background: #00d4ff; border-radius: 50%; animation: electrode8 2.0s infinite; box-shadow: 0 0 12px #00d4ff;"></div>
       
       <!-- Signal Lines with More Realistic Paths -->
-      <div class="signal-line" style="position: absolute; top: 15px; left: 30px; width: 3px; height: 50px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine1 1.5s infinite; border-radius: 2px;"></div>
-      <div class="signal-line" style="position: absolute; top: 15px; right: 30px; width: 3px; height: 50px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine2 1.7s infinite; border-radius: 2px;"></div>
-      <div class="signal-line" style="position: absolute; top: 40px; left: 20px; width: 3px; height: 45px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine3 1.3s infinite; border-radius: 2px;"></div>
-      <div class="signal-line" style="position: absolute; top: 40px; right: 20px; width: 3px; height: 45px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine4 1.9s infinite; border-radius: 2px;"></div>
-      <div class="signal-line" style="position: absolute; top: 65px; left: 50%; transform: translateX(-50%); width: 3px; height: 40px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine5 1.6s infinite; border-radius: 2px;"></div>
-      <div class="signal-line" style="position: absolute; top: 90px; left: 30px; width: 3px; height: 35px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine6 1.4s infinite; border-radius: 2px;"></div>
-      <div class="signal-line" style="position: absolute; top: 90px; right: 30px; width: 3px; height: 35px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine7 1.8s infinite; border-radius: 2px;"></div>
-      <div class="signal-line" style="position: absolute; top: 115px; left: 50%; transform: translateX(-50%); width: 3px; height: 30px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine8 1.5s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 21px; left: 41px; width: 4px; height: 70px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine1 1.5s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 21px; right: 41px; width: 4px; height: 70px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine2 1.7s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 56px; left: 26px; width: 4px; height: 65px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine3 1.3s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 56px; right: 26px; width: 4px; height: 65px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine4 1.9s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 91px; left: 50%; transform: translateX(-50%); width: 4px; height: 60px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine5 1.6s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 126px; left: 41px; width: 4px; height: 55px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine6 1.4s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 126px; right: 41px; width: 4px; height: 55px; background: linear-gradient(to bottom, #4da3ff, transparent); animation: signalLine7 1.8s infinite; border-radius: 2px;"></div>
+      <div class="signal-line" style="position: absolute; top: 161px; left: 50%; transform: translateX(-50%); width: 4px; height: 50px; background: linear-gradient(to bottom, #00d4ff, transparent); animation: signalLine8 1.5s infinite; border-radius: 2px;"></div>
     </div>
     
     <!-- Enhanced EEG Waveform Display -->
@@ -1265,7 +1260,6 @@ body.animation-active {
   // Opening Animation
   window.addEventListener('load', () => {
     const openingAnimation = document.getElementById('openingAnimation');
-    const signalAnimation = document.getElementById('signalAnimation');
     const brainTopography = document.getElementById('brainTopography');
     const openingText = document.getElementById('openingText');
     const progressFill = document.getElementById('progressFill');
@@ -1275,7 +1269,7 @@ body.animation-active {
     body.style.overflow = 'hidden';
     body.classList.add('animation-active');
     
-    // Sequence: Blur -> Brain Topography -> Signal -> Text -> Vanish
+    // Sequence: Blur -> Brain Topography -> Text -> Vanish
     
     // 1. Start with blur effect (already applied via CSS)
     // 2. Start progress bar immediately
@@ -1284,25 +1278,13 @@ body.animation-active {
     // 3. Show brain topography immediately
     brainTopography.style.opacity = '1';
     
-    // 4. Show signal/hand animation after 0.5s
-    setTimeout(() => {
-      signalAnimation.style.opacity = '1';
-      signalAnimation.style.transform = 'scale(1)';
-    }, 500);
-    
-    // 5. Show text after 2.5s (while signal is still playing)
+    // 4. Show text after 2s
     setTimeout(() => {
       openingText.style.opacity = '1';
       openingText.style.transform = 'translateY(0)';
-    }, 2500);
+    }, 2000);
     
-    // 6. Hide signal animation after 3.5s
-    setTimeout(() => {
-      signalAnimation.style.opacity = '0';
-      signalAnimation.style.transform = 'scale(0.8)';
-    }, 3500);
-    
-    // 7. Hide brain topography after 4s
+    // 5. Hide brain topography after 4s
     setTimeout(() => {
       brainTopography.style.opacity = '0';
     }, 4000);
