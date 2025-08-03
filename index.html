@@ -586,12 +586,8 @@
   <a href="#education"><i class="fas fa-graduation-cap"></i> Education</a>
   <a href="#projects"><i class="fas fa-rocket"></i> Projects</a>
   <a href="#publications"><i class="fas fa-book"></i> Publications</a>
-  <a href="#skills"><i class="fas fa-code"></i> Skills</a>
   <a href="#experience"><i class="fas fa-flask"></i> Experience</a>
-  <a href="#reviews"><i class="fas fa-graduation-cap"></i> Reviewer Roles</a>
-  <a href="#talks"><i class="fas fa-microphone"></i> Talks</a>
   <a href="#awards"><i class="fas fa-trophy"></i> Awards</a>
-  <a href="#certificates"><i class="fas fa-certificate"></i> Certificates</a>
   <a href="#contact"><i class="fas fa-envelope"></i> Contact</a>
 </nav>
 
@@ -858,6 +854,9 @@
 
 <div class="footer">
   <p>© 2025 Soroush Zare • Built with 💙 and HTML/CSS</p>
+  <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.7;">
+    <span id="viewCount">Loading views...</span>
+  </div>
 </div>
 
 <script>
@@ -1001,6 +1000,18 @@
     const currentTheme = document.documentElement.getAttribute('data-theme');
     button.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
   });
+
+  // View counter functionality
+  function updateViewCount() {
+    const viewCountElement = document.getElementById('viewCount');
+    const currentViews = localStorage.getItem('pageViews') || 0;
+    const newViews = parseInt(currentViews) + 1;
+    localStorage.setItem('pageViews', newViews);
+    viewCountElement.textContent = `${newViews.toLocaleString()} views`;
+  }
+
+  // Update view count when page loads
+  document.addEventListener('DOMContentLoaded', updateViewCount);
 
   // Contact form handling
   document.getElementById('contactForm').addEventListener('submit', function(e) {
