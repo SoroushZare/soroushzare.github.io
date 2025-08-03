@@ -83,13 +83,27 @@ class ViewCounter {
   init() {
     // Get current view count from localStorage
     let currentViews = localStorage.getItem('pageViews') || 0;
-    currentViews = parseInt(currentViews) + 1;
+    currentViews = parseInt(currentViews);
     
-    // Store updated count
-    localStorage.setItem('pageViews', currentViews);
+    // Check if this is a new visit (not just a page refresh)
+    const visitKey = this.getVisitKey();
+    const hasVisitedToday = localStorage.getItem(visitKey);
+    
+    if (!hasVisitedToday) {
+      // Increment count for new visit
+      currentViews += 1;
+      localStorage.setItem('pageViews', currentViews);
+      localStorage.setItem(visitKey, 'true');
+    }
     
     // Update display with animation
     this.animateCount(currentViews);
+  }
+
+  getVisitKey() {
+    // Create a unique key for today's visit
+    const today = new Date().toDateString();
+    return 'visited_' + today;
   }
 
   animateCount(targetCount) {
