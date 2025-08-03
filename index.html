@@ -1223,8 +1223,12 @@ body.animation-active {
     submitButton.disabled = true;
     statusDiv.innerHTML = '';
     
-    // Create email body with all form data
-    const emailBody = `
+    // Use a simple and reliable email service
+    const emailData = {
+      to: 'soroushzrz@gmail.com',
+      from: formData.get('email'),
+      subject: `Contact Form: ${formData.get('subject')}`,
+      text: `
 Name: ${formData.get('name')}
 Email: ${formData.get('email')}
 Subject: ${formData.get('subject')}
@@ -1232,21 +1236,37 @@ Message: ${formData.get('message')}
 
 ---
 Sent from Soroush Zare's website contact form
-    `;
+      `
+    };
     
-    // Create mailto link with pre-filled content
-    const mailtoLink = `mailto:soroushzrz@gmail.com?subject=${encodeURIComponent('Contact Form: ' + formData.get('subject'))}&body=${encodeURIComponent(emailBody)}&to=soroushzrz@gmail.com`;
-    
-    // Open email client with pre-filled content
-    try {
-      window.location.href = mailtoLink;
-      
-      // Show success message
-      statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Email client opened! Please send the email. The form is pre-filled with your message.</span>';
-    } catch (error) {
-      // Fallback if mailto doesn't work
+    // Send email using a simple service
+    fetch('https://formspree.io/f/xpzgwqjq', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        name: formData.get('name'),
+        email: formData.get('email'),
+        subject: formData.get('subject'),
+        message: formData.get('message'),
+        _replyto: 'soroushzrz@gmail.com',
+        _subject: `Contact Form: ${formData.get('subject')}`
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+        // Show success message
+        statusDiv.innerHTML = '<span style="color: #4CAF50;">✓ Message sent successfully! I will get back to you soon.</span>';
+      } else {
+        throw new Error('Failed to send message');
+      }
+    })
+    .catch(error => {
+      // Fallback - show direct email option
       statusDiv.innerHTML = '<span style="color: #f44336;">⚠️ Please email directly to soroushzrz@gmail.com with your message.</span>';
-    }
+    });
     
     submitButton.innerHTML = originalText;
     submitButton.disabled = false;
