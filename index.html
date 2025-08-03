@@ -529,6 +529,114 @@
       background: rgba(77, 163, 255, 0.4);
     }
 
+    /* Experience Carousel */
+    .experience-carousel-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      scroll-padding-top: 0;
+    }
+
+    .experience-slide {
+      width: 100%;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(5, 5, 5, 0.95));
+    }
+
+    .experience-content {
+      max-width: 1200px;
+      width: 90%;
+      height: 80%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .experience-content h3 {
+      color: var(--accent-blue);
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .experience-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+      width: 100%;
+    }
+
+    .experience-info .info-section {
+      background: rgba(77, 163, 255, 0.1);
+      border-radius: 15px;
+      padding: 25px;
+      border-left: 4px solid var(--accent-blue);
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+
+    .experience-info .info-section h4 {
+      color: var(--accent-blue);
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+    }
+
+    .experience-info .info-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .experience-info .info-section li {
+      margin-bottom: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(77, 163, 255, 0.2);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .experience-info .info-section li:last-child {
+      border-bottom: none;
+    }
+
+    /* Responsive design for experience carousel */
+    @media (max-width: 768px) {
+      .experience-content {
+        padding: 20px;
+      }
+      
+      .experience-content h3 {
+        font-size: 1.8rem;
+      }
+      
+      .experience-info {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .experience-info .info-section {
+        padding: 20px;
+      }
+    }
+
     .project-info {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -707,9 +815,9 @@
     <nav class="nav">
       <div class="nav-container">
         <a href="#about"><i class="fas fa-user"></i> About</a>
+        <a href="#experience"><i class="fas fa-flask"></i> Experience</a>
         <a href="#projects"><i class="fas fa-rocket"></i> Projects</a>
         <a href="#publications"><i class="fas fa-book"></i> Publications</a>
-        <a href="#experience"><i class="fas fa-flask"></i> Experience</a>
         <a href="#awards"><i class="fas fa-trophy"></i> Awards</a>
         <a href="#professional-services"><i class="fas fa-handshake"></i> Professional Services</a>
         <a href="#contact"><i class="fas fa-envelope"></i> Contact</a>
@@ -742,7 +850,80 @@
       </div>
     </section>
 
+    <!-- Experience Section -->
+    <section id="experience" class="section">
+      <h2 class="section-title">Research Experience</h2>
+      <div class="experience-carousel-container">
+        <div class="experience-slide active" data-slide="1">
+          <div class="experience-content">
+            <h3>🔬 Research Assistant @ University of Virginia</h3>
+            <p style="margin-bottom: 20px; opacity: 0.8; font-size: 1.1rem;">Charlottesville, VA • Jan. 2023 - Present</p>
+            <div class="experience-info">
+              <div class="info-section">
+                <h4>Key Responsibilities</h4>
+                <ul>
+                  <li>Designing and developing soft upper limb rehabilitation exoskeleton</li>
+                  <li>Contributed to the design and control of wearable soft rehabilitation robots using soft materials and 3D printing techniques</li>
+                  <li>Developed transformer-based deep learning pipelines to decode EEG motor imagery for real-time control of upper-limb exoskeletons</li>
+                  <li>Focused on non-invasive EEG signal acquisition, pre-processing, and classification to interpret motor intent and autonomic patterns</li>
+                </ul>
+              </div>
+              <div class="info-section">
+                <h4>Research Focus</h4>
+                <ul>
+                  <li>Collaborating in interdisciplinary teams to integrate high-resolution EEG technologies with real-time motor function support systems</li>
+                  <li>Innovating non-invasive EEG sensor technology to reduce setup complexity and enhance user comfort in real-world applications</li>
+                  <li>Exploring cortical correlates of motor intent and autonomic modulation to support closed-loop neuro-rehabilitation systems</li>
+                  <li>Contributing to the development of deep learning models for early detection of neurodegenerative diseases</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <div class="experience-slide" data-slide="2">
+          <div class="experience-content">
+            <h3>🔬 Research Assistant @ York University</h3>
+            <p style="margin-bottom: 20px; opacity: 0.8; font-size: 1.1rem;">Toronto, Canada • Sept. 2022 - Jan. 2023</p>
+            <div class="experience-info">
+              <div class="info-section">
+                <h4>Lead Project: Smart Grasping Using Deep Reinforcement Learning</h4>
+                <ul>
+                  <li>Developed and simulated robotic grasping mechanisms using UR5 robotic arm in ROS (Robot Operating System)</li>
+                  <li>Utilized Gazebo for real-time simulation and testing of robotic control algorithms</li>
+                  <li>Implemented deep reinforcement learning techniques for intelligent robotic manipulation</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="experience-slide" data-slide="3">
+          <div class="experience-content">
+            <h3>🔬 Research Assistant @ University of Tehran</h3>
+            <p style="margin-bottom: 20px; opacity: 0.8; font-size: 1.1rem;">Tehran, Iran • Sept. 2018 - Sept. 2022</p>
+            <div class="experience-info">
+              <div class="info-section">
+                <h4>Member of <a href="http://taarlab.com/" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Human and Robot Interaction Laboratory (TaarLab)</a></h4>
+                <ul>
+                  <li>Control Cable-Driven Parallel Robot (CDPR) Using Deep Reinforcement Learning</li>
+                  <li>Construct 3-D model of Objects Using CDPR</li>
+                  <li>AI-based Object Tracking Using CDPR</li>
+                </ul>
+              </div>
+              <div class="info-section">
+                <h4>Research Areas</h4>
+                <ul>
+                  <li>System Identification of Suspended Under-constrained Cable-driven Robot</li>
+                  <li>Control of Suspended Under-constrained Cable-driven Robot Creating 3D Graphical Model of Objects</li>
+                  <li>Control of Suspended Under-constrained Cable-driven Robot Using Reinforcement Learning</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Projects Section -->
     <section id="projects" class="section">
@@ -914,20 +1095,7 @@
       </div>
     </section>
 
-    <!-- Experience Section -->
-    <section id="experience" class="section">
-      <h2 class="section-title">Research Experience</h2>
-      <div class="glass-card fade-in">
-        <h3 style="color: var(--accent-blue); margin-bottom: 15px;">🔬 Research Assistant @ University of Virginia</h3>
-        <p style="margin-bottom: 20px; opacity: 0.8;">Charlottesville, VA • Jan. 2023 - Present</p>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin-bottom: 10px; padding: 8px 0;">• Designing and developing soft upper limb rehabilitation exoskeleton</li>
-          <li style="margin-bottom: 10px; padding: 8px 0;">• Developed transformer-based deep learning pipelines for EEG motor imagery decoding</li>
-          <li style="margin-bottom: 10px; padding: 8px 0;">• Focused on non-invasive EEG signal acquisition, pre-processing, and classification</li>
-          <li style="margin-bottom: 10px; padding: 8px 0;">• Exploring cortical correlates of motor intent for closed-loop neuro-rehabilitation</li>
-        </ul>
-      </div>
-    </section>
+
 
     <!-- Awards Section -->
     <section id="awards" class="section">
