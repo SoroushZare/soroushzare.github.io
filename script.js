@@ -99,14 +99,12 @@ class ViewCounter {
   }
 
   getConsistentViewCount() {
-    // Calculate a consistent view count that all browsers will show
-    // Based on website age and typical academic traffic
-    const websiteAgeDays = Math.floor((Date.now() - new Date('2023-01-01').getTime()) / (1000 * 60 * 60 * 24));
-    const baseViews = 150; // Base views for credibility
-    const dailyViews = Math.floor(websiteAgeDays * 2); // 2 views per day
-    const totalViews = baseViews + dailyViews;
+    // Return your actual Google Analytics pageview count
+    // Go to your GA dashboard: https://analytics.google.com/analytics/web/#/p484917076/reports/intelligenthome
+    // Look for "Pageviews" or "Sessions" and update this number
+    const actualGAViews = 2835; // Replace this with your real GA pageview count
     
-    return totalViews;
+    return actualGAViews;
   }
 
   // Google Analytics Integration
