@@ -724,10 +724,7 @@
     
   </div>
   
-  <!-- Progress Bar -->
-  <div id="progressBar" style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); width: 300px; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden;">
-    <div id="progressFill" style="height: 100%; background: linear-gradient(90deg, #4da3ff, #00d4ff); width: 0%; transition: width 5s linear;"></div>
-  </div>
+  
 </div>
 
 <style>
@@ -1262,7 +1259,6 @@ body.animation-active {
     const openingAnimation = document.getElementById('openingAnimation');
     const brainTopography = document.getElementById('brainTopography');
     const openingText = document.getElementById('openingText');
-    const progressFill = document.getElementById('progressFill');
     const body = document.body;
     
     // Prevent scrolling during animation
@@ -1272,10 +1268,7 @@ body.animation-active {
     // Sequence: Blur -> Brain Topography -> Text -> Vanish
     
     // 1. Start with blur effect (already applied via CSS)
-    // 2. Start progress bar immediately
-    progressFill.style.width = '100%';
-    
-    // 3. Show brain topography immediately
+    // 2. Show brain topography immediately
     brainTopography.style.opacity = '1';
     
     // 4. Show text after 2s
