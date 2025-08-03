@@ -810,11 +810,75 @@
     </div>
   </div>
   
+  <!-- Upper Limb Exoskeleton Animation -->
+  <div id="exoskeletonAnimation" style="position: absolute; top: 60%; left: 50%; transform: translateX(-50%); opacity: 0; transition: all 2s ease;">
+    <!-- Exoskeleton Container -->
+    <div style="position: relative; width: 300px; height: 200px;">
+      <!-- Shoulder Joint -->
+      <div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 40px; height: 40px; background: radial-gradient(circle, rgba(77, 163, 255, 0.8), rgba(77, 163, 255, 0.4)); border-radius: 50%; border: 3px solid rgba(77, 163, 255, 0.9); box-shadow: 0 0 15px rgba(77, 163, 255, 0.6); animation: shoulderRotate 3s ease-in-out infinite;"></div>
+      
+      <!-- Upper Arm Segment -->
+      <div style="position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: 8px; height: 60px; background: linear-gradient(to bottom, rgba(77, 163, 255, 0.9), rgba(77, 163, 255, 0.6)); border-radius: 4px; box-shadow: 0 0 10px rgba(77, 163, 255, 0.5); animation: armSwing 2.5s ease-in-out infinite;"></div>
+      
+      <!-- Elbow Joint -->
+      <div style="position: absolute; top: 95px; left: 50%; transform: translateX(-50%); width: 30px; height: 30px; background: radial-gradient(circle, rgba(0, 212, 255, 0.8), rgba(0, 212, 255, 0.4)); border-radius: 50%; border: 3px solid rgba(0, 212, 255, 0.9); box-shadow: 0 0 12px rgba(0, 212, 255, 0.6); animation: elbowFlex 2s ease-in-out infinite;"></div>
+      
+      <!-- Forearm Segment -->
+      <div style="position: absolute; top: 110px; left: 50%; transform: translateX(-50%); width: 6px; height: 50px; background: linear-gradient(to bottom, rgba(0, 212, 255, 0.9), rgba(0, 212, 255, 0.6)); border-radius: 3px; box-shadow: 0 0 8px rgba(0, 212, 255, 0.5); animation: forearmSwing 2.2s ease-in-out infinite;"></div>
+      
+      <!-- Wrist Joint -->
+      <div style="position: absolute; top: 155px; left: 50%; transform: translateX(-50%); width: 25px; height: 25px; background: radial-gradient(circle, rgba(77, 163, 255, 0.8), rgba(77, 163, 255, 0.4)); border-radius: 50%; border: 2px solid rgba(77, 163, 255, 0.9); box-shadow: 0 0 10px rgba(77, 163, 255, 0.6); animation: wristRotate 1.8s ease-in-out infinite;"></div>
+      
+      <!-- Hand Segment -->
+      <div style="position: absolute; top: 170px; left: 50%; transform: translateX(-50%); width: 4px; height: 25px; background: linear-gradient(to bottom, rgba(77, 163, 255, 0.9), rgba(77, 163, 255, 0.6)); border-radius: 2px; box-shadow: 0 0 6px rgba(77, 163, 255, 0.5); animation: handGrasp 1.5s ease-in-out infinite;"></div>
+      
+      <!-- Soft Actuators -->
+      <div style="position: absolute; top: 45px; left: 50%; transform: translateX(-50%); width: 12px; height: 50px; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1)); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.4); animation: softActuator1 2.8s ease-in-out infinite;"></div>
+      <div style="position: absolute; top: 115px; left: 50%; transform: translateX(-50%); width: 10px; height: 40px; background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1)); border-radius: 5px; border: 1px solid rgba(255, 255, 255, 0.4); animation: softActuator2 2.3s ease-in-out infinite;"></div>
+      
+      <!-- EEG Electrodes on Exoskeleton -->
+      <div style="position: absolute; top: 25px; left: 45%; width: 8px; height: 8px; background: #00ffff; border-radius: 50%; box-shadow: 0 0 8px #00ffff; animation: eegElectrode1 1.5s infinite;"></div>
+      <div style="position: absolute; top: 25px; right: 45%; width: 8px; height: 8px; background: #00ffff; border-radius: 50%; box-shadow: 0 0 8px #00ffff; animation: eegElectrode2 1.7s infinite;"></div>
+      <div style="position: absolute; top: 100px; left: 45%; width: 8px; height: 8px; background: #00ffff; border-radius: 50%; box-shadow: 0 0 8px #00ffff; animation: eegElectrode3 1.9s infinite;"></div>
+      <div style="position: absolute; top: 100px; right: 45%; width: 8px; height: 8px; background: #00ffff; border-radius: 50%; box-shadow: 0 0 8px #00ffff; animation: eegElectrode4 1.6s infinite;"></div>
+      
+      <!-- Neural Control Signals -->
+      <div style="position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 2px; height: 30px; background: linear-gradient(to bottom, #00ffff, transparent); animation: neuralSignal1 1.2s infinite; border-radius: 1px;"></div>
+      <div style="position: absolute; top: 105px; left: 50%; transform: translateX(-50%); width: 2px; height: 25px; background: linear-gradient(to bottom, #00ffff, transparent); animation: neuralSignal2 1.4s infinite; border-radius: 1px;"></div>
+      <div style="position: absolute; top: 160px; left: 50%; transform: translateX(-50%); width: 2px; height: 20px; background: linear-gradient(to bottom, #00ffff, transparent); animation: neuralSignal3 1.1s infinite; border-radius: 1px;"></div>
+      
+      <!-- Force Feedback Indicators -->
+      <div style="position: absolute; top: 50px; left: 50%; transform: translateX(-50%); width: 20px; height: 4px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent); animation: forceFeedback1 2s infinite; border-radius: 2px;"></div>
+      <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 18px; height: 3px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent); animation: forceFeedback2 2.3s infinite; border-radius: 2px;"></div>
+      
+      <!-- Rehabilitation Progress Bar -->
+      <div style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); width: 200px; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.3);">
+        <div style="width: 0%; height: 100%; background: linear-gradient(90deg, #4da3ff, #00d4ff); border-radius: 4px; animation: rehabProgress 4s ease-in-out infinite;"></div>
+      </div>
+      
+      <!-- Status Indicators -->
+      <div style="position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; font-size: 12px; color: #4da3ff;">
+        <span style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 8px; height: 8px; background: #00ff00; border-radius: 50%; animation: statusPulse 1s infinite;"></div>
+          EEG Active
+        </span>
+        <span style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 8px; height: 8px; background: #00ff00; border-radius: 50%; animation: statusPulse 1.2s infinite;"></div>
+          RL Learning
+        </span>
+        <span style="display: flex; align-items: center; gap: 5px;">
+          <div style="width: 8px; height: 8px; background: #00ff00; border-radius: 50%; animation: statusPulse 0.8s infinite;"></div>
+          Adaptive Control
+        </span>
+      </div>
+    </div>
+  </div>
+  
   <!-- Text Animation -->
   <div id="openingText" style="text-align: center; opacity: 0; transform: translateY(30px); transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1); position: absolute;">
     <h1 style="font-size: 3.5rem; font-weight: 700; margin: 0; background: linear-gradient(135deg, #4da3ff, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 0 0 30px rgba(77, 163, 255, 0.5);">Hello, I'm Soroush.</h1>
     <p style="font-size: 1.5rem; margin: 20px 0 0 0; opacity: 0.9; font-weight: 300; letter-spacing: 1px;">Imagine a world where disabled people can control robots with their thoughts.</p>
-    
+    <p style="font-size: 1.2rem; margin: 10px 0 0 0; opacity: 0.8; font-weight: 300; letter-spacing: 0.5px;">Developing EEG-driven soft exoskeletons for neurorehabilitation</p>
   </div>
   
   
@@ -1220,6 +1284,106 @@
   50% { opacity: 1; transform: scaleX(1.2) rotate(-45deg); }
 }
 
+/* Exoskeleton Animations */
+@keyframes shoulderRotate {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25% { transform: translateX(-50%) rotate(15deg); }
+  75% { transform: translateX(-50%) rotate(-10deg); }
+}
+
+@keyframes armSwing {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(25deg); }
+}
+
+@keyframes elbowFlex {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(45deg); }
+}
+
+@keyframes forearmSwing {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(-30deg); }
+}
+
+@keyframes wristRotate {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(20deg); }
+}
+
+@keyframes handGrasp {
+  0%, 100% { transform: translateX(-50%) scaleY(1); }
+  50% { transform: translateX(-50%) scaleY(0.7); }
+}
+
+@keyframes softActuator1 {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 0.8; transform: scaleY(1.2); }
+}
+
+@keyframes softActuator2 {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 0.8; transform: scaleY(1.3); }
+}
+
+@keyframes eegElectrode1 {
+  0%, 100% { opacity: 0.6; transform: scale(1); box-shadow: 0 0 5px #00ffff; }
+  50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 12px #00ffff; }
+}
+
+@keyframes eegElectrode2 {
+  0%, 100% { opacity: 0.6; transform: scale(1); box-shadow: 0 0 5px #00ffff; }
+  50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 12px #00ffff; }
+}
+
+@keyframes eegElectrode3 {
+  0%, 100% { opacity: 0.6; transform: scale(1); box-shadow: 0 0 5px #00ffff; }
+  50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 12px #00ffff; }
+}
+
+@keyframes eegElectrode4 {
+  0%, 100% { opacity: 0.6; transform: scale(1); box-shadow: 0 0 5px #00ffff; }
+  50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 12px #00ffff; }
+}
+
+@keyframes neuralSignal1 {
+  0%, 100% { opacity: 0.3; transform: scaleY(0.5); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes neuralSignal2 {
+  0%, 100% { opacity: 0.3; transform: scaleY(0.5); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes neuralSignal3 {
+  0%, 100% { opacity: 0.3; transform: scaleY(0.5); }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes forceFeedback1 {
+  0% { transform: translateX(-50%) scaleX(0); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(-50%) scaleX(1); opacity: 0; }
+}
+
+@keyframes forceFeedback2 {
+  0% { transform: translateX(-50%) scaleX(0); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(-50%) scaleX(1); opacity: 0; }
+}
+
+@keyframes rehabProgress {
+  0% { width: 0%; }
+  50% { width: 75%; }
+  100% { width: 100%; }
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
 @keyframes electrode8 {
   0%, 100% { transform: scale(1); opacity: 0.7; box-shadow: 0 0 5px #00d4ff; }
   50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 15px #00d4ff; }
@@ -1518,6 +1682,7 @@ body.animation-active {
   window.addEventListener('load', () => {
     const openingAnimation = document.getElementById('openingAnimation');
     const brainTopography = document.getElementById('brainTopography');
+    const exoskeletonAnimation = document.getElementById('exoskeletonAnimation');
     const openingText = document.getElementById('openingText');
     const body = document.body;
     
@@ -1525,24 +1690,33 @@ body.animation-active {
     body.style.overflow = 'hidden';
     body.classList.add('animation-active');
     
-    // Sequence: Blur -> Brain Topography -> Text -> Vanish
+    // Sequence: Brain -> Exoskeleton -> Text -> Vanish
     
-    // 1. Start with blur effect (already applied via CSS)
-    // 2. Show brain topography immediately
+    // 1. Show brain topography immediately
     brainTopography.style.opacity = '1';
     
-    // 4. Show text after 2s
+    // 2. Show exoskeleton after 1.5s
+    setTimeout(() => {
+      exoskeletonAnimation.style.opacity = '1';
+    }, 1500);
+    
+    // 3. Show text after 3s
     setTimeout(() => {
       openingText.style.opacity = '1';
       openingText.style.transform = 'translateY(0)';
-    }, 2000);
+    }, 3000);
     
-    // 5. Hide brain topography after 4s
+    // 4. Hide brain topography after 4.5s
     setTimeout(() => {
       brainTopography.style.opacity = '0';
-    }, 4000);
+    }, 4500);
     
-    // 8. Hide everything after 5s and enable scrolling
+    // 5. Hide exoskeleton after 5.5s
+    setTimeout(() => {
+      exoskeletonAnimation.style.opacity = '0';
+    }, 5500);
+    
+    // 6. Hide everything after 6.5s and enable scrolling
     setTimeout(() => {
       openingAnimation.style.opacity = '0';
       openingAnimation.style.transform = 'scale(1.1)';
@@ -1551,7 +1725,7 @@ body.animation-active {
         body.style.overflow = 'auto';
         body.classList.remove('animation-active');
       }, 1000);
-    }, 5000);
+    }, 6500);
   });
 
   // Theme toggle functionality
