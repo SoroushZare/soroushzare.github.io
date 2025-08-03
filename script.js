@@ -87,7 +87,8 @@ class ViewCounter {
 
   async fetchActualViews() {
     try {
-      // Use a reliable counter service that tracks actual views
+      // Try to get real data from Google Analytics if available
+      // For now, use a reliable external counter service
       const response = await fetch('https://api.countapi.xyz/hit/soroushzare.github.io/visits');
       const data = await response.json();
       
@@ -101,6 +102,14 @@ class ViewCounter {
       console.log('Primary API failed, trying alternative');
       this.tryAlternativeService();
     }
+  }
+
+  // TODO: Replace this with your actual Google Analytics data
+  // You can manually update this number with your real GA pageviews
+  getGoogleAnalyticsViews() {
+    // Replace this number with your actual Google Analytics pageviews
+    // You can find this in your GA dashboard under "Audience" > "Overview"
+    return 0; // Update this with your real GA data
   }
 
   async tryAlternativeService() {
