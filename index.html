@@ -812,22 +812,22 @@
       <form id="contactForm">
         <div style="margin-bottom: 20px;">
           <label for="name" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--link-dark);">Name *</label>
-          <input type="text" id="name" name="name" required style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; transition: all 0.3s ease;">
+          <input type="text" id="name" name="name" required placeholder="Enter your full name" style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; transition: all 0.3s ease;">
         </div>
         
         <div style="margin-bottom: 20px;">
           <label for="email" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--link-dark);">Email *</label>
-          <input type="email" id="email" name="email" required style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; transition: all 0.3s ease;">
+          <input type="email" id="email" name="email" required placeholder="Enter your email address" style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; transition: all 0.3s ease;">
         </div>
         
         <div style="margin-bottom: 20px;">
           <label for="subject" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--link-dark);">Subject *</label>
-          <input type="text" id="subject" name="subject" required style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; transition: all 0.3s ease;">
+          <input type="text" id="subject" name="subject" required placeholder="Enter a subject for your message" style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; transition: all 0.3s ease;">
         </div>
         
         <div style="margin-bottom: 30px;">
           <label for="message" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--link-dark);">Message *</label>
-          <textarea id="message" name="message" rows="6" required style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; resize: vertical; transition: all 0.3s ease; font-family: inherit;"></textarea>
+          <textarea id="message" name="message" rows="6" required placeholder="Enter your message here..." style="width: 100%; padding: 12px; border: 1px solid rgba(77, 163, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: var(--text-dark); font-size: 16px; resize: vertical; transition: all 0.3s ease; font-family: inherit;"></textarea>
         </div>
         
         <button type="submit" style="width: 100%; padding: 15px; background: linear-gradient(135deg, var(--link-dark), #00d4ff); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -1028,7 +1028,7 @@ Sent from Soroush Zare's website contact form
     `;
     
     // Create mailto link with pre-filled content
-    const mailtoLink = `mailto:soroushzrz@gmail.com?subject=${encodeURIComponent('Contact Form: ' + formData.get('subject'))}&body=${encodeURIComponent(emailBody)}`;
+    const mailtoLink = `mailto:soroushzrz@gmail.com?subject=${encodeURIComponent('Contact Form: ' + formData.get('subject'))}&body=${encodeURIComponent(emailBody)}&to=soroushzrz@gmail.com`;
     
     // Open email client with pre-filled content
     try {
