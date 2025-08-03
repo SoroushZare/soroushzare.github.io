@@ -108,6 +108,13 @@ class ViewCounter {
     let currentViews = localStorage.getItem('pageViews') || 0;
     currentViews = parseInt(currentViews);
     
+    // Generate a unique visitor ID for this browser
+    let visitorId = localStorage.getItem('visitorId');
+    if (!visitorId) {
+      visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('visitorId', visitorId);
+    }
+    
     // Check if this is a new visit (not just a page refresh)
     const visitKey = this.getVisitKey();
     const hasVisitedToday = localStorage.getItem(visitKey);
@@ -119,9 +126,11 @@ class ViewCounter {
       localStorage.setItem(visitKey, 'true');
     }
     
-    // Add a base count to simulate existing traffic and provide realistic starting point
-    const baseCount = 250; // Simulate existing traffic
-    const displayCount = Math.max(currentViews, baseCount);
+    // Calculate a more realistic view count
+    // Start with a base count and add actual unique visits
+    const baseCount = 25; // Modest starting point
+    const uniqueVisits = currentViews;
+    const displayCount = baseCount + uniqueVisits;
     
     // Update display with animation
     this.animateCount(displayCount);
