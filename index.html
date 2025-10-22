@@ -44,16 +44,16 @@
   
   <style>
     :root {
-      --bg-dark: #0a0a0a;
-      --bg-darker: #050505;
-      --text-dark: #ffffff;
-      --text-muted: #b0b0b0;
-      --accent-blue: #4da3ff;
-      --accent-cyan: #00d4ff;
+      --bg-dark: #ffffff;
+      --bg-darker: #f5f5f5;
+      --text-dark: #333333;
+      --text-muted: #666666;
+      --accent-blue: #1e90ff;
+      --accent-cyan: #0099cc;
       --accent-purple: #8b5cf6;
-      --accent-glow: rgba(77, 163, 255, 0.3);
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
+      --accent-glow: rgba(30, 144, 255, 0.3);
+      --glass-bg: rgba(255, 255, 255, 0.9);
+      --glass-border: rgba(0, 0, 0, 0.1);
     }
 
     * {
@@ -64,7 +64,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, var(--bg-dark), var(--bg-darker));
+      background: linear-gradient(135deg, #ffffff, #f8f9fa);
       color: var(--text-dark);
       overflow-x: hidden;
       line-height: 1.6;
@@ -91,9 +91,9 @@
     /* Header */
     .header {
       position: relative;
-      padding: 120px 20px 80px;
+      padding: 40px 20px 20px;
       text-align: center;
-      background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, transparent 100%);
     }
 
     .profile-container {
@@ -198,12 +198,13 @@
       top: 0;
       left: 0;
       right: 0;
-      background: rgba(15, 15, 15, 0.95);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       z-index: 1000;
       padding: 15px 0;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
 
     .nav-container {
@@ -253,7 +254,7 @@
     .section {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 80px 20px;
+      padding: 20px 20px;
       position: relative;
     }
 
@@ -791,7 +792,7 @@
         <img src="https://soroushzare.github.io/Profile.jpg" alt="Soroush Zare" class="profile-image">
       </div>
       <h1>Soroush Zare</h1>
-      <p>PhD Candidate @ University of Virginia | AI • BCI • Robotics</p>
+      <p>Ph.D. Candidate<br>University of Virginia</p>
       <div class="social-links">
         <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank" class="social-link">
           <i class="fab fa-linkedin"></i>
@@ -811,39 +812,29 @@
       </div>
     </header>
 
-    <!-- Navigation -->
-    <nav class="nav">
-      <div class="nav-container">
-        <a href="#about"><i class="fas fa-user"></i> About</a>
-        <a href="#experience"><i class="fas fa-flask"></i> Experience</a>
-        <a href="#projects"><i class="fas fa-rocket"></i> Projects</a>
-        <a href="#publications"><i class="fas fa-book"></i> Publications</a>
-        <a href="#awards"><i class="fas fa-trophy"></i> Awards</a>
-        <a href="#professional-services"><i class="fas fa-handshake"></i> Professional Services</a>
-        <a href="#contact"><i class="fas fa-envelope"></i> Contact</a>
-      </div>
-    </nav>
 
     <!-- About Section -->
     <section id="about" class="section">
-      <h2 class="section-title">About</h2>
-      <div class="glass-card fade-in">
+      <div class="fade-in">
         <p>I design brain-machine interfaces and adaptive control strategies using EEG, reinforcement learning, and robotics. My mission is to revolutionize neurorehabilitation and intelligent assistive technologies. I am currently a member of the <a href="https://engineering.virginia.edu/labs-groups/wearlab" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-weight: 600; border-bottom: 2px solid var(--accent-cyan); transition: all 0.3s ease;">WEARLab</a> at the University of Virginia, where we focus on wearable robotics and intelligent rehabilitation systems.</p>
         
         <div style="margin-top: 30px;">
           <h3 style="color: var(--accent-blue); margin-bottom: 20px;">Research Focus</h3>
-          <ul style="list-style: none; padding: 0;">
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--accent-blue);">
-              <strong>🧠 Brain-Computer Interfaces (BCI):</strong> EEG signal processing and neural decoding
+          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+            <li style="margin-bottom: 10px;">
+              <strong>Brain-Computer Interfaces (BCI):</strong> EEG signal processing and neural decoding
             </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--accent-blue);">
-              <strong>🤖 Artificial Intelligence:</strong> Deep learning, reinforcement learning, and transformer models
+            <li style="margin-bottom: 10px;">
+              <strong>Artificial Intelligence:</strong> Deep learning, reinforcement learning, and transformer models
             </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--accent-blue);">
-              <strong>💪 Wearable Robotics:</strong> Soft exoskeletons and rehabilitation systems
+            <li style="margin-bottom: 10px;">
+              <strong>Robotic Control & Automation:</strong> Advanced control systems, ROS (Robot Operating System), real-time control optimization, and industrial automation
             </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; border-left: 4px solid var(--accent-blue);">
-              <strong>🏥 Neurorehabilitation:</strong> Adaptive control strategies for motor recovery
+            <li style="margin-bottom: 10px;">
+              <strong>Wearable Robotics:</strong> Soft exoskeletons and rehabilitation systems
+            </li>
+            <li style="margin-bottom: 10px;">
+              <strong>Neurorehabilitation:</strong> Adaptive control strategies for motor recovery
             </li>
           </ul>
         </div>
@@ -853,74 +844,41 @@
     <!-- Experience Section -->
     <section id="experience" class="section">
       <h2 class="section-title">Research Experience</h2>
-      <div class="experience-carousel-container">
-        <div class="experience-slide active" data-slide="1">
-          <div class="experience-content">
-            <h3>🔬 Research Assistant @ University of Virginia</h3>
-            <p style="margin-bottom: 20px; opacity: 0.8; font-size: 1.1rem;">Charlottesville, VA • Jan. 2023 - Present</p>
-            <div class="experience-info">
-              <div class="info-section">
-                <h4>Key Responsibilities</h4>
-                <ul>
-                  <li>Designing and developing soft upper limb rehabilitation exoskeleton</li>
-                  <li>Contributed to the design and control of wearable soft rehabilitation robots using soft materials and 3D printing techniques</li>
-                  <li>Developed transformer-based deep learning pipelines to decode EEG motor imagery for real-time control of upper-limb exoskeletons</li>
-                  <li>Focused on non-invasive EEG signal acquisition, pre-processing, and classification to interpret motor intent and autonomic patterns</li>
-                </ul>
-              </div>
-              <div class="info-section">
-                <h4>Research Focus</h4>
-                <ul>
-                  <li>Collaborating in interdisciplinary teams to integrate high-resolution EEG technologies with real-time motor function support systems</li>
-                  <li>Innovating non-invasive EEG sensor technology to reduce setup complexity and enhance user comfort in real-world applications</li>
-                  <li>Exploring cortical correlates of motor intent and autonomic modulation to support closed-loop neuro-rehabilitation systems</li>
-                  <li>Contributing to the development of deep learning models for early detection of neurodegenerative diseases</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+      <div class="fade-in">
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">🔬 Research Assistant @ University of Virginia</h3>
+          <p style="margin-bottom: 15px; opacity: 0.8;">Charlottesville, VA • Jan. 2023 - Present</p>
+          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+            <li>Designing and developing soft upper limb rehabilitation exoskeleton</li>
+            <li>Contributed to the design and control of wearable soft rehabilitation robots using soft materials and 3D printing techniques</li>
+            <li>Developed transformer-based deep learning pipelines to decode EEG motor imagery for real-time control of upper-limb exoskeletons</li>
+            <li>Focused on non-invasive EEG signal acquisition, pre-processing, and classification to interpret motor intent and autonomic patterns</li>
+            <li>Collaborating in interdisciplinary teams to integrate high-resolution EEG technologies with real-time motor function support systems</li>
+            <li>Innovating non-invasive EEG sensor technology to reduce setup complexity and enhance user comfort in real-world applications</li>
+          </ul>
         </div>
 
-        <div class="experience-slide" data-slide="2">
-          <div class="experience-content">
-            <h3>🔬 Research Assistant @ York University</h3>
-            <p style="margin-bottom: 20px; opacity: 0.8; font-size: 1.1rem;">Toronto, Canada • Sept. 2022 - Jan. 2023</p>
-            <div class="experience-info">
-              <div class="info-section">
-                <h4>Lead Project: Smart Grasping Using Deep Reinforcement Learning</h4>
-                <ul>
-                  <li>Developed and simulated robotic grasping mechanisms using UR5 robotic arm in ROS (Robot Operating System)</li>
-                  <li>Utilized Gazebo for real-time simulation and testing of robotic control algorithms</li>
-                  <li>Implemented deep reinforcement learning techniques for intelligent robotic manipulation</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">🔬 Research Assistant @ York University</h3>
+          <p style="margin-bottom: 15px; opacity: 0.8;">Toronto, Canada • Sept. 2022 - Jan. 2023</p>
+          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+            <li>Developed and simulated robotic grasping mechanisms using UR5 robotic arm in ROS (Robot Operating System)</li>
+            <li>Utilized Gazebo for real-time simulation and testing of robotic control algorithms</li>
+            <li>Implemented deep reinforcement learning techniques for intelligent robotic manipulation</li>
+          </ul>
         </div>
 
-        <div class="experience-slide" data-slide="3">
-          <div class="experience-content">
-            <h3>🔬 Research Assistant @ University of Tehran</h3>
-            <p style="margin-bottom: 20px; opacity: 0.8; font-size: 1.1rem;">Tehran, Iran • Sept. 2018 - Sept. 2022</p>
-            <div class="experience-info">
-              <div class="info-section">
-                <h4>Member of <a href="http://taarlab.com/" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Human and Robot Interaction Laboratory (TaarLab)</a></h4>
-                <ul>
-                  <li>Control Cable-Driven Parallel Robot (CDPR) Using Deep Reinforcement Learning</li>
-                  <li>Construct 3-D model of Objects Using CDPR</li>
-                  <li>AI-based Object Tracking Using CDPR</li>
-                </ul>
-              </div>
-              <div class="info-section">
-                <h4>Research Areas</h4>
-                <ul>
-                  <li>System Identification of Suspended Under-constrained Cable-driven Robot</li>
-                  <li>Control of Suspended Under-constrained Cable-driven Robot Creating 3D Graphical Model of Objects</li>
-                  <li>Control of Suspended Under-constrained Cable-driven Robot Using Reinforcement Learning</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">🔬 Research Assistant @ University of Tehran</h3>
+          <p style="margin-bottom: 15px; opacity: 0.8;">Tehran, Iran • Sept. 2018 - Sept. 2022</p>
+          <p style="margin-bottom: 10px;">Member of <a href="http://taarlab.com/" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Human and Robot Interaction Laboratory (TaarLab)</a></p>
+          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+            <li>Control Cable-Driven Parallel Robot (CDPR) Using Deep Reinforcement Learning</li>
+            <li>Construct 3-D model of Objects Using CDPR</li>
+            <li>AI-based Object Tracking Using CDPR</li>
+            <li>System Identification of Suspended Under-constrained Cable-driven Robot</li>
+            <li>Control of Suspended Under-constrained Cable-driven Robot Creating 3D Graphical Model of Objects</li>
+          </ul>
         </div>
       </div>
     </section>
@@ -928,130 +886,33 @@
     <!-- Projects Section -->
     <section id="projects" class="section">
       <h2 class="section-title">Projects</h2>
-      <div class="project-carousel-container">
-        <div class="project-slide active" data-slide="1">
-          <div class="project-content">
-            <h3>🤖 Linux for Robotics: Obstacle Avoidance Demo</h3>
-            <div class="project-video">
-              <video autoplay loop muted playsinline>
-                <source src="Videos/obstacle_avoidance_demo.mp4" type="video/mp4">
-                Your browser does not support the video tag.
-              </video>
-            </div>
-            <div class="project-description">
-              <p>Real-time autonomous robot navigation using Bash scripting, ROS 2, and Gazebo simulation. Built for the <b>Linux for Robotics Certificate</b> by The Construct.</p>
-              
-              <div class="project-links">
-                <a href="https://www.youtube.com/watch?v=D7-lPA4cCZ0&t=501s" target="_blank" class="project-link">
-                  <i class="fab fa-youtube"></i>
-                  Watch Demo Video
-                </a>
-                <a href="https://app.theconstruct.ai/accomplishments/verify/RIA2F8F751DC2FD/" target="_blank" class="project-link">
-                  <i class="fas fa-certificate"></i>
-                  Verify Certificate
-                </a>
-              </div>
-            </div>
-          </div>
+      <div class="fade-in">
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">🧠 EEGDiffFormer: Transformer-based EEG Decoder</h3>
+          <p style="color: var(--text-muted);">Developed a state-of-the-art transformer-based architecture for EEG motor imagery classification, achieving superior performance in intent validation and robotic adaptation.</p>
         </div>
 
-        <div class="project-slide" data-slide="2">
-          <div class="project-content">
-            <h3>🧠 EEGDiffFormer: Transformer-based EEG Decoder</h3>
-            <div class="project-info">
-              <div class="info-section">
-                <h4>Project Overview</h4>
-                <p>Developed a state-of-the-art transformer-based architecture for EEG motor imagery classification, achieving superior performance in intent validation and robotic adaptation.</p>
-              </div>
-              <div class="info-section">
-                <h4>Key Features</h4>
-                <ul>
-                  <li>Multi-head attention mechanisms</li>
-                  <li>Real-time signal processing</li>
-                  <li>Adaptive learning algorithms</li>
-                  <li>Seamless robotic integration</li>
-                </ul>
-              </div>
-              <div class="info-section">
-                <h4>Impact</h4>
-                <p>This technology enables more accurate brain-computer interfaces for neurorehabilitation applications, improving the precision of motor intent decoding.</p>
-              </div>
-            </div>
-          </div>
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">💪 NeuroMotion: EEG-Driven Soft Exoskeleton</h3>
+          <p style="color: var(--text-muted);">Designed and implemented a soft exoskeleton system that adapts to user movements using reinforcement learning algorithms and real-time EEG signal processing.</p>
         </div>
 
-        <div class="project-slide" data-slide="3">
-          <div class="project-content">
-            <h3>💪 NeuroMotion: EEG-Driven Soft Exoskeleton</h3>
-            <div class="project-info">
-              <div class="info-section">
-                <h4>Project Overview</h4>
-                <p>Designed and implemented a soft exoskeleton system that adapts to user movements using reinforcement learning algorithms and real-time EEG signal processing.</p>
-              </div>
-              <div class="info-section">
-                <h4>Key Features</h4>
-                <ul>
-                  <li>Soft robotic actuators</li>
-                  <li>Adaptive control strategies</li>
-                  <li>User intention prediction</li>
-                  <li>Personalized rehabilitation protocols</li>
-                </ul>
-              </div>
-              <div class="info-section">
-                <h4>Impact</h4>
-                <p>Provides personalized assistance for individuals with motor impairments, enhancing rehabilitation outcomes through intelligent adaptive control.</p>
-              </div>
-            </div>
-          </div>
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">🚴 VR-Bike EEG Study: Neuroplasticity Enhancement</h3>
+          <p style="color: var(--text-muted);">Integrated EEG monitoring with virtual reality cycling to study and enhance neuroplasticity in rehabilitation settings.</p>
         </div>
 
-        <div class="project-slide" data-slide="4">
-          <div class="project-content">
-            <h3>🚴 VR-Bike EEG Study: Neuroplasticity Enhancement</h3>
-            <div class="project-info">
-              <div class="info-section">
-                <h4>Project Overview</h4>
-                <p>Integrated EEG monitoring with virtual reality cycling to study and enhance neuroplasticity in rehabilitation settings.</p>
-              </div>
-              <div class="info-section">
-                <h4>Key Features</h4>
-                <ul>
-                  <li>Real-time EEG feedback</li>
-                  <li>Immersive VR environment</li>
-                  <li>Adaptive difficulty levels</li>
-                  <li>Comprehensive data analysis</li>
-                </ul>
-              </div>
-              <div class="info-section">
-                <h4>Impact</h4>
-                <p>Demonstrates the potential of combined VR and BCI technologies for accelerating motor recovery and improving patient engagement.</p>
-              </div>
-            </div>
-          </div>
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">🤖 Smart Grasping (UR5): Deep RL in Robotics</h3>
+          <p style="color: var(--text-muted);">Developed intelligent grasping algorithms using deep reinforcement learning for the UR5 robotic arm in Gazebo simulation environment.</p>
         </div>
 
-        <div class="project-slide" data-slide="5">
-          <div class="project-content">
-            <h3>🤖 Smart Grasping (UR5): Deep RL in Robotics</h3>
-            <div class="project-info">
-              <div class="info-section">
-                <h4>Project Overview</h4>
-                <p>Developed intelligent grasping algorithms using deep reinforcement learning for the UR5 robotic arm in Gazebo simulation environment.</p>
-              </div>
-              <div class="info-section">
-                <h4>Key Features</h4>
-                <ul>
-                  <li>Deep Q-learning implementation</li>
-                  <li>3D object recognition</li>
-                  <li>Adaptive grasping strategies</li>
-                  <li>Real-time control optimization</li>
-                </ul>
-              </div>
-              <div class="info-section">
-                <h4>Impact</h4>
-                <p>Advances robotic manipulation capabilities for industrial and healthcare applications, improving efficiency and safety in automated systems.</p>
-              </div>
-            </div>
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.5rem;">🤖 Linux for Robotics: Obstacle Avoidance</h3>
+          <p style="margin-bottom: 15px; color: var(--text-muted);">Real-time autonomous robot navigation using Bash scripting, ROS 2, and Gazebo simulation. Built for the Linux for Robotics Certificate by The Construct.</p>
+          <div style="margin-bottom: 15px;">
+            <a href="https://www.youtube.com/watch?v=D7-lPA4cCZ0&t=501s" target="_blank" style="color: var(--accent-blue); text-decoration: none; margin-right: 20px;">Watch Demo Video →</a>
+            <a href="https://app.theconstruct.ai/accomplishments/verify/RIA2F8F751DC2FD/" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Verify Certificate →</a>
           </div>
         </div>
       </div>
@@ -1060,48 +921,87 @@
     <!-- Publications Section -->
     <section id="publications" class="section">
       <h2 class="section-title">Publications</h2>
-      <div class="glass-card fade-in">
-        <div class="scrollable-content">
-          <ul style="list-style: none; padding: 0;">
-            <li style="margin-bottom: 20px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 300px;">
-                  <a href="https://doi.org/10.1115/1.4069223" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease; font-weight: 600; font-size: 1.1em;">Robust Underactuated Point-feet Bipedal Locomotion Using Deep Reinforcement Learning and a Balance Recovery System</a>
-                </div>
-                <div style="max-width: 300px;">
-                  <video controls style="width: 100%; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.2);">
-                    <source src="RL.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
+      <div class="fade-in">
+        <ul style="list-style: disc; padding-left: 20px;">
+          <li style="margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 300px;">
+                <a href="https://doi.org/10.1115/1.4069223" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">Robust Underactuated Point-feet Bipedal Locomotion Using Deep Reinforcement Learning and a Balance Recovery System</a>
+              <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+                Developed a multi-agent deep reinforcement learning framework for robust bipedal robot locomotion. The system combines two agents: one for walking/running control and another for balance recovery, enabling stable locomotion even under disturbances.
+              </p>
+            </div>
+            <div style="flex-shrink: 0;">
+              <a href="bipedal-locomotion-rl.png" target="_blank">
+                <img src="bipedal-locomotion-rl.png" alt="Bipedal Locomotion System" style="max-width: 500px; width: 100%; margin-top: -5px; display: block; cursor: pointer;">
+              </a>
+            </div>
+            </div>
+          </li>
+          <li style="margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 300px;">
+                <a href="https://doi.org/10.3390/s25030610" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">NeuroFlex: Feasibility of EEG-Based Motor Imagery Control of a Soft Glove for Hand Rehabilitation</a>
+              <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+                Developed an EEG-based brain-computer interface system for controlling a soft robotic glove. The system uses transformer-based deep learning to decode motor imagery signals from EEG, enabling real-time control of the rehabilitation glove for hand therapy.
+              </p>
+            </div>
+            <div style="flex-shrink: 0;">
+              <a href="neuroflex-bci-system.png" target="_blank">
+                <img src="neuroflex-bci-system.png" alt="NeuroFlex System Diagram" style="max-width: 500px; width: 100%; margin-top: -5px; display: block; cursor: pointer;">
+              </a>
+            </div>
+            </div>
+          </li>
+          <li style="margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 300px;">
+                <a href="https://ieeexplore.ieee.org/abstract/document/10614438" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">EEG Motor Imagery Classification using Integrated Transformer-CNN for Assistive Technology Control</a>
+                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+                  Developed an integrated transformer-CNN architecture for classifying EEG motor imagery signals. The model combines convolutional neural networks for feature extraction with transformer attention mechanisms for improved classification accuracy in assistive technology applications.
+                </p>
               </div>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://doi.org/10.3390/s25030610" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">NeuroFlex: Feasibility of EEG-Based Motor Imagery Control of a Soft Glove for Hand Rehabilitation</a>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://doi.org/10.1109/CHASE60773.2024.00033" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">EEG Motor Imagery Classification using Integrated Transformer-CNN for Assistive Technology Control</a>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://ieeexplore.ieee.org/document/10780629" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">A Low-Cost Wearable Exoskeleton for Sitting and Standing Assistance</a>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://doi.org/10.1088/2516-1091/acc70a" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Wearable upper limb robotics for pervasive health: A review</a>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://doi.org/10.1017/S0263574722000649" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Experimental Study on the Control of a Suspended Cable-driven Parallel Robot for Object Tracking Purpose</a>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://doi.org/10.1109/ICEE50131.2020.9260982" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Kinematic Analysis of an Under-constrained Cable-driven Robot Using Neural Networks</a>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://doi.org/10.1109/ICSPIS51611.2020.9349584" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Reconstructing 3-D Graphical Model Using an Under-Constrained Cable-Driven Parallel Robot</a>
-            </li>
-            <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-blue);">
-              <a href="https://scholar.google.com/citations?view_op=view_citation&hl=en&user=63FzJooAAAAJ&citation_for_view=63FzJooAAAAJ:2osOgNQ5qMEC" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">MIMO Dynamic Control of a Suspended Underactuated Cable Robot Using Genetic Algorithm</a>
-            </li>
-          </ul>
-        </div>
+              <div style="flex-shrink: 0;">
+              <a href="transformer-cnn-architecture.gif" target="_blank">
+                <img src="transformer-cnn-architecture.gif" alt="Transformer-CNN Architecture" style="max-width: 500px; width: 100%; margin-top: -5px; display: block; cursor: pointer;">
+              </a>
+              </div>
+            </div>
+          </li>
+          <li style="margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 300px;">
+                <a href="https://ieeexplore.ieee.org/document/10780629" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">A Low-Cost Wearable Exoskeleton for Sitting and Standing Assistance</a>
+              <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+                Designed a low-cost wearable exoskeleton system to assist individuals with mobility impairments during sitting and standing transitions. The system features smooth acceleration/deceleration control and adaptive motion support for enhanced user comfort and safety.
+              </p>
+            </div>
+            <div style="flex-shrink: 0; display: flex; gap: 15px; align-items: flex-start;">
+              <a href="exoskeleton-motion-analysis.gif" target="_blank">
+                <img src="exoskeleton-motion-analysis.gif" alt="Exoskeleton Motion Analysis" style="max-width: 250px; width: 100%; margin-top: -5px; display: block; cursor: pointer;">
+              </a>
+              <a href="exoskeleton-design.gif" target="_blank">
+                <img src="exoskeleton-design.gif" alt="Exoskeleton System Diagram" style="height: 100%; max-width: 280px; width: auto; margin-top: -5px; display: block; cursor: pointer;">
+              </a>
+            </div>
+            </div>
+          </li>
+          <li style="margin-bottom: 15px;">
+            <a href="https://doi.org/10.1088/2516-1091/acc70a" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">Wearable upper limb robotics for pervasive health: A review</a>
+          </li>
+          <li style="margin-bottom: 15px;">
+            <a href="https://doi.org/10.1017/S0263574722000649" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">Experimental Study on the Control of a Suspended Cable-driven Parallel Robot for Object Tracking Purpose</a>
+          </li>
+          <li style="margin-bottom: 15px;">
+            <a href="https://doi.org/10.1109/ICEE50131.2020.9260982" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">Kinematic Analysis of an Under-constrained Cable-driven Robot Using Neural Networks</a>
+          </li>
+          <li style="margin-bottom: 15px;">
+            <a href="https://doi.org/10.1109/ICSPIS51611.2020.9349584" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">Reconstructing 3-D Graphical Model Using an Under-Constrained Cable-Driven Parallel Robot</a>
+          </li>
+          <li style="margin-bottom: 15px;">
+            <a href="https://scholar.google.com/citations?view_op=view_citation&hl=en&user=63FzJooAAAAJ&citation_for_view=63FzJooAAAAJ:2osOgNQ5qMEC" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">MIMO Dynamic Control of a Suspended Underactuated Cable Robot Using Genetic Algorithm</a>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -1110,24 +1010,25 @@
     <!-- Awards Section -->
     <section id="awards" class="section">
       <h2 class="section-title">Awards</h2>
-      <div class="glass-card fade-in">
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid #ffd700; display: flex; align-items: center; gap: 15px;">
-            <div style="flex: 1;">
-              🥇 <a href="https://engineering.virginia.edu/news-events/news/photos-mechanical-and-aerospace-engineering-awards-banquet" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Outstanding Graduate Research Award – UVA MAE Awards Banquet (2025)</a>
-            </div>
-            <img src="https://engineering.virginia.edu/sites/default/files/styles/portrait_full_med/public/_common/images/Events/MAE_Awards_Dinner_042525_19.webp?itok=Wo3VXW-3" 
-                 alt="MAE Awards Dinner 2024" 
-                 style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid var(--accent-cyan);">
+      <div class="fade-in">
+        <ul style="list-style: disc; padding-left: 20px;">
+          <li style="margin-bottom: 10px;">
+            Olsen Graduate Fellowship – University of Virginia (2025)
           </li>
-          <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid #ffd700;">
-            👑 <a href="https://popularscientist.com/soroush-zare-engineering-best-researcher-award-6623/" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Best Researcher Award in Engineering – Popular Scientist (2025)</a>
+          <li style="margin-bottom: 10px;">
+            <a href="https://engineering.virginia.edu/news-events/news/photos-mechanical-and-aerospace-engineering-awards-banquet" target="_blank" style="color: var(--text-muted); text-decoration: none;">Outstanding Graduate Research Award – University of Virginia (2025)</a>
           </li>
-          <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid #ffd700;">
-            🏅 NSF Student Travel Award – CHASE 2024
+          <li style="margin-bottom: 10px;">
+            <a href="https://popularscientist.com/soroush-zare-engineering-best-researcher-award-6623/" target="_blank" style="color: var(--text-muted); text-decoration: none;">Best Researcher Award in Engineering – Popular Scientist (2025)</a>
           </li>
-          <li style="margin-bottom: 15px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 10px; border-left: 4px solid #ffd700;">
-            🎓 GRADESTAR Fellowship (2023–2024)
+          <li style="margin-bottom: 10px;">
+            NSF Student Travel Award – CHASE 2024
+          </li>
+          <li style="margin-bottom: 10px;">
+            GRADESTAR Fellowship – University of Virginia (2023–2024)
+          </li>
+          <li style="margin-bottom: 10px;">
+            York Graduate Scholarship – York University (2022–2023)
           </li>
         </ul>
       </div>
@@ -1136,117 +1037,34 @@
     <!-- Professional Services Section -->
     <section id="professional-services" class="section">
       <h2 class="section-title">Professional Leadership & Services</h2>
-      <div class="glass-card fade-in">
-        <div style="display: flex; flex-direction: column; gap: 30px;">
-          
-          <!-- Leadership Roles -->
-          <div style="background: rgba(77, 163, 255, 0.1); border-radius: 15px; padding: 25px; border-left: 4px solid var(--accent-blue);">
-            <h3 style="color: var(--accent-cyan); margin-bottom: 20px; font-size: 1.3rem;">🎓 Leadership & Service</h3>
-            <div class="scrollable-content">
-              <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 20px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-cyan);">
-                  <strong>Vice President</strong> - <a href="https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/graduate-programs/graduate-student-board" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2024</a>
-                  <ul style="margin-top: 10px; padding-left: 20px; font-size: 0.9rem; opacity: 0.9;">
-                    <li>Spearheading initiatives to enhance community engagement and academic support among graduate students.</li>
-                    <li>Facilitating the integration of innovative academic programs and technologies to enhance student learning and research capabilities.</li>
-                    <li>Collaborating with department heads and faculty to address student concerns and improve graduate student life.</li>
-                    <li>Leading strategic planning sessions to identify and implement improvements within the department.</li>
-                    <li>Promoting a culture of excellence and inclusivity within the graduate student community.</li>
-                  </ul>
-                </li>
-                
-                <li style="margin-bottom: 20px; padding: 15px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-cyan);">
-                  <strong>Recruitment Chair</strong> - Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2023
-                  <ul style="margin-top: 10px; padding-left: 20px; font-size: 0.9rem; opacity: 0.9;">
-                    <li>Organized and executed comprehensive three-day visits for prospective students, including tours of key research facilities such as <a href="https://engineering.virginia.edu/labs-groups/link-lab" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Link Lab</a>.</li>
-                    <li>Coordinated bi-weekly meetings to discuss and plan recruitment strategies and student engagement activities.</li>
-                    <li>Managed poster demonstrations that highlighted current research projects and student achievements to visitors and faculty.</li>
-                    <li>Developed effective communication strategies to ensure smooth logistics, fostering a welcoming and informative environment for all attendees.</li>
-                    <li>Addressed immediate logistical challenges during events, ensuring all planned activities proceeded without interruption.</li>
-                  </ul>
-                </li>
-                
-                <li style="margin-bottom: 15px; padding: 12px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-cyan);">
-                  <strong>Student Member</strong> - Institute of Electrical and Electronics Engineers (IEEE)
-                </li>
-              </ul>
-            </div>
-          </div>
+      <div class="fade-in">
+        <div style="margin-bottom: 30px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.3rem; margin-bottom: 15px;">🎓 Leadership & Service</h3>
+          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+            <li style="margin-bottom: 10px;"><strong>Vice President</strong> - <a href="https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/graduate-programs/graduate-student-board" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2024</a></li>
+            <li style="margin-bottom: 10px;"><strong>Recruitment Chair</strong> - Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2023</li>
+            <li style="margin-bottom: 10px;"><strong>Student Member</strong> - Institute of Electrical and Electronics Engineers (IEEE)</li>
+          </ul>
+        </div>
 
-          <!-- Reviews (Mixed Journal and Conference) -->
-          <div style="background: rgba(77, 163, 255, 0.1); border-radius: 15px; padding: 25px; border-left: 4px solid var(--accent-blue);">
-            <h3 style="color: var(--accent-cyan); margin-bottom: 20px; font-size: 1.3rem;">📝 Reviews</h3>
-            <div class="scrollable-content">
-              <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(77, 163, 255, 0.2);">
-                  <a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Advanced Science</a>
-                </li>
-                <li style="margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(77, 163, 255, 0.2);">
-                  <a href="https://iopscience.iop.org/journal/1741-2552" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Journal of Neural Engineering</a>
-                </li>
-                <li style="margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(77, 163, 255, 0.2);">
-                  <a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Mechanism and Machine Theory</a>
-                </li>
-                <li style="margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(77, 163, 255, 0.2);">
-                  <a href="https://dl.acm.org/journal/health" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">ACM Transactions on Computing for Healthcare</a>
-                </li>
-                <li style="margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(77, 163, 255, 0.2);">
-                  <a href="https://www.sciencedirect.com/journal/smart-health" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">Smart Health</a>
-                </li>
-                <li style="margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(77, 163, 255, 0.2);">
-                  <a href="https://bsn.embs.org/2024/" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">IEEE BSN 2024 Conference</a>
-                </li>
-                <li style="margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid rgba(77, 163, 255, 0.2);">
-                  <a href="https://conferences.computer.org/chase2024/" target="_blank" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s ease;">IEEE/ACM CHASE 2024 Conference</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
+        <div style="margin-bottom: 30px;">
+          <h3 style="color: var(--accent-blue); font-size: 1.3rem; margin-bottom: 15px;">📝 Reviews</h3>
+          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+            <li style="margin-bottom: 8px;"><a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank" style="color: var(--text-muted); text-decoration: none;">Advanced Science</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/1741-2552" target="_blank" style="color: var(--text-muted); text-decoration: none;">Journal of Neural Engineering</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank" style="color: var(--text-muted); text-decoration: none;">Mechanism and Machine Theory</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://dl.acm.org/journal/health" target="_blank" style="color: var(--text-muted); text-decoration: none;">ACM Transactions on Computing for Healthcare</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/smart-health" target="_blank" style="color: var(--text-muted); text-decoration: none;">Smart Health</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2025/" target="_blank" style="color: var(--text-muted); text-decoration: none;">IEEE BSN 2025 Conference</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2024/" target="_blank" style="color: var(--text-muted); text-decoration: none;">IEEE BSN 2024 Conference</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://conferences.computer.org/chase2024/" target="_blank" style="color: var(--text-muted); text-decoration: none;">IEEE/ACM CHASE 2024 Conference</a></li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <!-- Contact Section -->
-    <section id="contact" class="section">
-      <h2 class="section-title">Contact</h2>
-      <div class="glass-card fade-in">
-        <p style="text-align: center; margin-bottom: 30px; font-size: 1.1em;">
-          Interested in collaboration or have questions about my research? Let's connect!
-        </p>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-          <a href="mailto:cyj7tf@virginia.edu" style="display: flex; align-items: center; gap: 15px; padding: 20px; background: rgba(77, 163, 255, 0.1); border-radius: 15px; text-decoration: none; color: var(--text-dark); transition: all 0.3s ease;">
-            <i class="fas fa-envelope" style="font-size: 24px; color: var(--accent-blue);"></i>
-            <div>
-              <strong>Email</strong><br>
-              <span style="opacity: 0.8;">cyj7tf@virginia.edu</span>
-            </div>
-          </a>
-          
-          <a href="https://www.linkedin.com/in/soroush-zare/" target="_blank" style="display: flex; align-items: center; gap: 15px; padding: 20px; background: rgba(77, 163, 255, 0.1); border-radius: 15px; text-decoration: none; color: var(--text-dark); transition: all 0.3s ease;">
-            <i class="fab fa-linkedin" style="font-size: 24px; color: var(--accent-blue);"></i>
-            <div>
-              <strong>LinkedIn</strong><br>
-              <span style="opacity: 0.8;">Connect with me</span>
-            </div>
-          </a>
-        </div>
-      </div>
-    </section>
   </div>
 
-  <!-- Website Info -->
-  <div class="stats-container">
-    <div class="stats-item">
-      <i class="fas fa-calendar stats-icon"></i>
-      <span>Last Updated: <span class="stats-value">Aug 2025</span></span>
-    </div>
-    <div class="stats-item">
-      <i class="fas fa-code stats-icon"></i>
-      <span>Version: <span class="stats-value">2.0</span></span>
-    </div>
-  </div>
-      <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
