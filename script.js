@@ -1,27 +1,4 @@
 // Version 2 - Enhanced Interface (Loading Screen Removed)
-class ParticleSystem {
-  constructor() {
-    this.particles = [];
-    this.container = document.getElementById('particles');
-    this.init();
-  }
-
-  init() {
-    for (let i = 0; i < 50; i++) {
-      this.createParticle();
-    }
-  }
-
-  createParticle() {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    particle.style.left = Math.random() * 100 + '%';
-    particle.style.animationDelay = Math.random() * 6 + 's';
-    particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
-    this.container.appendChild(particle);
-    this.particles.push(particle);
-  }
-}
 
 // Scroll Animations
 class ScrollAnimations {
@@ -104,9 +81,6 @@ class WebsiteStats {
 
 // Main Initialization
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize particle system
-  const particleSystem = new ParticleSystem();
-  
   // Initialize scroll animations
   const scrollAnimations = new ScrollAnimations();
   const smoothScrolling = new SmoothScrolling();
