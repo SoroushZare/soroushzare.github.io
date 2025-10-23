@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Soroush Zare | PhD Candidate | AI & BCI Researcher | University of Virginia</title>
   <link rel="icon" href="https://soroushzare.github.io/Profile.jpg" type="image/jpeg">
@@ -29,33 +29,7 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LH3SQLMWTD"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-LH3SQLMWTD');
-  </script>
-
-  <!-- Three.js CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  
   <style>
-    :root {
-      --bg-dark: #ffffff;
-      --bg-darker: #f5f5f5;
-      --text-dark: #333333;
-      --text-muted: #666666;
-      --accent-blue: #1e90ff;
-      --accent-cyan: #0099cc;
-      --accent-purple: #8b5cf6;
-      --accent-glow: rgba(30, 144, 255, 0.3);
-      --glass-bg: rgba(255, 255, 255, 0.9);
-      --glass-border: rgba(0, 0, 0, 0.1);
-    }
-
     * {
       margin: 0;
       padding: 0;
@@ -69,70 +43,25 @@
       line-height: 1.6;
     }
 
-    /* 3D Brain Canvas */
-    #brainCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      z-index: -1;
-      pointer-events: none;
-      display: none;
-    }
-
-    /* Main Content */
     .main-content {
       position: relative;
       z-index: 10;
       min-height: 100vh;
     }
 
-    /* Header */
     .header {
-      position: relative;
-      padding: 40px 20px 20px;
       text-align: center;
+      padding: 40px 20px;
       background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, transparent 100%);
-    }
-
-    .profile-container {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 30px;
     }
 
     .profile-image {
       width: 180px;
       height: 180px;
       border-radius: 50%;
-      border: 4px solid var(--accent-blue);
-      box-shadow: 0 0 30px var(--accent-glow);
-      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      z-index: 2;
-    }
-
-    .profile-image:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 50px var(--accent-glow);
-    }
-
-    .profile-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 200px;
-      height: 200px;
-      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      border: 4px solid #1e90ff;
+      box-shadow: 0 0 30px rgba(30, 144, 255, 0.3);
+      margin-bottom: 30px;
     }
 
     .header h1 {
@@ -144,12 +73,11 @@
 
     .header p {
       font-size: 1.3rem;
-      color: var(--text-muted);
+      color: #666666;
       margin-bottom: 30px;
       font-weight: 300;
     }
 
-    /* Social Links */
     .social-links {
       display: flex;
       justify-content: center;
@@ -161,97 +89,27 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--accent-blue);
+      color: #1e90ff;
       font-size: 20px;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      backdrop-filter: blur(10px);
+      transition: all 0.4s ease;
       text-decoration: none;
     }
 
     .social-link:hover {
       transform: translateY(-5px) scale(1.1);
-      background: var(--accent-glow);
-      box-shadow: 0 10px 25px var(--accent-glow);
+      background: rgba(30, 144, 255, 0.3);
+      box-shadow: 0 10px 25px rgba(30, 144, 255, 0.3);
     }
 
-    /* Fix for social media icons alignment */
-    .social-link i {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-    }
-
-    /* Navigation */
-    .nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      padding: 15px 0;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 30px;
-      flex-wrap: wrap;
-    }
-
-    .nav a {
-      color: rgba(77, 163, 255, 0.8);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 1rem;
-      padding: 10px 15px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(77, 163, 255, 0.05);
-      border: 1px solid rgba(77, 163, 255, 0.1);
-    }
-
-    .nav a:hover {
-      color: rgba(77, 163, 255, 1);
-      background: rgba(77, 163, 255, 0.15);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(77, 163, 255, 0.2);
-    }
-
-    .nav a.active {
-      color: rgba(77, 163, 255, 1);
-      background: rgba(77, 163, 255, 0.2);
-      border-color: rgba(77, 163, 255, 0.3);
-    }
-
-    .nav i {
-      font-size: 0.9em;
-      opacity: 0.8;
-    }
-
-    /* Sections */
     .section {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 20px 20px;
-      position: relative;
+      padding: 20px;
     }
 
     .section-title {
@@ -262,389 +120,18 @@
       color: #1a1a1a;
     }
 
-    /* Glass Cards */
-    .glass-card {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 30px;
-      backdrop-filter: blur(20px);
-      transition: all 0.4s ease;
-    }
-
-    .glass-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      border-color: var(--accent-blue);
-    }
-
-    /* Scrollable Content */
-    .scrollable-content {
-      max-height: 1600px;
-      overflow-y: auto;
-      padding-right: 10px;
-      margin-top: 20px;
-    }
-
-    .scrollable-content::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .scrollable-content::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 4px;
-    }
-
-    .scrollable-content::-webkit-scrollbar-thumb {
-      background: var(--accent-blue);
-      border-radius: 4px;
-    }
-
-    .scrollable-content::-webkit-scrollbar-thumb:hover {
-      background: var(--accent-cyan);
-    }
-
-    /* View Count and Info */
-    .stats-container {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      z-index: 1000;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 15px;
-      padding: 15px 20px;
-      backdrop-filter: blur(20px);
-      color: var(--text-dark);
-      font-size: 0.9rem;
-      min-width: 200px;
-    }
-
-    .stats-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .stats-item:last-child {
-      margin-bottom: 0;
-    }
-
-    .stats-icon {
-      color: var(--accent-blue);
-      width: 16px;
-      text-align: center;
-    }
-
-    .stats-value {
-      font-weight: 600;
-      color: var(--accent-cyan);
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .header h1 {
-        font-size: 2.5rem;
-      }
-      
-      .nav-container {
-        flex-wrap: wrap;
-        gap: 15px;
-      }
-      
-      .section {
-        padding: 60px 15px;
-      }
-      
-      .section-title {
-        font-size: 2rem;
-      }
-
-      .stats-container {
-        position: static;
-        margin: 20px auto;
-        max-width: 300px;
-      }
-
-      .scrollable-content {
-        max-height: 300px;
-      }
-    }
-
-    /* Animations */
     .fade-in {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: all 0.8s ease;
-    }
-
-    .fade-in.visible {
       opacity: 1;
       transform: translateY(0);
-    }
-
-    /* Particle Effects */
-    .particles {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .particle {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: var(--accent-blue);
-      border-radius: 50%;
-      animation: float 6s infinite linear;
-    }
-
-    @keyframes float {
-      0% {
-        transform: translateY(100vh) rotate(0deg);
-        opacity: 0;
-      }
-      10% {
-        opacity: 1;
-      }
-      90% {
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(-100px) rotate(360deg);
-        opacity: 0;
-      }
-    }
-
-    /* Project Carousel */
-    .project-carousel-container {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
-      scroll-padding-top: 0;
-    }
-
-    .project-slide {
-      width: 100%;
-      height: 100vh;
-      scroll-snap-align: start;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(5, 5, 5, 0.95));
-    }
-
-    .project-content {
-      max-width: 1200px;
-      width: 90%;
-      height: 80%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 40px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .project-content h3 {
-      color: var(--accent-blue);
-      margin-bottom: 30px;
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-shadow: 0 0 20px var(--accent-glow);
-    }
-
-    .project-video {
-      width: 100%;
-      max-width: 800px;
-      height: 400px;
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      margin-bottom: 30px;
-    }
-
-    .project-video video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .project-description {
-      max-width: 600px;
-    }
-
-    .project-description p {
-      color: var(--text-muted);
-      font-size: 1.2rem;
-      line-height: 1.7;
-      margin-bottom: 30px;
-    }
-
-    .project-links {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .project-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 15px 25px;
-      background: var(--accent-glow);
-      border-radius: 12px;
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      border: 1px solid rgba(77, 163, 255, 0.3);
-    }
-
-    .project-link:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px var(--accent-glow);
-      background: rgba(77, 163, 255, 0.4);
-    }
-
-    /* Experience Carousel */
-    .experience-carousel-container {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
-      scroll-padding-top: 0;
-    }
-
-    .experience-slide {
-      width: 100%;
-      height: 100vh;
-      scroll-snap-align: start;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      background: linear-gradient(135deg, rgba(10, 10, 10, 0.95), rgba(5, 5, 5, 0.95));
-    }
-
-    .experience-content {
-      max-width: 1200px;
-      width: 90%;
-      height: 80%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 40px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .experience-content h3 {
-      color: var(--accent-blue);
-      margin-bottom: 20px;
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-shadow: 0 0 20px var(--accent-glow);
-    }
-
-    .experience-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 30px;
-      margin-top: 30px;
-      width: 100%;
-    }
-
-    .experience-info .info-section {
-      background: rgba(77, 163, 255, 0.1);
-      border-radius: 15px;
-      padding: 25px;
-      border-left: 4px solid var(--accent-blue);
-      transition: all 0.3s ease;
-      text-align: left;
-    }
-
-    .experience-info .info-section h4 {
-      color: var(--accent-blue);
-      font-size: 1.3rem;
-      margin-bottom: 15px;
-    }
-
-    .experience-info .info-section ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .experience-info .info-section li {
-      margin-bottom: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(77, 163, 255, 0.2);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: var(--text-muted);
-    }
-
-    .experience-info .info-section li:last-child {
-      border-bottom: none;
-    }
-
-    /* Responsive design for experience carousel */
-    @media (max-width: 768px) {
-      .experience-content {
-        padding: 20px;
-      }
-      
-      .experience-content h3 {
-        font-size: 1.8rem;
-      }
-      
-      .experience-info {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      
-      .experience-info .info-section {
-        padding: 20px;
-      }
-    }
-
-    .project-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
-      width: 100%;
-      max-width: 1000px;
     }
 
     .info-section {
       background: rgba(77, 163, 255, 0.1);
       border-radius: 15px;
       padding: 25px;
-      border-left: 4px solid var(--accent-blue);
+      border-left: 4px solid #1e90ff;
       transition: all 0.3s ease;
+      margin-bottom: 20px;
     }
 
     .info-section:hover {
@@ -653,14 +140,14 @@
     }
 
     .info-section h4 {
-      color: var(--accent-cyan);
+      color: #1a1a1a;
       font-size: 1.3rem;
       margin-bottom: 15px;
       font-weight: 600;
     }
 
     .info-section p {
-      color: var(--text-muted);
+      color: #666666;
       line-height: 1.6;
       margin-bottom: 15px;
     }
@@ -671,7 +158,7 @@
     }
 
     .info-section li {
-      color: var(--text-muted);
+      color: #666666;
       padding: 8px 0;
       border-bottom: 1px solid rgba(77, 163, 255, 0.2);
       position: relative;
@@ -680,7 +167,7 @@
 
     .info-section li:before {
       content: '•';
-      color: var(--accent-blue);
+      color: #1e90ff;
       position: absolute;
       left: 0;
       font-weight: bold;
@@ -690,96 +177,26 @@
       border-bottom: none;
     }
 
-    /* Scrollbar styling for project carousel */
-    .project-carousel-container::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .project-carousel-container::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 4px;
-    }
-
-    .project-carousel-container::-webkit-scrollbar-thumb {
-      background: var(--accent-blue);
-      border-radius: 4px;
-    }
-
-    .project-carousel-container::-webkit-scrollbar-thumb:hover {
-      background: var(--accent-cyan);
-    }
-
-    /* Responsive design for project carousel */
+    /* Responsive Design */
     @media (max-width: 768px) {
-      .project-content {
-        width: 95%;
-        height: 85%;
-        padding: 20px;
+      .header h1 {
+        font-size: 2.5rem;
       }
-
-      .project-content h3 {
+      
+      .section {
+        padding: 60px 15px;
+      }
+      
+      .section-title {
         font-size: 1.8rem;
       }
-
-      .project-video {
-        height: 250px;
-      }
-
-      .project-info {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .project-links {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .project-link {
-        width: 100%;
-        max-width: 300px;
-        justify-content: center;
-      }
-    }
-
-    /* Scrollable content for professional services */
-    .scrollable-content {
-      max-height: 200px;
-      overflow-y: auto;
-      padding-right: 10px;
-      margin-top: 10px;
-    }
-
-    .scrollable-content::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .scrollable-content::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-    }
-
-    .scrollable-content::-webkit-scrollbar-thumb {
-      background: var(--accent-blue);
-      border-radius: 3px;
-    }
-
-    .scrollable-content::-webkit-scrollbar-thumb:hover {
-      background: var(--accent-cyan);
     }
   </style>
 </head>
 <body>
-  <!-- 3D Brain Canvas -->
-  <canvas id="brainCanvas"></canvas>
-
-  <!-- Main Content -->
   <div class="main-content">
-    <!-- Header -->
     <header class="header">
-      <div class="profile-container">
-        <img src="images/icons/Profile.jpg" alt="Soroush Zare" class="profile-image">
-      </div>
+      <img src="images/icons/Profile.jpg" alt="Soroush Zare" class="profile-image">
       <h1>Soroush Zare</h1>
       <p>Ph.D. Candidate<br>University of Virginia</p>
       <div class="social-links">
@@ -801,15 +218,15 @@
       </div>
     </header>
 
-
     <!-- About Section -->
-    <section id="about" class="section">
+    <section class="section">
+      <h2 class="section-title">About</h2>
       <div class="fade-in">
-        <p>I am a PhD Candidate at the University of Virginia specializing in AI-driven brain-computer interfaces and intelligent robotics. My research focuses on developing cutting-edge technologies that bridge neuroscience and engineering, with applications in neurorehabilitation, assistive robotics, and human-machine interaction. I combine expertise in EEG signal processing, deep learning, and reinforcement learning to create innovative solutions for real-world healthcare challenges. As a member of the <a href="https://engineering.virginia.edu/labs-groups/wearlab" target="_blank" style="color: var(--text-muted); text-decoration: underline; text-decoration-thickness: 1px;">WEARLab</a>, I contribute to advancing wearable robotics and intelligent rehabilitation systems that improve quality of life for individuals with mobility impairments.</p>
+        <p>I am a PhD Candidate at the University of Virginia specializing in AI-driven brain-computer interfaces and intelligent robotics. My research focuses on developing cutting-edge technologies that bridge neuroscience and engineering, with applications in neurorehabilitation, assistive robotics, and human-machine interaction. I combine expertise in EEG signal processing, deep learning, and reinforcement learning to create innovative solutions for real-world healthcare challenges. As a member of the <a href="https://engineering.virginia.edu/labs-groups/wearlab" target="_blank" style="color: #666666; text-decoration: underline; text-decoration-thickness: 1px;">WEARLab</a>, I contribute to advancing wearable robotics and intelligent rehabilitation systems that improve quality of life for individuals with mobility impairments.</p>
         
         <div style="margin-top: 30px;">
           <h3 style="color: #1a1a1a; margin-bottom: 20px;">Research Focus</h3>
-          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
             <li style="margin-bottom: 10px;">
               <strong>Brain-Computer Interfaces (BCI):</strong> EEG signal processing and neural decoding
             </li>
@@ -831,13 +248,13 @@
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" class="section">
+    <section class="section">
       <h2 class="section-title">Research Experience</h2>
       <div class="fade-in">
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">🔬 Research Assistant | University of Virginia</h3>
           <p style="margin-bottom: 15px; opacity: 0.8;">Charlottesville, VA • Jan. 2023 - Present</p>
-          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
             <li>Designing and developing soft upper limb rehabilitation exoskeleton</li>
             <li>Contributed to the design and control of wearable soft rehabilitation robots using soft materials and 3D printing techniques</li>
             <li>Developed transformer-based deep learning pipelines to decode EEG motor imagery for real-time control of upper-limb exoskeletons</li>
@@ -850,7 +267,7 @@
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">🔬 Research Assistant | York University</h3>
           <p style="margin-bottom: 15px; opacity: 0.8;">Toronto, Canada • Sept. 2022 - Jan. 2023</p>
-          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
             <li>Developed and simulated robotic grasping mechanisms using UR5 robotic arm in ROS (Robot Operating System)</li>
             <li>Utilized Gazebo for real-time simulation and testing of robotic control algorithms</li>
             <li>Implemented deep reinforcement learning techniques for intelligent robotic manipulation</li>
@@ -860,8 +277,8 @@
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">🔬 Research Assistant | University of Tehran</h3>
           <p style="margin-bottom: 15px; opacity: 0.8;">Tehran, Iran • Sept. 2018 - Sept. 2022</p>
-          <p style="margin-bottom: 10px;">Member of <a href="http://taarlab.com/" target="_blank" style="color: var(--text-muted); text-decoration: underline; text-decoration-thickness: 1px;">Human and Robot Interaction Laboratory (TaarLab)</a></p>
-          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
+          <p style="margin-bottom: 10px;">Member of <a href="http://taarlab.com/" target="_blank" style="color: #666666; text-decoration: underline; text-decoration-thickness: 1px;">Human and Robot Interaction Laboratory (TaarLab)</a></p>
+          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
             <li>Control Cable-Driven Parallel Robot (CDPR) Using Deep Reinforcement Learning</li>
             <li>Construct 3-D model of Objects Using CDPR</li>
             <li>AI-based Object Tracking Using CDPR</li>
@@ -873,42 +290,42 @@
     </section>
 
     <!-- Projects Section -->
-    <section id="projects" class="section">
+    <section class="section">
       <h2 class="section-title">Projects</h2>
       <div class="fade-in">
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">🧠 EEGDiffFormer: Transformer-based EEG Decoder</h3>
-          <p style="color: var(--text-muted);">Developed a state-of-the-art transformer-based architecture for EEG motor imagery classification, achieving superior performance in intent validation and robotic adaptation.</p>
+          <p style="color: #666666;">Developed a state-of-the-art transformer-based architecture for EEG motor imagery classification, achieving superior performance in intent validation and robotic adaptation.</p>
         </div>
 
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">💪 NeuroMotion: EEG-Driven Soft Exoskeleton</h3>
-          <p style="color: var(--text-muted);">Designed and implemented a soft exoskeleton system that adapts to user movements using reinforcement learning algorithms and real-time EEG signal processing.</p>
+          <p style="color: #666666;">Designed and implemented a soft exoskeleton system that adapts to user movements using reinforcement learning algorithms and real-time EEG signal processing.</p>
         </div>
 
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">🚴 VR-Bike EEG Study: Neuroplasticity Enhancement</h3>
-          <p style="color: var(--text-muted);">Integrated EEG monitoring with virtual reality cycling to study and enhance neuroplasticity in rehabilitation settings.</p>
+          <p style="color: #666666;">Integrated EEG monitoring with virtual reality cycling to study and enhance neuroplasticity in rehabilitation settings.</p>
         </div>
 
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">🤖 Smart Grasping (UR5): Deep RL in Robotics</h3>
-          <p style="color: var(--text-muted);">Developed intelligent grasping algorithms using deep reinforcement learning for the UR5 robotic arm in Gazebo simulation environment.</p>
+          <p style="color: #666666;">Developed intelligent grasping algorithms using deep reinforcement learning for the UR5 robotic arm in Gazebo simulation environment.</p>
         </div>
 
         <div style="margin-bottom: 40px;">
           <h3 style="color: #1a1a1a; font-size: 1.5rem;">🤖 Linux for Robotics: Obstacle Avoidance</h3>
-          <p style="margin-bottom: 15px; color: var(--text-muted);">Real-time autonomous robot navigation using Bash scripting, ROS 2, and Gazebo simulation. Built for the Linux for Robotics Certificate by The Construct.</p>
+          <p style="margin-bottom: 15px; color: #666666;">Real-time autonomous robot navigation using Bash scripting, ROS 2, and Gazebo simulation. Built for the Linux for Robotics Certificate by The Construct.</p>
           <div style="margin-bottom: 15px;">
-            <a href="https://www.youtube.com/watch?v=D7-lPA4cCZ0&t=501s" target="_blank" style="color: var(--accent-blue); text-decoration: none; margin-right: 20px;">Demo</a>
-            <a href="https://app.theconstruct.ai/accomplishments/verify/RIA2F8F751DC2FD/" target="_blank" style="color: var(--accent-blue); text-decoration: none;">Certificate</a>
+            <a href="https://www.youtube.com/watch?v=D7-lPA4cCZ0&t=501s" target="_blank" style="color: #1e90ff; text-decoration: none; margin-right: 20px;">Demo</a>
+            <a href="https://app.theconstruct.ai/accomplishments/verify/RIA2F8F751DC2FD/" target="_blank" style="color: #1e90ff; text-decoration: none;">Certificate</a>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Publications Section -->
-    <section id="publications" class="section">
+    <section class="section">
       <h2 class="section-title">Publications</h2>
       <div class="fade-in">
         <ul style="list-style: disc; padding-left: 20px;">
@@ -916,7 +333,7 @@
             <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 300px;">
                 <a href="https://doi.org/10.1115/1.4069223" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">Robust Underactuated Point-feet Bipedal Locomotion Using Deep Reinforcement Learning and a Balance Recovery System</a>
-              <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+              <p style="color: #666666; font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
                 Developed a multi-agent deep reinforcement learning framework for robust bipedal robot locomotion. The system combines two agents: one for walking/running control and another for balance recovery, enabling stable locomotion even under disturbances.
               </p>
             </div>
@@ -931,7 +348,7 @@
             <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 300px;">
                 <a href="https://doi.org/10.3390/s25030610" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">NeuroFlex: Feasibility of EEG-Based Motor Imagery Control of a Soft Glove for Hand Rehabilitation</a>
-              <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+              <p style="color: #666666; font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
                 Developed an EEG-based brain-computer interface system for controlling a soft robotic glove. The system uses transformer-based deep learning to decode motor imagery signals from EEG, enabling real-time control of the rehabilitation glove for hand therapy.
               </p>
             </div>
@@ -946,7 +363,7 @@
             <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 300px;">
                 <a href="https://ieeexplore.ieee.org/abstract/document/10614438" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">EEG Motor Imagery Classification using Integrated Transformer-CNN for Assistive Technology Control</a>
-                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+                <p style="color: #666666; font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
                   Developed an integrated transformer-CNN architecture for classifying EEG motor imagery signals. The model combines convolutional neural networks for feature extraction with transformer attention mechanisms for improved classification accuracy in assistive technology applications.
                 </p>
               </div>
@@ -961,7 +378,7 @@
             <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 300px;">
                 <a href="https://ieeexplore.ieee.org/document/10780629" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">A Low-Cost Wearable Exoskeleton for Sitting and Standing Assistance</a>
-              <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+              <p style="color: #666666; font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
                 Designed a low-cost wearable exoskeleton system to assist individuals with mobility impairments during sitting and standing transitions. The system features smooth acceleration/deceleration control and adaptive motion support for enhanced user comfort and safety.
               </p>
             </div>
@@ -994,10 +411,8 @@
       </div>
     </section>
 
-
-
     <!-- Awards Section -->
-    <section id="awards" class="section">
+    <section class="section">
       <h2 class="section-title">Awards</h2>
       <div class="fade-in">
         <ul style="list-style: disc; padding-left: 20px;">
@@ -1005,10 +420,10 @@
             Olsen Graduate Fellowship – University of Virginia (2025)
           </li>
           <li style="margin-bottom: 10px;">
-            <a href="https://engineering.virginia.edu/news-events/news/photos-mechanical-and-aerospace-engineering-awards-banquet" target="_blank" style="color: var(--text-muted); text-decoration: none;">Outstanding Graduate Research Award – University of Virginia (2025)</a>
+            <a href="https://engineering.virginia.edu/news-events/news/photos-mechanical-and-aerospace-engineering-awards-banquet" target="_blank" style="color: #666666; text-decoration: none;">Outstanding Graduate Research Award – University of Virginia (2025)</a>
           </li>
           <li style="margin-bottom: 10px;">
-            <a href="https://popularscientist.com/soroush-zare-engineering-best-researcher-award-6623/" target="_blank" style="color: var(--text-muted); text-decoration: none;">Best Researcher Award in Engineering – Popular Scientist (2025)</a>
+            <a href="https://popularscientist.com/soroush-zare-engineering-best-researcher-award-6623/" target="_blank" style="color: #666666; text-decoration: none;">Best Researcher Award in Engineering – Popular Scientist (2025)</a>
           </li>
           <li style="margin-bottom: 10px;">
             NSF Student Travel Award – CHASE 2024
@@ -1024,13 +439,13 @@
     </section>
 
     <!-- Professional Services Section -->
-    <section id="professional-services" class="section">
+    <section class="section">
       <h2 class="section-title">Professional Leadership & Services</h2>
       <div class="fade-in">
         <div style="margin-bottom: 30px;">
           <h3 style="color: #1a1a1a; font-size: 1.3rem; margin-bottom: 15px;">🎓 Leadership & Service</h3>
-          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
-            <li style="margin-bottom: 10px;"><strong>Vice President</strong> - <a href="https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/graduate-programs/graduate-student-board" target="_blank" style="color: var(--text-muted); text-decoration: underline; text-decoration-thickness: 1px;">Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2024</a></li>
+          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
+            <li style="margin-bottom: 10px;"><strong>Vice President</strong> - <a href="https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/graduate-programs/graduate-student-board" target="_blank" style="color: #666666; text-decoration: underline; text-decoration-thickness: 1px;">Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2024</a></li>
             <li style="margin-bottom: 10px;"><strong>Recruitment Chair</strong> - Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2023</li>
             <li style="margin-bottom: 10px;"><strong>Student Member</strong> - Institute of Electrical and Electronics Engineers (IEEE)</li>
           </ul>
@@ -1038,22 +453,19 @@
 
         <div style="margin-bottom: 30px;">
           <h3 style="color: #1a1a1a; font-size: 1.3rem; margin-bottom: 15px;">📝 Reviews</h3>
-          <ul style="list-style: disc; padding-left: 20px; color: var(--text-muted);">
-            <li style="margin-bottom: 8px;"><a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank" style="color: var(--text-muted); text-decoration: none;">Advanced Science</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/1741-2552" target="_blank" style="color: var(--text-muted); text-decoration: none;">Journal of Neural Engineering</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank" style="color: var(--text-muted); text-decoration: none;">Mechanism and Machine Theory</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://dl.acm.org/journal/health" target="_blank" style="color: var(--text-muted); text-decoration: none;">ACM Transactions on Computing for Healthcare</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/smart-health" target="_blank" style="color: var(--text-muted); text-decoration: none;">Smart Health</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2025/" target="_blank" style="color: var(--text-muted); text-decoration: none;">IEEE BSN 2025 Conference</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2024/" target="_blank" style="color: var(--text-muted); text-decoration: none;">IEEE BSN 2024 Conference</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://conferences.computer.org/chase2024/" target="_blank" style="color: var(--text-muted); text-decoration: none;">IEEE/ACM CHASE 2024 Conference</a></li>
+          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
+            <li style="margin-bottom: 8px;"><a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank" style="color: #666666; text-decoration: none;">Advanced Science</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/1741-2552" target="_blank" style="color: #666666; text-decoration: none;">Journal of Neural Engineering</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank" style="color: #666666; text-decoration: none;">Mechanism and Machine Theory</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://dl.acm.org/journal/health" target="_blank" style="color: #666666; text-decoration: none;">ACM Transactions on Computing for Healthcare</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/smart-health" target="_blank" style="color: #666666; text-decoration: none;">Smart Health</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2025/" target="_blank" style="color: #666666; text-decoration: none;">IEEE BSN 2025 Conference</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2024/" target="_blank" style="color: #666666; text-decoration: none;">IEEE BSN 2024 Conference</a></li>
+            <li style="margin-bottom: 8px;"><a href="https://conferences.computer.org/chase2024/" target="_blank" style="color: #666666; text-decoration: none;">IEEE/ACM CHASE 2024 Conference</a></li>
           </ul>
         </div>
       </div>
     </section>
-
   </div>
-
-  <!-- <script src="script.js"></script> -->
 </body>
 </html>
