@@ -9,6 +9,7 @@
     gtag('js', new Date());
     gtag('config', 'G-PZCXZJP1YN');
   </script>
+  <script>document.documentElement.className += " js-anim";</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Soroush Zare | PhD Candidate | AI & BCI Researcher | University of Virginia</title>
@@ -34,6 +35,11 @@
   <meta name="twitter:description" content="PhD Candidate at University of Virginia specializing in AI-driven brain-computer interfaces, reinforcement learning, and wearable robotics. 10+ publications, open to industry opportunities.">
   <meta name="twitter:image" content="https://soroushzare.github.io/Profile.jpg">
   
+  <!-- Serif face used only by the experience timeline headings -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   
@@ -199,11 +205,296 @@
         font-size: 1.8rem;
       }
     }
+
+    /* ══════════════════════════════════════════════════════════════
+       MOTION
+       Every hidden-then-revealed state is scoped to .js-anim, a class
+       set by an inline script in <head>. Without JavaScript the class
+       is never added, so all content renders normally instead of
+       staying stuck at opacity 0.
+       ══════════════════════════════════════════════════════════════ */
+
+    /* --- Header entrance -------------------------------------- */
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .js-anim .header .profile-image { animation: popIn  800ms cubic-bezier(.22,.61,.36,1) backwards; animation-delay: 80ms; }
+    .js-anim .header h1             { animation: riseIn 700ms cubic-bezier(.22,.61,.36,1) backwards; animation-delay: 220ms; }
+    .js-anim .header > p            { animation: riseIn 700ms cubic-bezier(.22,.61,.36,1) backwards; animation-delay: 320ms; }
+    .js-anim .social-link           { animation: riseIn 600ms cubic-bezier(.22,.61,.36,1) backwards; }
+    .js-anim .social-link:nth-child(1) { animation-delay: 440ms; }
+    .js-anim .social-link:nth-child(2) { animation-delay: 500ms; }
+    .js-anim .social-link:nth-child(3) { animation-delay: 560ms; }
+    .js-anim .social-link:nth-child(4) { animation-delay: 620ms; }
+    .js-anim .social-link:nth-child(5) { animation-delay: 680ms; }
+
+    /* --- EEG trace behind the header --------------------------- */
+    .header { position: relative; overflow: hidden; }
+    .header > * { position: relative; z-index: 1; }
+
+    .eeg-bg {
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 130%;
+      height: 88%;
+      z-index: 0;
+      opacity: 0.13;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 75%, transparent);
+              mask-image: linear-gradient(90deg, transparent, #000 15%, #000 75%, transparent);
+    }
+    .eeg-bg path {
+      fill: none;
+      stroke: #1e90ff;
+      stroke-width: 1;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .js-anim .eeg-bg path {
+      stroke-dasharray: var(--len);
+      stroke-dashoffset: var(--len);
+      animation: trace 2.6s cubic-bezier(.4,0,.2,1) forwards;
+      animation-delay: calc(var(--i) * 220ms + 300ms);
+    }
+    .js-anim .eeg-bg__drift { animation: drift 46s linear infinite; }
+    @keyframes trace { to { stroke-dashoffset: 0; } }
+    @keyframes drift { to { transform: translateX(-23.08%); } }
+
+    /* --- Scroll reveal ----------------------------------------- */
+    .js-anim .section-title,
+    .js-anim .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 700ms cubic-bezier(.22,.61,.36,1),
+                  transform 700ms cubic-bezier(.22,.61,.36,1);
+    }
+    .js-anim .section-title.is-visible,
+    .js-anim .fade-in.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Publication and award rows cascade in one after another. */
+    .js-anim .fade-in > ul > li {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 600ms cubic-bezier(.22,.61,.36,1),
+                  transform 600ms cubic-bezier(.22,.61,.36,1);
+      transition-delay: calc(var(--row, 0) * 70ms);
+    }
+    .js-anim .fade-in.is-visible > ul > li { opacity: 1; transform: none; }
+
+    /* --- Small interactive touches ----------------------------- */
+    .profile-image { transition: transform 500ms cubic-bezier(.22,.61,.36,1), box-shadow 500ms ease; }
+    .profile-image:hover { transform: scale(1.04); box-shadow: 0 0 45px rgba(30,144,255,0.45); }
+
+    .section li img { transition: transform 400ms cubic-bezier(.22,.61,.36,1); }
+    .section li img:hover { transform: scale(1.02); }
+
+    /* Guarded: without background-clip:text support the transparent fill
+       would render the name invisible rather than merely unanimated. */
+    @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+      .header h1 {
+        background: linear-gradient(90deg, #1a1a1a 0%, #1a1a1a 40%, #1e90ff 55%, #1a1a1a 70%, #1a1a1a 100%);
+        background-size: 250% 100%;
+        /* Rest position parks the blue band off the right edge, so the name
+           is plain #1a1a1a until the sweep runs. */
+        background-position: 130% 0;
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .js-anim .header h1 {
+        animation: riseIn 700ms cubic-bezier(.22,.61,.36,1) backwards,
+                   sheen 7s ease-in-out 1.6s infinite;
+      }
+    }
+    @keyframes sheen {
+      0%, 62%, 100% { background-position: 130% 0; }
+      82%           { background-position: -30% 0; }
+    }
+
+    /* --- Reduced motion ---------------------------------------- */
+    @media (prefers-reduced-motion: reduce) {
+      .js-anim .header .profile-image,
+      .js-anim .header h1,
+      .js-anim .header > p,
+      .js-anim .social-link { animation: none; }
+      .js-anim .header h1 {
+        background: none;
+        -webkit-text-fill-color: #1a1a1a;
+      }
+      .js-anim .eeg-bg path { stroke-dashoffset: 0; animation: none; }
+      .js-anim .eeg-bg__drift { animation: none; }
+      .js-anim .section-title,
+      .js-anim .fade-in,
+      .js-anim .fade-in > ul > li {
+        opacity: 1; transform: none; transition: none;
+      }
+      .profile-image, .section li img { transition: none; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       EXPERIENCE TIMELINE
+       A vertical rail with one node per role. The rail is a single
+       absolutely-positioned 1px element on .timeline; each item draws
+       its own node, so adding or removing a role needs no other change.
+       ══════════════════════════════════════════════════════════════ */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+      max-width: 900px;
+      text-align: left;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 5px; top: 10px; bottom: 10px;
+      width: 1px;
+      background: #e2e0da;
+    }
+
+    .tl-item { position: relative; padding-bottom: 46px; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-item::before {
+      content: "";
+      position: absolute;
+      left: -32px; top: 8px;
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #c9c5ba;
+      transition: transform 300ms ease, box-shadow 300ms ease;
+    }
+    /* Filled node marks the role that is still ongoing. */
+    .tl-item--current::before {
+      background: #1e90ff;
+      border-color: #1e90ff;
+      box-shadow: 0 0 0 4px rgba(30, 144, 255, 0.15);
+    }
+    .tl-item:hover::before { transform: scale(1.25); }
+
+    .tl-item h3 {
+      font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .tl-meta {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      color: #6b6f75;
+      margin: 8px 0 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .tl-note { font-size: 0.95rem; color: #666666; margin: 0 0 14px; }
+    .tl-note a { color: #666666; text-decoration: underline; text-decoration-thickness: 1px; }
+
+    .tl-item ul { list-style: none; padding: 0; margin: 0; max-width: 68ch; }
+    .tl-item li {
+      position: relative;
+      padding-left: 24px;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: #666666;
+      border-bottom: none;
+    }
+    .tl-item li:last-child { margin-bottom: 0; }
+    /* Short dash instead of a bullet - quieter next to the rail. */
+    .tl-item li::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0.72em;
+      width: 7px; height: 1px;
+      background: #c1bdb2;
+    }
+
+    @media (max-width: 768px) {
+      .timeline { padding-left: 24px; }
+      .tl-item::before { left: -24px; }
+      .tl-item h3 { font-size: 1.2rem; }
+      .tl-meta { font-size: 0.8rem; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       LEADERSHIP & SERVICE
+       ══════════════════════════════════════════════════════════════ */
+    .svc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 48px;
+      text-align: left;
+      max-width: 1100px;
+    }
+
+    .svc-head {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b6f75;
+      margin: 0 0 16px;
+    }
+
+    .svc-list { list-style: none; padding: 0; margin: 0; }
+    .svc-list li {
+      padding: 10px 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #666666;
+      border-bottom: 1px solid #eceae4;
+    }
+    .svc-list li:last-child { border-bottom: none; }
+    .svc-list strong { color: #1a1a1a; font-weight: 600; }
+    .svc-list a { color: #666666; text-decoration: underline; text-decoration-thickness: 1px; }
+    .svc-list a:hover { color: #1e90ff; }
+
+    /* Venue chips wrap freely; the list reads as a set, not a ranking. */
+    .venue-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+    .venue-cloud a {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      color: #666666;
+      text-decoration: none;
+      background: #ffffff;
+      border: 1px solid #e2e0da;
+      border-radius: 6px;
+      transition: color 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+    .venue-cloud a:hover {
+      color: #1e90ff;
+      border-color: rgba(30, 144, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      .svc-grid { gap: 32px; }
+    }
   </style>
 </head>
 <body>
   <div class="main-content">
     <header class="header">
+      <svg class="eeg-bg" viewBox="0 0 600 150" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <g class="eeg-bg__drift">
+          <path d="M0 34.6L3.5 34.5L7.1 34.7L10.6 34.6L14.1 34.7L17.6 35.2L21.2 35.5L24.7 35.5L28.2 35.6L31.8 35.6L35.3 35.4L38.8 35.5L42.4 36.4L45.9 36.2L49.4 36.5L52.9 36.5L56.5 36.4L60 36.3L63.5 35.9L67.1 36.1L70.6 36L74.1 35.2L77.6 35.6L81.2 35L84.7 34.9L88.2 35.1L91.8 34.2L95.3 34.3L98.8 34.1L102.4 35L105.9 35.1L109.4 33.8L112.9 31.6L116.5 31.9L120 35.6L123.5 39.3L127.1 37.5L130.6 33.3L134.1 31.5L137.6 34.5L141.2 38.8L144.7 40.5L148.2 38.1L151.8 35.6L155.3 36.1L158.8 37.8L162.4 39.4L165.9 39.7L169.4 38.4L172.9 38.7L176.5 38.8L180 39.3L183.5 39.4L187.1 39.2L190.6 38.9L194.1 38.4L197.6 38.7L201.2 38.6L204.7 37.8L208.2 37.5L211.8 37.1L215.3 36.9L218.8 36.4L222.4 35.7L225.9 35.7L229.4 34.8L232.9 35.2L236.5 34.8L240 34.1L243.5 33.6L247.1 33.7L250.6 34.1L254.1 33.6L257.6 34L261.2 33.8L264.7 33.8L268.2 33.9L271.8 34.5L275.3 34.9L278.8 35.4L282.4 35.7L285.9 35.3L289.4 35.7L292.9 35.6L296.5 36.3L300 36.7L303.5 36.3L307.1 37L310.6 36.5L314.1 36.7L317.6 36.6L321.2 36.9L324.7 37.1L328.2 36.9L331.8 36.6L335.3 36.2L338.8 36.3L342.4 35.4L345.9 35.5L349.4 35.2L352.9 35.1L356.5 34.7L360 34.5L363.5 34.2L367.1 33.9L370.6 33.8L374.1 33L377.6 33.8L381.2 33.8L384.7 33.9L388.2 33.2L391.8 33.7L395.3 34.3L398.8 34.6L402.4 34.4L405.9 35.1L409.4 35.6L412.9 36L416.5 36.4L420 37.2L423.5 37.4L427.1 37.9L430.6 38.3L434.1 38.4L437.6 39.1L441.2 39.4L444.7 38.9L448.2 39.6L451.8 39.9L455.3 39.9L458.8 39.7L462.4 39.2L465.9 39.6L469.4 39.1L472.9 39.1L476.5 38.4L480 38.6L483.5 38.3L487.1 37.8L490.6 37.5L494.1 37.4L497.6 36.9L501.2 36.8L504.7 36.4L508.2 36.4L511.8 36.3L515.3 35.7L518.8 35.5L522.4 35.3L525.9 35.1L529.4 35.2L532.9 35.6L536.5 35.4L540 35.4L543.5 35.6L547.1 35.1L550.6 35.2L554.1 35L557.6 35.8L561.2 35.1L564.7 35.8L568.2 35.7L571.8 35.7L575.3 35.1L578.8 35L582.4 34.7L585.9 34.9L589.4 34.5L592.9 33.9L596.5 34.3L600 34" style="--len:617;--i:0"/>
+          <path d="M0 77.9L3.5 77.3L7.1 76.3L10.6 76.3L14.1 75.7L17.6 75.4L21.2 73.6L24.7 74L28.2 73.3L31.8 72.5L35.3 71.5L38.8 71.4L42.4 70.3L45.9 70.7L49.4 70.4L52.9 70L56.5 69.9L60 70.1L63.5 69.6L67.1 69.5L70.6 70.5L74.1 70.5L77.6 71L81.2 70.9L84.7 71.2L88.2 72.6L91.8 73.2L95.3 73.1L98.8 74.5L102.4 74.2L105.9 74.8L109.4 75.5L112.9 75.8L116.5 76.2L120 77.1L123.5 77.7L127.1 78.1L130.6 78.1L134.1 77.7L137.6 78.4L141.2 78.8L144.7 78.7L148.2 77.7L151.8 77.6L155.3 77.5L158.8 77.7L162.4 77.9L165.9 77.5L169.4 76.7L172.9 76.8L176.5 76.7L180 76.3L183.5 75L187.1 75.8L190.6 75.2L194.1 74.3L197.6 75.3L201.2 74.4L204.7 74.2L208.2 74.5L211.8 75.1L215.3 74.6L218.8 75.1L222.4 74.8L225.9 74.8L229.4 75.5L232.9 75.3L236.5 75.6L240 75.6L243.5 76.1L247.1 75.9L250.6 75.4L254.1 75.1L257.6 75.6L261.2 78.1L264.7 77.8L268.2 75.4L271.8 72.5L275.3 72.3L278.8 76.7L282.4 80.3L285.9 77.3L289.4 70.5L292.9 68.3L296.5 70.8L300 75.3L303.5 76.5L307.1 72L310.6 69.1L314.1 69.4L317.6 70.6L321.2 71L324.7 71.5L328.2 69.8L331.8 70.5L335.3 71L338.8 70.7L342.4 71.3L345.9 71.1L349.4 72.4L352.9 72.6L356.5 73.8L360 74.6L363.5 74.3L367.1 75.1L370.6 76.2L374.1 77.6L377.6 77.3L381.2 78.4L384.7 79.5L388.2 79.7L391.8 80.6L395.3 80.7L398.8 81.2L402.4 82L405.9 81.6L409.4 82.1L412.9 81.2L416.5 81.1L420 80.5L423.5 80.5L427.1 80.3L430.6 79.3L434.1 79.1L437.6 77.3L441.2 76.4L444.7 75.3L448.2 74.9L451.8 73.6L455.3 72.5L458.8 72.1L462.4 70.8L465.9 70.8L469.4 69.4L472.9 69.3L476.5 68.5L480 68.4L483.5 68.5L487.1 68L490.6 68.4L494.1 68.1L497.6 68.8L501.2 69.3L504.7 69L508.2 69.8L511.8 70.5L515.3 72.2L518.8 72.4L522.4 73.3L525.9 74L529.4 75.3L532.9 76.7L536.5 77.5L540 78.9L543.5 79.8L547.1 79.9L550.6 80.2L554.1 81L557.6 81L561.2 82.3L564.7 82.1L568.2 82.1L571.8 81.4L575.3 81.6L578.8 80.9L582.4 81L585.9 79.9L589.4 79.1L592.9 78L596.5 77.5L600 76.2" style="--len:630;--i:1"/>
+          <path d="M0 115.6L3.5 115.8L7.1 116.7L10.6 117.8L14.1 117.3L17.6 117.8L21.2 118.8L24.7 118.9L28.2 118.4L31.8 118.5L35.3 119.2L38.8 118.4L42.4 119.2L45.9 118L49.4 117.8L52.9 118.7L56.5 118.5L60 118.3L63.5 116.6L67.1 116.3L70.6 116.3L74.1 115.7L77.6 116.4L81.2 115.4L84.7 115.2L88.2 114.8L91.8 115.1L95.3 114.9L98.8 114.1L102.4 113.4L105.9 113.7L109.4 113L112.9 114.1L116.5 113.5L120 113.4L123.5 113.9L127.1 113.8L130.6 112.6L134.1 112.4L137.6 112.6L141.2 112.4L144.7 112.8L148.2 112.8L151.8 113.4L155.3 113.2L158.8 112.9L162.4 112.8L165.9 112.6L169.4 112.6L172.9 112.2L176.5 111.4L180 111.2L183.5 111.2L187.1 111L190.6 111.5L194.1 110.5L197.6 110.1L201.2 110.5L204.7 109.8L208.2 110.1L211.8 110.2L215.3 110.7L218.8 110.2L222.4 110.9L225.9 110.4L229.4 110.6L232.9 111.7L236.5 111.4L240 112.2L243.5 112L247.1 113.1L250.6 114.2L254.1 114.9L257.6 115.3L261.2 114.9L264.7 115.6L268.2 117.1L271.8 117.9L275.3 117.6L278.8 119L282.4 119.4L285.9 120.6L289.4 120.1L292.9 120.9L296.5 121.4L300 120.8L303.5 121.3L307.1 120.8L310.6 121.4L314.1 121L317.6 120.4L321.2 120.6L324.7 119.9L328.2 118.5L331.8 118.6L335.3 117L338.8 116.7L342.4 115.5L345.9 114.4L349.4 114L352.9 113.6L356.5 111.6L360 110.5L363.5 109.5L367.1 108.3L370.6 108.2L374.1 107L377.6 106.6L381.2 106.3L384.7 105.5L388.2 104.1L391.8 104L395.3 104.1L398.8 103.9L402.4 104.7L405.9 104.9L409.4 104.7L412.9 104.1L416.5 106.4L420 108.5L423.5 110.3L427.1 107.7L430.6 105.5L434.1 107L437.6 113.9L441.2 120.3L444.7 117.8L448.2 112.2L451.8 110.5L455.3 116.4L458.8 122.1L462.4 123.3L465.9 121.9L469.4 120.2L472.9 120.9L476.5 122.8L480 124L483.5 124.1L487.1 123.8L490.6 123.6L494.1 124.3L497.6 123.9L501.2 123.4L504.7 123.6L508.2 123.1L511.8 121.4L515.3 121.4L518.8 119.8L522.4 119L525.9 117.8L529.4 116.4L532.9 116.1L536.5 115.1L540 112.7L543.5 112L547.1 111.3L550.6 110.2L554.1 108.7L557.6 109L561.2 107L564.7 107.3L568.2 106.4L571.8 106.1L575.3 105.9L578.8 104.7L582.4 105.8L585.9 104.9L589.4 105.1L592.9 105.6L596.5 106.8L600 106.6" style="--len:636;--i:2"/>
+        </g>
+      </svg>
       <img src="images/icons/Profile.jpg" alt="Soroush Zare" class="profile-image">
       <h1>Soroush Zare</h1>
       <p>Ph.D. Candidate<br>University of Virginia</p>
@@ -259,75 +550,44 @@
     <section class="section">
       <h2 class="section-title">Research Experience</h2>
       <div class="fade-in">
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🔬 Research Assistant | University of Virginia</h3>
-          <p style="margin-bottom: 15px; opacity: 0.8;">Charlottesville, VA • Jan. 2023 - Present</p>
-          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
-            <li>Designing and developing soft upper limb rehabilitation exoskeleton</li>
-            <li>Contributed to the design and control of wearable soft rehabilitation robots using soft materials and 3D printing techniques</li>
-            <li>Developed transformer-based deep learning pipelines to decode EEG motor imagery for real-time control of upper-limb exoskeletons</li>
-            <li>Focused on non-invasive EEG signal acquisition, pre-processing, and classification to interpret motor intent and autonomic patterns</li>
-            <li>Collaborating in interdisciplinary teams to integrate high-resolution EEG technologies with real-time motor function support systems</li>
-            <li>Innovating non-invasive EEG sensor technology to reduce setup complexity and enhance user comfort in real-world applications</li>
-          </ul>
-        </div>
+        <div class="timeline">
 
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🔬 Research Assistant | York University</h3>
-          <p style="margin-bottom: 15px; opacity: 0.8;">Toronto, Canada • Sept. 2022 - Jan. 2023</p>
-          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
-            <li>Developed and simulated robotic grasping mechanisms using UR5 robotic arm in ROS (Robot Operating System)</li>
-            <li>Utilized Gazebo for real-time simulation and testing of robotic control algorithms</li>
-            <li>Implemented deep reinforcement learning techniques for intelligent robotic manipulation</li>
-          </ul>
-        </div>
+          <article class="tl-item tl-item--current">
+            <h3>Graduate Research Assistant</h3>
+            <p class="tl-meta">University of Virginia &middot; Charlottesville, VA &middot; Jan 2023 &mdash; Present</p>
+            <ul>
+              <li>Designing and developing a soft upper-limb rehabilitation exoskeleton.</li>
+              <li>Contributed to the design and control of wearable soft rehabilitation robots using compliant materials and 3D printing.</li>
+              <li>Developed transformer-based deep learning pipelines that decode EEG motor imagery for real-time upper-limb exoskeleton control.</li>
+              <li>Focused on non-invasive EEG acquisition, pre-processing, and classification to interpret motor intent and autonomic patterns.</li>
+              <li>Collaborated across disciplines to integrate high-resolution EEG with real-time motor-function support systems.</li>
+              <li>Innovated non-invasive EEG sensing to reduce setup complexity and improve user comfort in real-world use.</li>
+            </ul>
+          </article>
 
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🔬 Research Assistant | University of Tehran</h3>
-          <p style="margin-bottom: 15px; opacity: 0.8;">Tehran, Iran • Sept. 2018 - Sept. 2022</p>
-          <p style="margin-bottom: 10px;">Member of <a href="http://taarlab.com/" target="_blank" style="color: #666666; text-decoration: underline; text-decoration-thickness: 1px;">Human and Robot Interaction Laboratory (TaarLab)</a></p>
-          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
-            <li>Control Cable-Driven Parallel Robot (CDPR) Using Deep Reinforcement Learning</li>
-            <li>Construct 3-D model of Objects Using CDPR</li>
-            <li>AI-based Object Tracking Using CDPR</li>
-            <li>System Identification of Suspended Under-constrained Cable-driven Robot</li>
-            <li>Control of Suspended Under-constrained Cable-driven Robot Creating 3D Graphical Model of Objects</li>
-          </ul>
-        </div>
-      </div>
-    </section>
+          <article class="tl-item">
+            <h3>Research Assistant</h3>
+            <p class="tl-meta">York University &middot; Toronto, Canada &middot; Sep 2022 &mdash; Jan 2023</p>
+            <ul>
+              <li>Developed and simulated robotic grasping mechanisms for the UR5 arm in ROS.</li>
+              <li>Used Gazebo for real-time simulation and testing of control algorithms.</li>
+              <li>Implemented deep reinforcement learning for intelligent robotic manipulation.</li>
+            </ul>
+          </article>
 
-    <!-- Projects Section -->
-    <section class="section">
-      <h2 class="section-title">Projects</h2>
-      <div class="fade-in">
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🧠 EEGDiffFormer: Transformer-based EEG Decoder</h3>
-          <p style="color: #666666;">Developed a state-of-the-art transformer-based architecture for EEG motor imagery classification, achieving superior performance in intent validation and robotic adaptation.</p>
-        </div>
+          <article class="tl-item">
+            <h3>Research Assistant</h3>
+            <p class="tl-meta">University of Tehran &middot; Tehran, Iran &middot; Sep 2018 &mdash; Sep 2022</p>
+            <p class="tl-note">Member of the <a href="http://taarlab.com/" target="_blank">Human and Robot Interaction Laboratory (TaarLab)</a></p>
+            <ul>
+              <li>Controlled a cable-driven parallel robot (CDPR) using deep reinforcement learning.</li>
+              <li>Constructed 3-D models of objects using a CDPR.</li>
+              <li>AI-based object tracking with a CDPR.</li>
+              <li>System identification of a suspended, under-constrained cable-driven robot.</li>
+              <li>Control of a suspended, under-constrained cable-driven robot for 3D graphical model reconstruction.</li>
+            </ul>
+          </article>
 
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">💪 NeuroMotion: EEG-Driven Soft Exoskeleton</h3>
-          <p style="color: #666666;">Designed and implemented a soft exoskeleton system that adapts to user movements using reinforcement learning algorithms and real-time EEG signal processing.</p>
-        </div>
-
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🚴 VR-Bike EEG Study: Neuroplasticity Enhancement</h3>
-          <p style="color: #666666;">Integrated EEG monitoring with virtual reality cycling to study and enhance neuroplasticity in rehabilitation settings.</p>
-        </div>
-
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🤖 Smart Grasping (UR5): Deep RL in Robotics</h3>
-          <p style="color: #666666;">Developed intelligent grasping algorithms using deep reinforcement learning for the UR5 robotic arm in Gazebo simulation environment.</p>
-        </div>
-
-        <div style="margin-bottom: 40px;">
-          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🤖 Linux for Robotics: Obstacle Avoidance</h3>
-          <p style="margin-bottom: 15px; color: #666666;">Real-time autonomous robot navigation using Bash scripting, ROS 2, and Gazebo simulation. Built for the Linux for Robotics Certificate by The Construct.</p>
-          <div style="margin-bottom: 15px;">
-            <a href="https://www.youtube.com/watch?v=D7-lPA4cCZ0&t=501s" target="_blank" style="color: #1e90ff; text-decoration: none; margin-right: 20px;">Demo</a>
-            <a href="https://app.theconstruct.ai/accomplishments/verify/RIA2F8F751DC2FD/" target="_blank" style="color: #1e90ff; text-decoration: none;">Certificate</a>
-          </div>
         </div>
       </div>
     </section>
@@ -337,6 +597,21 @@
       <h2 class="section-title">Publications</h2>
       <div class="fade-in">
         <ul style="list-style: disc; padding-left: 20px;">
+          <li style="margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 300px;">
+                <a href="https://bsn.embs.org/2026/" target="_blank" style="color: #333333; text-decoration: none; font-weight: bold;">Coordination-Task-Separability Index: A sEMG-based Estimation of Robot-Assisted Rehabilitation</a>
+              <p style="color: #666666; font-size: 0.95rem; line-height: 1.6; margin-top: 10px;">
+                Developed a sEMG-based index that quantifies how separable muscle-coordination patterns are across levels of robot assistance during reaching. Using 11-muscle EMG, older adults showed more task-separated, stereotyped coordination, while younger adults showed overlapping and more variable patterns.
+              </p>
+            </div>
+            <div style="flex-shrink: 0;">
+              <a href="images/publications/ctsi-semg-graphical-abstract.png" target="_blank">
+                <img src="images/publications/ctsi-semg-graphical-abstract.png" alt="Coordination-Task-Separability Index graphical abstract" style="max-width: 500px; width: 100%; margin-top: -5px; display: block; cursor: pointer;">
+              </a>
+            </div>
+            </div>
+          </li>
           <li style="margin-bottom: 30px;">
             <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 300px;">
@@ -419,6 +694,41 @@
       </div>
     </section>
 
+    <!-- Projects Section -->
+    <section class="section">
+      <h2 class="section-title">Projects</h2>
+      <div class="fade-in">
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🧠 EEGDiffFormer: Transformer-based EEG Decoder</h3>
+          <p style="color: #666666;">Developed a state-of-the-art transformer-based architecture for EEG motor imagery classification, achieving superior performance in intent validation and robotic adaptation.</p>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: #1a1a1a; font-size: 1.5rem;">💪 NeuroMotion: EEG-Driven Soft Exoskeleton</h3>
+          <p style="color: #666666;">Designed and implemented a soft exoskeleton system that adapts to user movements using reinforcement learning algorithms and real-time EEG signal processing.</p>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🚴 VR-Bike EEG Study: Neuroplasticity Enhancement</h3>
+          <p style="color: #666666;">Integrated EEG monitoring with virtual reality cycling to study and enhance neuroplasticity in rehabilitation settings.</p>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🤖 Smart Grasping (UR5): Deep RL in Robotics</h3>
+          <p style="color: #666666;">Developed intelligent grasping algorithms using deep reinforcement learning for the UR5 robotic arm in Gazebo simulation environment.</p>
+        </div>
+
+        <div style="margin-bottom: 40px;">
+          <h3 style="color: #1a1a1a; font-size: 1.5rem;">🤖 Linux for Robotics: Obstacle Avoidance</h3>
+          <p style="margin-bottom: 15px; color: #666666;">Real-time autonomous robot navigation using Bash scripting, ROS 2, and Gazebo simulation. Built for the Linux for Robotics Certificate by The Construct.</p>
+          <div style="margin-bottom: 15px;">
+            <a href="https://www.youtube.com/watch?v=D7-lPA4cCZ0&t=501s" target="_blank" style="color: #1e90ff; text-decoration: none; margin-right: 20px;">Demo</a>
+            <a href="https://app.theconstruct.ai/accomplishments/verify/RIA2F8F751DC2FD/" target="_blank" style="color: #1e90ff; text-decoration: none;">Certificate</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Awards Section -->
     <section class="section">
       <h2 class="section-title">Awards</h2>
@@ -451,38 +761,76 @@
 
     <!-- Professional Services Section -->
     <section class="section">
-      <h2 class="section-title">Professional Leadership & Services</h2>
+      <h2 class="section-title">Professional Leadership &amp; Services</h2>
       <div class="fade-in">
-        <div style="margin-bottom: 30px;">
-          <h3 style="color: #1a1a1a; font-size: 1.3rem; margin-bottom: 15px;">🎓 Leadership & Service</h3>
-          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
-            <li style="margin-bottom: 10px;"><strong>Vice President</strong> - <a href="https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/graduate-programs/graduate-student-board" target="_blank" style="color: #666666; text-decoration: underline; text-decoration-thickness: 1px;">Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2024</a></li>
-            <li style="margin-bottom: 10px;"><strong>Recruitment Chair</strong> - Graduate Student Board, Mechanical and Aerospace Engineering, UVA, 2023</li>
-            <li style="margin-bottom: 10px;"><strong>Student Member</strong> - Institute of Electrical and Electronics Engineers (IEEE)</li>
-          </ul>
-        </div>
+        <div class="svc-grid">
 
-        <div style="margin-bottom: 30px;">
-          <h3 style="color: #1a1a1a; font-size: 1.3rem; margin-bottom: 15px;">📝 Reviews</h3>
-          <ul style="list-style: disc; padding-left: 20px; color: #666666;">
-            <li style="margin-bottom: 8px;"><a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank" style="color: #666666; text-decoration: none;">Advanced Science</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/1741-2552" target="_blank" style="color: #666666; text-decoration: none;">Journal of Neural Engineering</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://dl.acm.org/journal/health" target="_blank" style="color: #666666; text-decoration: none;">ACM Transactions on Computing for Healthcare</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/0964-1726" target="_blank" style="color: #666666; text-decoration: none;">Smart Materials and Structures</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/1748-3190" target="_blank" style="color: #666666; text-decoration: none;">Bioinspiration & Biomimetics</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/2516-1091" target="_blank" style="color: #666666; text-decoration: none;">Progress in Biomedical Engineering</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank" style="color: #666666; text-decoration: none;">Mechanism and Machine Theory</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://www.sciencedirect.com/journal/smart-health" target="_blank" style="color: #666666; text-decoration: none;">Smart Health</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://www.cambridge.org/core/journals/robotica" target="_blank" style="color: #666666; text-decoration: none;">Robotica</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/2053-1591" target="_blank" style="color: #666666; text-decoration: none;">Biomedical Physics & Engineering Express</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://iopscience.iop.org/journal/2631-8695" target="_blank" style="color: #666666; text-decoration: none;">Engineering Research Express</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2025/" target="_blank" style="color: #666666; text-decoration: none;">IEEE BSN 2025 Conference</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://bsn.embs.org/2024/" target="_blank" style="color: #666666; text-decoration: none;">IEEE BSN 2024 Conference</a></li>
-            <li style="margin-bottom: 8px;"><a href="https://conferences.computer.org/chase2024/" target="_blank" style="color: #666666; text-decoration: none;">IEEE/ACM CHASE 2024 Conference</a></li>
-          </ul>
+          <div>
+            <h3 class="svc-head">Leadership</h3>
+            <ul class="svc-list">
+              <li><strong>Vice President</strong> &mdash; <a href="https://engineering.virginia.edu/department/mechanical-and-aerospace-engineering/academics/graduate-programs/graduate-student-board" target="_blank">Graduate Student Board, MAE, UVA</a>, 2024</li>
+              <li><strong>Recruitment Chair</strong> &mdash; Graduate Student Board, MAE, UVA, 2023</li>
+              <li><strong>Student Member</strong> &mdash; <a href="https://www.ieee.org/" target="_blank">Institute of Electrical and Electronics Engineers (IEEE)</a></li>
+              <li><strong>Associate Member</strong> &mdash; <a href="https://www.iop.org/" target="_blank">Institute of Physics (IOP)</a></li>
+              <li><strong>Student Member</strong> &mdash; <a href="https://www.acm.org/" target="_blank">Association for Computing Machinery (ACM)</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="svc-head">Peer Review</h3>
+            <div class="venue-cloud">
+            <a href="https://advanced.onlinelibrary.wiley.com/journal/21983844" target="_blank">Advanced Science</a>
+            <a href="https://iopscience.iop.org/journal/1741-2552" target="_blank">J. Neural Engineering</a>
+            <a href="https://dl.acm.org/journal/health" target="_blank">ACM Trans. Computing for Healthcare</a>
+            <a href="https://iopscience.iop.org/journal/0964-1726" target="_blank">Smart Materials and Structures</a>
+            <a href="https://iopscience.iop.org/journal/1748-3190" target="_blank">Bioinspiration &amp; Biomimetics</a>
+            <a href="https://iopscience.iop.org/journal/2516-1091" target="_blank">Progress in Biomedical Engineering</a>
+            <a href="https://www.sciencedirect.com/journal/mechanism-and-machine-theory" target="_blank">Mechanism and Machine Theory</a>
+            <a href="https://www.sciencedirect.com/journal/smart-health" target="_blank">Smart Health</a>
+            <a href="https://www.cambridge.org/core/journals/robotica" target="_blank">Robotica</a>
+            <a href="https://iopscience.iop.org/journal/2053-1591" target="_blank">Biomed. Phys. &amp; Eng. Express</a>
+            <a href="https://iopscience.iop.org/journal/2631-8695" target="_blank">Engineering Research Express</a>
+            <a href="https://bsn.embs.org/2026/" target="_blank">IEEE BSN 2026</a>
+            <a href="https://bsn.embs.org/2025/" target="_blank">IEEE BSN 2025</a>
+            <a href="https://bsn.embs.org/2024/" target="_blank">IEEE BSN 2024</a>
+            <a href="https://conferences.computer.org/chase2024/" target="_blank">IEEE/ACM CHASE 2024</a>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
   </div>
+<script>
+(function () {
+  'use strict';
+
+  var targets = document.querySelectorAll('.section-title, .fade-in');
+
+  // Index each row so the CSS can stagger it via --row.
+  document.querySelectorAll('.fade-in > ul').forEach(function (list) {
+    Array.prototype.forEach.call(list.children, function (li, i) {
+      li.style.setProperty('--row', Math.min(i, 8));
+    });
+  });
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!('IntersectionObserver' in window) || reduced) {
+    Array.prototype.forEach.call(targets, function (el) { el.classList.add('is-visible'); });
+    return;
+  }
+
+  var io = new IntersectionObserver(function (entries, obs) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('is-visible');
+      obs.unobserve(e.target);          // reveal once, then stop watching
+    });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+
+  Array.prototype.forEach.call(targets, function (el) { io.observe(el); });
+})();
+</script>
 </body>
 </html>
