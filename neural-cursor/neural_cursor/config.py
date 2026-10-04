@@ -50,6 +50,9 @@ class Decoder:
     evidence_C: float = 0.01     # logistic inverse regularisation (528 tangent features, ~10² trials)
     recenter_buffer: int = 64    # trials in the online covariance re-centring buffer
     recenter_prior: float = 5.0  # blend weight n/(n+prior): the reference moves only once n ≫ prior
+    adapt_windows: int = 600     # running-mean length of the velocity decoder's feature re-centring
+                                 # (60 s at 10 Hz): long enough that a trial's persistent intent
+                                 # averages out, short enough to follow dry-electrode gain drift
 
 
 @dataclass(frozen=True)

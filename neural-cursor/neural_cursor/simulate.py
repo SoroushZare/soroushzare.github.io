@@ -89,7 +89,7 @@ def run_condition(name: str, user: SimUser, dec, cfg: Config, blocks, rng: np.ra
 
 
 def simulate(cfg: Config, users: int, trials: int, gain: float, eye: float, seed: int,
-             feature_set: str = "bandpower") -> Dict:
+             feature_set: str = "bandpower", adapt: bool = False) -> Dict:
     rng = np.random.default_rng(seed)
     results: Dict[str, List] = {}
     decoder_r = []
@@ -98,7 +98,7 @@ def simulate(cfg: Config, users: int, trials: int, gain: float, eye: float, seed
     for u in range(users):
         user = SimUser(cfg, seed=seed + 100 * u, gain=gain, eye=eye)
         ws, ys = calibration(user, 300, rng)
-        dec = VelocityDecoder(cfg.decoder, cfg.hardware.fs, feature_set=feature_set).fit(ws[:240], ys[:240])
+        dec = VelocityDecoder(cfg.decoder, cfg.hardware.fs, feature_set=feature_set, adapt=adapt).fit(ws[:240], ys[:240])
         mask = np.array([c in cfg.hardware.eog_proxy for c in cfg.hardware.channels])
         eog = VelocityDecoder(cfg.decoder, cfg.hardware.fs, channels=mask, feature_set=feature_set).fit(ws[:240], ys[:240])
         pred = dec.predict_many(ws[240:])
@@ -150,9 +150,10 @@ if __name__ == "__main__":
     ap.add_argument("--eye", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=DEFAULT.eval.seed)
     ap.add_argument("--json", type=str, default="")
+    ap.add_argument("--adapt", action="store_true", help="online feature re-centring in the velocity decoder")
     ap.add_argument("--features", type=str, default="bandpower", choices=["bandpower", "bandpower+slow"])
     a = ap.parse_args()
-    res = simulate(DEFAULT, a.users, a.trials, a.gain, a.eye, a.seed, a.features)
+    res = simulate(DEFAULT, a.users, a.trials, a.gain, a.eye, a.seed, a.features, a.adapt)
     print(to_markdown(res))
     if a.json:
         with open(a.json, "w") as f:

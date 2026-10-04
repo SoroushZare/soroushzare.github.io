@@ -28,8 +28,11 @@ class VelocityDecoder:
     fs: int
     channels: Optional[np.ndarray] = None      # boolean mask of channels used (surrogates set this)
     feature_set: str = "bandpower"             # "bandpower" or "bandpower+slow" (time-domain, leak-prone)
+    adapt: bool = False                        # online feature re-centring (see predict); off by default — rule 50
     _scaler: StandardScaler = field(default_factory=StandardScaler)
     _model: Ridge = field(init=False)
+    _n_seen: int = 0
+    _run_mean: Optional[np.ndarray] = None
 
     def __post_init__(self):
         self._model = Ridge(alpha=self.cfg.ridge_alpha)
@@ -49,8 +52,23 @@ class VelocityDecoder:
         return self
 
     def predict(self, window: np.ndarray) -> np.ndarray:
-        x = self._scaler.transform(self.features(window)[None])
-        return np.clip(self._model.predict(x)[0], -1, 1)
+        """Online path.  With ``adapt`` the standardised feature vector is re-centred on the running
+        session mean, blended as n/(n + prior) toward the training mean (zero after the scaler) so
+        the first windows are untouched.  A multiplicative gain drift shifts every log-power feature
+        by the same constant; this removes it.  It is the feature-space twin of the covariance
+        re-centring in ``EvidenceDecoder`` and, like it, makes the online decoder a *different*
+        decoder from batch re-scoring (RLNF C-P008) — log it, and replay it offline before shipping
+        a new variant (rule 50)."""
+        x = self._scaler.transform(self.features(window)[None])[0]
+        if self.adapt:
+            # EMA started at the training mean (zero after the scaler), time constant adapt_windows:
+            # the first windows barely move it, a trial's persistent intent is washed out over the
+            # following trials, and a slow gain drift is followed.
+            if self._run_mean is None:
+                self._run_mean = np.zeros_like(x)
+            self._run_mean += (x - self._run_mean) / self.cfg.adapt_windows
+            x = x - self._run_mean
+        return np.clip(self._model.predict(x[None])[0], -1, 1)
 
     def predict_many(self, windows: List[np.ndarray]) -> np.ndarray:
         X = self._scaler.transform(np.stack([self.features(w) for w in windows]))

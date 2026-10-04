@@ -141,14 +141,14 @@ def run_condition(name: str, user: SimUser2, vdec, edec, cfg: Config, blocks, rn
 
 
 def simulate(cfg: Config, users: int, trials: int, gain: float, eye: float, errp: float,
-             drift: float, seed: int) -> Dict:
+             drift: float, seed: int, adapt: bool = False) -> Dict:
     rng = np.random.default_rng(seed)
     results: Dict[str, List] = {}
     vr, ev_auc, ev_floor = [], [], []
     for u in range(users):
         user = SimUser2(cfg, seed + 100 * u, gain, eye, errp, drift)
         ws, ys = calibration(user, 300, rng)
-        vdec = VelocityDecoder(cfg.decoder, cfg.hardware.fs).fit(ws[:240], ys[:240])
+        vdec = VelocityDecoder(cfg.decoder, cfg.hardware.fs, adapt=adapt).fit(ws[:240], ys[:240])
         pred = vdec.predict_many(ws[240:])
         vr.append(np.mean([pearson_r(pred[:, k], ys[240:, k]) for k in range(2)]))
         ews, eys = evidence_calibration(user, N_EVIDENCE_CAL + 80, rng)
@@ -199,8 +199,9 @@ if __name__ == "__main__":
     ap.add_argument("--drift", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=DEFAULT.eval.seed)
     ap.add_argument("--json", type=str, default="")
+    ap.add_argument("--adapt", action="store_true", help="online feature re-centring in the velocity decoder")
     a = ap.parse_args()
-    res = simulate(DEFAULT, a.users, a.trials, a.gain, a.eye, a.errp, a.drift, a.seed)
+    res = simulate(DEFAULT, a.users, a.trials, a.gain, a.eye, a.errp, a.drift, a.seed, a.adapt)
     print(to_markdown(res))
     if a.json:
         with open(a.json, "w") as f:

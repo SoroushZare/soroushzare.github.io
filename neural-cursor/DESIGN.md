@@ -21,8 +21,10 @@ the eyes. The design of record is therefore a **two-track composite**: a shared-
 (an agent that infers the goal from a posterior over on-screen targets and never reads it) driven by
 every stimulus-free signal the cap carries, with the ocular and cortical contributions **separated by
 design and reported as measured increments**. Simulated end to end: a weak cortical velocity decoder
-(r ≈ 0.4) reaches 8 targets at 0.49 success alone and 0.76–0.86 with the goal posterior, while the
-EOG-only and no-neural surrogates stay at 0.00–0.01 (§3, §4). The honest headline for the real cap is
+(r ≈ 0.4) reaches 8 targets at 0.49 success alone and 0.78–0.83 with the goal posterior, while the
+EOG-only and no-neural surrogates stay at 0.00–0.01; an error-evidence channel at AUC ≈ 0.68 adds
+nothing over that posterior, and a frozen decoder collapses under dry-electrode gain drift unless
+re-centred (§3, §4). The honest headline for the real cap is
 0.1–0.3 bits/s cortical-only with assistance, 0.8–1.5 bits/s when the eyes are allowed to point; the
 protocol in §6 is built to say exactly which of the two a given result is.
 
@@ -212,14 +214,86 @@ channel as a pre-registered optional arm that must beat its shuffled surrogate b
 enabled; the simulation predicts it will not at dry-cap accuracies, and the judge's "no ErrP veto"
 stands. Tables below are generated into `results/sim_round2_*.md` by the commands in §7.
 
-ROUND2_TABLE_PLACEHOLDER
+**Gel-like evidence (ErrP 9 µV), velocity r ≈ 0.41** — `results/sim_round2_errp9.md`: velocity decoder r = 0.406; evidence decoder AUC = 0.682 (permutation floor p95 = 0.609)
+
+| condition | n | success | 95 % CI | time-to-target (s) | Fitts TP (bits/s) |
+|---|---|---|---|---|---|
+| oracle | 144 | 1.00 | [1.00, 1.00] | 2.1 | 3.49 |
+| decoder + posterior (design of record) | 144 | 0.83 | [0.78, 0.89] | 4.7 | 0.82 |
+| assist + evidence | 144 | 0.83 | [0.77, 0.89] | 4.8 | 0.80 |
+| assist + shuffled evidence (surrogate) | 144 | 0.87 | [0.81, 0.92] | 4.6 | 0.87 |
+| segment agent + evidence | 144 | 0.12 | [0.07, 0.17] | 7.0 | 0.47 |
+| composite (decoder + segment agent + evidence) | 144 | 0.34 | [0.27, 0.42] | 9.5 | 0.37 |
+| composite, shuffled evidence (surrogate) | 144 | 0.45 | [0.38, 0.53] | 9.1 | 0.35 |
+| agent only (no EEG) | 144 | 0.01 | [0.00, 0.02] | 4.9 | — |
+| random | 144 | 0.01 | [0.00, 0.04] | 11.7 | 0.46 |
+
+**Dry-penalised evidence (ErrP 6 µV): evidence AUC below its floor** — `results/sim_round2_errp6_dry.md`: velocity decoder r = 0.406; evidence decoder AUC = 0.577 (permutation floor p95 = 0.607)
+
+| condition | n | success | 95 % CI | time-to-target (s) | Fitts TP (bits/s) |
+|---|---|---|---|---|---|
+| oracle | 144 | 1.00 | [1.00, 1.00] | 2.1 | 3.49 |
+| decoder + posterior (design of record) | 144 | 0.83 | [0.78, 0.89] | 4.7 | 0.82 |
+| assist + evidence | 144 | 0.84 | [0.78, 0.90] | 4.7 | 0.78 |
+| assist + shuffled evidence (surrogate) | 144 | 0.79 | [0.73, 0.85] | 4.7 | 0.82 |
+| segment agent + evidence | 144 | 0.08 | [0.03, 0.12] | 7.3 | 0.51 |
+| composite (decoder + segment agent + evidence) | 144 | 0.48 | [0.40, 0.56] | 8.4 | 0.41 |
+| composite, shuffled evidence (surrogate) | 144 | 0.49 | [0.41, 0.57] | 9.0 | 0.40 |
+| agent only (no EEG) | 144 | 0.01 | [0.00, 0.02] | 4.9 | — |
+| random | 144 | 0.01 | [0.00, 0.04] | 11.7 | 0.46 |
+
+**Weaker cortical signal, velocity r ≈ 0.32 (the judge's 'realistic cap' cell)** — `results/sim_round2_gain6.md`: velocity decoder r = 0.324; evidence decoder AUC = 0.681 (permutation floor p95 = 0.610)
+
+| condition | n | success | 95 % CI | time-to-target (s) | Fitts TP (bits/s) |
+|---|---|---|---|---|---|
+| oracle | 144 | 1.00 | [1.00, 1.00] | 2.1 | 3.49 |
+| decoder + posterior (design of record) | 144 | 0.72 | [0.64, 0.79] | 5.3 | 0.74 |
+| assist + evidence | 144 | 0.75 | [0.68, 0.83] | 5.1 | 0.72 |
+| assist + shuffled evidence (surrogate) | 144 | 0.69 | [0.62, 0.78] | 5.5 | 0.72 |
+| segment agent + evidence | 144 | 0.12 | [0.07, 0.17] | 6.7 | 0.61 |
+| composite (decoder + segment agent + evidence) | 144 | 0.38 | [0.29, 0.46] | 8.6 | 0.38 |
+| composite, shuffled evidence (surrogate) | 144 | 0.33 | [0.26, 0.39] | 8.9 | 0.38 |
+| agent only (no EEG) | 144 | 0.01 | [0.00, 0.02] | 4.9 | — |
+| random | 144 | 0.01 | [0.00, 0.04] | 11.7 | 0.46 |
+
+**Non-stationarity: 10 %/min multiplicative gain drift** — `results/sim_round2_drift.md`,
+`results/sim_round2_drift_recentred.md`. Drift accumulates with simulated time, so conditions run later
+in a user's session see more of it; the rows are therefore not strictly comparable, which is itself
+the lesson.
+
+| condition | n | success | 95 % CI | time-to-target (s) | Fitts TP (bits/s) |
+|---|---|---|---|---|---|
+| decoder + posterior, frozen features | 144 | 0.26 | [0.19, 0.34] | 4.8 | 0.77 |
+| assist + evidence, frozen | 144 | 0.26 | [0.19, 0.34] | 4.6 | 0.73 |
+| assist + shuffled, frozen | 144 | 0.23 | [0.17, 0.31] | 4.6 | 0.77 |
+| decoder + posterior, 60 s feature re-centring | 144 | 0.38 | [0.30, 0.45] | 4.3 | 0.91 |
+| assist + evidence, re-centred | 144 | 0.63 | [0.56, 0.72] | 4.5 | 0.85 |
+| assist + shuffled, re-centred | 144 | 0.73 | [0.66, 0.81] | 4.8 | 0.81 |
+
+A frozen log-band-power decoder collapses under gain drift (decoder + posterior 0.83 → 0.26). An
+exponential re-centring of the standardised features (time constant 60 s, started at the training
+mean) recovers part of it: 0.38 in the first condition run, 0.63–0.73 in the conditions run after
+the re-centring had converged, at a measured cost without drift of 0.49 → 0.41 decoder-only success
+(`results/sim_round1_gain8_recentred.md`). A first attempt with a 6.4 s window
+removed the person's own persistent intent and halved success — the normaliser cannot be chosen
+here. Per RLNF rule 50 it is chosen by a four-arm offline replay (frozen / sliding / adaptive /
+oracle-static) on the first real recordings, with its cost stated; the code ships both paths
+(`VelocityDecoder(adapt=...)`).
+
 
 **Resource ladder (test set fixed, 4 users)** — `results/scaling_ladder_errp9.md`:
 
-LADDER_PLACEHOLDER
+| labelled segments | evidence AUC (sd) | velocity r (sd) |
+|---|---|---|
+| 40 | 0.634 (0.034) | 0.252 (0.035) |
+| 80 | 0.669 (0.030) | 0.325 (0.054) |
+| 160 | 0.678 (0.018) | 0.398 (0.040) |
+| 320 | 0.710 (0.021) | 0.441 (0.032) |
+| 640 | 0.729 (0.014) | 0.495 (0.016) |
 
-Reading: in the harness the velocity decoder keeps improving with labelled windows (the bitter-lesson
-curve), while the evidence decoder needs several hundred labels to clear its floor. The real engine
+Reading: in the harness both decoders keep improving with labelled data (the bitter-lesson curve):
+velocity r 0.25 → 0.50 and evidence AUC 0.63 → 0.73 from 40 to 640 labels, with the test set fixed
+throughout. The evidence decoder needs several hundred labels to clear its floor (≈ 0.61). The real engine
 yields ≈ 2,500 labelled segments per hour of ordinary use, so the ladder's x-axis is minutes of use.
 The simulator is stationary; the real curve saturates at the physiology, which is the pre-registered
 r(h) measurement of §8.
@@ -313,6 +387,8 @@ python -m neural_cursor.simulate_composite  --users 6 --trials 24 --gain 8 --err
 python -m neural_cursor.simulate_composite  --users 6 --trials 24 --gain 8 --errp 6      # dry-penalised evidence
 python -m neural_cursor.simulate_composite  --users 6 --trials 24 --gain 6 --errp 9      # r ≈ 0.3 cortical cell
 python -m neural_cursor.simulate_composite  --users 6 --trials 24 --gain 8 --errp 9 --drift 0.1
+python -m neural_cursor.simulate_composite  --users 6 --trials 24 --gain 8 --errp 9 --drift 0.1 --adapt   # re-centred
+python -m neural_cursor.simulate            --users 6 --trials 24 --gain 8 --adapt                       # its no-drift cost
 python -m neural_cursor.scaling_ladder      --users 4 --errp 9
 ```
 

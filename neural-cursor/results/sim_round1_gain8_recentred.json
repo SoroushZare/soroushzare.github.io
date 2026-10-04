@@ -1,0 +1,72 @@
+{
+  "users": 6,
+  "trials_per_user": 24,
+  "gain": 8.0,
+  "eye": 0.0,
+  "feature_set": "bandpower",
+  "decoder_r_mean": 0.3964332272684876,
+  "decoder_r_floor_p95": 0.21668995395761184,
+  "eog_surrogate_r_mean": -0.009137990544529307,
+  "conditions": {
+    "oracle": {
+      "n": 144,
+      "success": 1.0,
+      "success_ci": [
+        1.0,
+        1.0
+      ],
+      "ttt_s": 2.133333333333334,
+      "throughput_bps": 3.4875078319450328
+    },
+    "decoder": {
+      "n": 144,
+      "success": 0.4097222222222222,
+      "success_ci": [
+        0.3263888888888889,
+        0.49670138888888876
+      ],
+      "ttt_s": 8.60338983050846,
+      "throughput_bps": 0.3528613309416417
+    },
+    "decoder+assist": {
+      "n": 144,
+      "success": 0.5833333333333334,
+      "success_ci": [
+        0.5102430555555555,
+        0.6736111111111112
+      ],
+      "ttt_s": 5.203571428571426,
+      "throughput_bps": 0.7177524625496803
+    },
+    "eog_only": {
+      "n": 144,
+      "success": 0.020833333333333332,
+      "success_ci": [
+        0.0,
+        0.04861111111111111
+      ],
+      "ttt_s": 11.899999999999972,
+      "throughput_bps": 0.20900723821086187
+    },
+    "no_neural": {
+      "n": 144,
+      "success": 0.0,
+      "success_ci": [
+        0.0,
+        0.0
+      ],
+      "ttt_s": NaN,
+      "throughput_bps": NaN
+    },
+    "random": {
+      "n": 144,
+      "success": 0.034722222222222224,
+      "success_ci": [
+        0.006944444444444444,
+        0.06944444444444445
+      ],
+      "ttt_s": 11.499999999999975,
+      "throughput_bps": 0.29954539139997116
+    }
+  }
+}
