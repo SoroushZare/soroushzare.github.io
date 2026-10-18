@@ -505,7 +505,7 @@ def audit_day(audit: PurityAudit, data: LabelledSet, run_dirs: Sequence[str], cf
     """PurityAudit on the day's windows (evenly subsampled to ``audit_max_windows``, time order kept),
     with the displayed cursor logs and the simulated eye tracker as the auditor stream."""
     if len(data) < 2 * audit.n_splits:
-        return {"skipped": f"{len(data)} windows", "flags": []}
+        return {"skipped": f"{len(data)} windows", "flags": [], "whole_set_flags": []}
     idx = np.unique(np.round(np.linspace(0, len(data) - 1, min(len(data), sim.audit_max_windows))).astype(int))
     sub = data.take(idx)
     dirs = {os.path.basename(os.path.normpath(d)): d for d in run_dirs}
@@ -517,7 +517,13 @@ def audit_day(audit: PurityAudit, data: LabelledSet, run_dirs: Sequence[str], cf
     scores = {k: ({"skipped": v["skipped"]} if "skipped" in v else
                   {"score": v["score"], "floor": v["floor"], "beats_floor": v["beats_floor"]})
               for k, v in rep["reports"].items()}
-    return {"flags": rep["flags"], "n": rep["n"], "scores": scores, "feedback": rep["feedback"],
+    cert = rep["certification"]
+    cert_scores = ({"skipped": cert["skipped"]} if "skipped" in cert else
+                   {k: ({"skipped": v["skipped"]} if "skipped" in v else
+                        {"score": v["score"], "floor": v["floor"], "beats_floor": v["beats_floor"]})
+                    for k, v in cert["reports"].items()})
+    return {"flags": rep["verdict"], "whole_set_flags": rep["flags"], "certification_scores": cert_scores,
+            "n": rep["n"], "scores": scores, "feedback": rep["feedback"],
             "by_block": rep["by_block"], "untested": rep["untested"]}
 
 
@@ -616,7 +622,9 @@ def _job(args: tuple) -> dict:
 _MEAN_FIELDS = (("decoder_cosine",), ("decoder_r",), ("decoder_constant_ceiling",), ("n_eval_windows",),
                 ("closed_loop", "success"), ("closed_loop", "time_to_target_s"),
                 ("closed_loop", "throughput_bps"), ("blank_feedback", "success"), ("free_use", "success"),
-                ("purity", "scores", "full", "score"), ("purity", "scores", "full", "floor"))
+                ("purity", "scores", "full", "score"), ("purity", "scores", "full", "floor"),
+                ("purity", "certification_scores", "full", "score"), ("purity", "certification_scores", "full", "floor"),
+                ("purity", "certification_scores", "slow", "score"), ("purity", "certification_scores", "frontal", "score"))
 
 
 def _get(d: dict, path: Tuple[str, ...]):
@@ -699,15 +707,18 @@ def to_markdown(res: dict) -> str:
              f"({c['eval_minutes']:g} min of auditory cued_blank per simulated day, never trained on), so every day "
              "meets the same windows.  ceiling: the best mean cosine a constant output reaches on that pool "
              "(cosine is not chance-corrected; day-to-day gain drift also adds an offset that lowers cosine "
-             "but not r).  audit cosine: out-of-fold cosine of a decoder refit on the day's windows, with its "
-             "permutation floor (p95, circular shifts within session).  Success / TTT / TP: closed-loop Fitts trials.",
+             "but not r).  cued_blank audit cosine: out-of-fold cosine of a decoder refit on the day's blank-cue "
+             "windows only (nothing spatial on screen, the person fixating), with its permutation floor (p95, "
+             "circular shifts within session); its verdict is the purity statement of record.  Cursor-visible "
+             "windows are display-identifiable by design and train the decoder but never certify it.  "
+             "Success / TTT / TP: closed-loop Fitts trials.",
              "Caveats: '0 (def.)' = nothing deployed, so 0 by definition, not a measurement.  "
              + ("Closed-loop intent equals the label here (oracle closed-loop labels): gains from closed-loop "
                 "data are guaranteed by construction, not tested.  " if oracle else "")
              + "The population prior's benefit is set by the assumed heterogeneity range; quote it as a sweep.",
              "",
              "| condition | day | cum. h | deployed | decoder cosine [95 % CI] | ceiling | decoder r | n eval "
-             "| CL success | TTT (s) | TP (bits/s) | hidden-cursor success | audit cosine (floor) | promoted | purity flags |",
+             "| CL success | TTT (s) | TP (bits/s) | hidden-cursor success | cued_blank audit cosine (floor) | promoted | purity verdict (cued_blank) |",
              "|---|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---|---:|---|"]
     for cond, block in res["conditions"].items():
         for a in block["mean_by_day"]:
@@ -722,7 +733,7 @@ def to_markdown(res: dict) -> str:
                 f"| {_fmt(a['n_eval_windows'], 0)} | {_fmt(a['closed_loop.success'], 2)} "
                 f"| {_fmt(a['closed_loop.time_to_target_s'], 1)} | {_fmt(a['closed_loop.throughput_bps'], 2)} "
                 f"| {_fmt(a['blank_feedback.success'], 2)} "
-                f"| {_fmt(a['purity.scores.full.score'])} ({_fmt(a['purity.scores.full.floor'])}) "
+                f"| {_fmt(a['purity.certification_scores.full.score'])} ({_fmt(a['purity.certification_scores.full.floor'])}) "
                 f"| {a['promoted']}/{a['n_users']} | {flags} |")
     return "\n".join(lines)
 

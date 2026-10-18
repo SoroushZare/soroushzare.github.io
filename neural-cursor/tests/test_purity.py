@@ -288,3 +288,67 @@ def test_feedback_bootstrap_resamples_trials_not_windows():
     assert clustered["n_visible_trials"] == clustered["n_blank_trials"] == n_trials
     assert width(clustered) > 3 * width(naive)
     assert clustered["ci95"][0] < 0 < clustered["ci95"][1]
+
+
+def test_certification_is_scoped_to_blank_cue_windows_and_is_the_verdict():
+    """A dataset mixing blank-cue windows (EEG carries the cued direction, nothing on screen) with
+    cursor-visible windows (label = goal − displayed cursor, display-identifiable by design): the
+    whole-set flags report DISPLAY_LEAK, but the verdict of record — computed on blank-cue windows
+    only — is PASS, because there the display carries no label information and the EEG decodes."""
+    cfg = DEFAULT
+    rng = np.random.default_rng(3)
+    sim = SimulatedEEG(cfg.hardware, seed=11, intent_gain_uv=8.0)
+    filt = CausalFilter(cfg.hardware, cfg.pre)
+    filt(sim.generate(cfg.hardware.fs * 2))
+    fs, win = cfg.hardware.fs, int(cfg.decoder.window_s * cfg.hardware.fs)
+    windows, labels, prov, cursor_rows = [], [], [], []
+    t = 0.0
+    for trial in range(120):
+        ang = rng.uniform(0, 2 * np.pi)
+        d = np.array([np.cos(ang), np.sin(ang)])
+        visible = trial % 2 == 1
+        sim.set_intent(*(d if not visible else np.zeros(2)))     # visible windows: no EEG intent at all
+        for k in range(3):
+            x = common_average(filt(sim.generate(win)))
+            t += cfg.decoder.window_s
+            windows.append(x)
+            if visible:
+                pos = rng.uniform(-0.5, 0.5, 2)
+                goal = pos + 0.4 * d
+                cursor_rows += [[t - cfg.decoder.window_s + j * 0.1, *pos] for j in range(int(cfg.decoder.window_s / 0.1) + 1)]
+                labels.append(d)
+                prov.append({"block": "closed_loop", "feedback_visible": True, "session": "s1", "t": t,
+                             "trial": trial, "display_goal": goal.tolist()})
+            else:
+                labels.append(d)
+                prov.append({"block": "cued_blank", "feedback_visible": False, "session": "s1", "t": t,
+                             "trial": trial, "display_goal": None})
+    audit = PurityAudit(cfg, n_permutations=200)
+    res = audit.run(windows, np.array(labels), prov, cursor_logs=np.array(cursor_rows))
+    assert "DISPLAY_LEAK" in res["flags"], res["flags"]
+    cert = res["certification"]
+    assert cert["n"] == 180 and cert["decodes"], cert
+    assert res["verdict"] == ["PASS"], res["verdict"]
+
+
+def test_certification_reports_no_cortical_evidence_and_gaze_tracking():
+    """Blank-cue windows with no EEG intent but an eye tracker that follows the cue: the verdict says
+    the EEG shows nothing and gaze tracks the label — a fixation failure to fix before any claim."""
+    cfg = DEFAULT
+    rng = np.random.default_rng(4)
+    sim = SimulatedEEG(cfg.hardware, seed=12, intent_gain_uv=0.0)
+    filt = CausalFilter(cfg.hardware, cfg.pre)
+    filt(sim.generate(cfg.hardware.fs * 2))
+    win = int(cfg.decoder.window_s * cfg.hardware.fs)
+    windows, labels, prov, gaze = [], [], [], []
+    for i in range(150):
+        ang = rng.uniform(0, 2 * np.pi)
+        d = np.array([np.cos(ang), np.sin(ang)])
+        windows.append(common_average(filt(sim.generate(win))))
+        labels.append(d)
+        gaze.append(0.3 * d + 0.05 * rng.standard_normal(2))
+        prov.append({"block": "cued_blank", "feedback_visible": False, "session": "s1",
+                     "t": (i + 1) * cfg.decoder.window_s, "trial": i, "display_goal": None})
+    res = PurityAudit(cfg, n_permutations=200).run(windows, np.array(labels), prov,
+                                                   auditors={"eyetracker": np.array(gaze)})
+    assert res["verdict"][0] == "NO_CORTICAL_EVIDENCE" and "GAZE_TRACKS_LABEL" in res["verdict"], res["verdict"]

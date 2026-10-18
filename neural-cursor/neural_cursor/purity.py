@@ -66,6 +66,11 @@ DISPLAY_BINS = 5            # 0.2 s velocity bins: keeps the direction changes w
 OCULAR_FRACTION = 0.5       # a frontal/slow surrogate reaching this share of the full decoder is a leak
 OCULAR_SURROGATES = ("frontal", "slow")   # either can carry the ocular leak; one flag covers both
 MIN_GROUP_N = 20            # fewest windows per feedback condition for a bootstrap CI worth reporting
+CERTIFYING_BLOCKS = ("cued_blank",)
+"""Blocks whose windows can certify cortical decoding: the cue is an auditory word or a central symbol,
+nothing is drawn at a trial-dependent position, and the person fixates.  On every other block the label
+(direction from the displayed cursor or start to a drawn target) is a function of the screen by design,
+so those windows train the decoder but are never evidence that it reads the brain."""
 _EPS = 1e-12
 
 SPATIAL_BLOCKS: Tuple[str, ...] = tuple(sorted(
@@ -334,7 +339,10 @@ class PurityAudit:
                     visible cursor
 
         Returns {"metric", "n", "n_permutations", "floor_percentile", "null", "reports", "by_block",
-        "feedback", "untested", "flags"}.  Every report has score, floor, p_value, beats_floor and n,
+        "feedback", "untested", "flags", "certification", "verdict"}.  ``flags`` describe the whole
+        window set (DISPLAY_LEAK there means "some windows are display-identifiable", expected whenever
+        targets or the cursor are drawn); ``verdict`` comes from ``certification``, the blank-cue-only
+        audit, and is the purity statement of record (``_certify``).  Every report has score, floor, p_value, beats_floor and n,
         or "skipped" with the reason.  ``reports["intercept"]`` is the no-EEG baseline.
         """
         n = len(windows)
@@ -359,8 +367,9 @@ class PurityAudit:
         else:
             reports["display"], _ = cv.evaluate(self._display_features(provenance, cursor_logs))
 
-        for name, stream in (auditors or {}).items():
-            reports[f"auditor:{name}"], _ = cv.evaluate(auditor_features(stream, n))
+        aud = {name: auditor_features(stream, n) for name, stream in (auditors or {}).items()}
+        for name, F in aud.items():
+            reports[f"auditor:{name}"], _ = cv.evaluate(F)
 
         untested = []
         if any(spatial):
@@ -369,6 +378,9 @@ class PurityAudit:
                             "surrogate cannot separate a visual leak from intent; only cued_blank windows "
                             "certify decoding")
         feedback = self._feedback_test(per_window, provenance, rng, baseline=per_window_icpt)
+        certification = self._certify(windows, labels, binary, provenance, aud, cursor_logs,
+                                      np.random.default_rng(self.seed + 1))
+        verdict = certification.get("verdict", ["UNCERTIFIED"])
         return {
             "metric": "auc" if binary else "cosine",
             "n": n,
@@ -381,7 +393,61 @@ class PurityAudit:
             "feedback": feedback,
             "untested": untested,
             "flags": self._flags(reports, feedback, chance=reports["intercept"]["score"]),
+            "certification": certification,
+            "verdict": verdict,
         }
+
+    def _certify(self, windows: List[np.ndarray], labels: np.ndarray, binary: bool,
+                 provenance: Sequence[dict], auditor_feats: Dict[str, np.ndarray],
+                 cursor_logs: Optional[CursorLogs], rng: np.random.Generator) -> dict:
+        """The audit of record: the same surrogates, refit on ``CERTIFYING_BLOCKS`` windows only.
+
+        Why a separate audit and not the whole-set flags: on cursor-visible and target-display blocks
+        the label is goal − displayed position, so the display surrogate beats its floor there by
+        construction and the whole-set DISPLAY_LEAK fires on every honest dataset that contains them —
+        it says "these windows are display-identifiable", which is true and expected, not "the decoder
+        reads the screen".  Restricted to blank-cue windows the display carries no label information,
+        so what the full decoder achieves there, minus what eyes and muscles explain, is the cortical
+        claim.
+
+        Verdict: NO_CORTICAL_EVIDENCE if the full decoder does not beat its floor on these windows;
+        OCULAR_LEAK / DISPLAY_LEAK as in ``_flags``; GAZE_TRACKS_LABEL if an auditor (eye tracker)
+        decodes the cued direction although the person should be fixating — then the EEG result must
+        be partialled against gaze before it is quoted; PASS otherwise.
+        """
+        mask = np.array([p.get("block") in CERTIFYING_BLOCKS for p in provenance])
+        need = max(2 * self.n_splits, self.min_group_n)
+        n = int(mask.sum())
+        if n < need:
+            return {"skipped": f"{n} certifying windows ({', '.join(CERTIFYING_BLOCKS)}); need ≥ {need}"}
+        idx = np.flatnonzero(mask)
+        prov = [provenance[i] for i in idx]
+        y = labels[idx]
+        if binary and len(np.unique(y)) < 2:
+            return {"skipped": "certifying windows contain one class only"}
+        perms = circular_shift_permutations(prov, self.n_permutations, rng)
+        cv = _PermutationCV(y, binary, perms, self.cfg.decoder.ridge_alpha, self.n_splits,
+                            self.cfg.eval.floor_percentile)
+        w = [windows[i] for i in idx]
+        reports: Dict[str, dict] = {}
+        reports["intercept"], _ = cv.evaluate(None)
+        reports["full"], _ = cv.evaluate(self._eeg_features(w, None))
+        reports["frontal"], _ = cv.evaluate(self._eeg_features(w, self.frontal))
+        reports["slow"], _ = cv.evaluate(np.stack([slow_binned_means(x, self.fs) for x in w]))
+        reports["occipital"], _ = cv.evaluate(self._eeg_features(w, self.occipital))
+        if any(self._displays_spatial(p) for p in prov):
+            reports["display"], _ = cv.evaluate(self._display_features(prov, cursor_logs))
+        else:
+            reports["display"] = {"skipped": "nothing spatial was displayed on certifying windows"}
+        for name, F in auditor_feats.items():
+            reports[f"auditor:{name}"], _ = cv.evaluate(F[idx])
+        flags = [f for f in self._flags(reports, {}, chance=reports["intercept"]["score"]) if f != "PASS"]
+        if any(r.get("beats_floor", False) for k, r in reports.items() if k.startswith("auditor:")):
+            flags.append("GAZE_TRACKS_LABEL")
+        decodes = bool(reports["full"].get("beats_floor", False))
+        verdict = ([] if decodes else ["NO_CORTICAL_EVIDENCE"]) + flags
+        return {"n": n, "blocks": list(CERTIFYING_BLOCKS), "reports": reports, "decodes": decodes,
+                "flags": flags or ["PASS"], "verdict": verdict or ["PASS"]}
 
     @staticmethod
     def _by_block(full: np.ndarray, icpt: np.ndarray, provenance: Sequence[dict]) -> Dict[str, dict]:
