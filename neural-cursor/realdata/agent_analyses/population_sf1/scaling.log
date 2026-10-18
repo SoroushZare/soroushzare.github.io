@@ -1,0 +1,45 @@
+subs 106 test 30 pool 76
+fixed|imag_LR|bb {'acc': {8: 0.657, 16: 0.671, 32: 0.688, 64: 0.685, 76: 0.693}, 'slope_per_doubling': 0.0101, 'slope_ci': [0.0043, 0.0156], 'gain_8_76': 0.035, 'gain_ci': [0.017, 0.053], 'Cs_chosen': [0.01]}
+fixed|imag_LR|fb {'acc': {8: 0.64, 16: 0.657, 32: 0.67, 64: 0.67, 76: 0.672}, 'slope_per_doubling': 0.0093, 'slope_ci': [0.0032, 0.0158], 'gain_8_76': 0.032, 'gain_ci': [0.012, 0.052], 'Cs_chosen': [0.01]}
+fixed|imag_LR|E1 {'acc': {8: 0.644, 16: 0.673, 32: 0.704, 64: 0.716, 76: 0.717}, 'slope_per_doubling': 0.0227, 'slope_ci': [0.016, 0.0293], 'gain_8_76': 0.073, 'gain_ci': [0.051, 0.095], 'Cs_chosen': [0.1]}
+fixed|imag_LR|E2 {'acc': {8: 0.72, 16: 0.738, 32: 0.76, 64: 0.763, 76: 0.766}, 'slope_per_doubling': 0.0141, 'slope_ci': [0.0088, 0.0194], 'gain_8_76': 0.046, 'gain_ci': [0.029, 0.063], 'Cs_chosen': [0.1]}
+fixed|imag_LR|E3 {'acc': {8: 0.605, 16: 0.607, 32: 0.638, 64: 0.65, 76: 0.65}, 'slope_per_doubling': 0.0159, 'slope_ci': [0.0107, 0.0215], 'gain_8_76': 0.045, 'gain_ci': [0.029, 0.062], 'Cs_chosen': [0.01]}
+fixed|imag_FF|bb {'acc': {8: 0.653, 16: 0.672, 32: 0.684, 64: 0.693, 76: 0.696}, 'slope_per_doubling': 0.0126, 'slope_ci': [0.0058, 0.0194], 'gain_8_76': 0.042, 'gain_ci': [0.019, 0.065], 'Cs_chosen': [0.01]}
+fixed|imag_FF|fb {'acc': {8: 0.649, 16: 0.669, 32: 0.682, 64: 0.691, 76: 0.694}, 'slope_per_doubling': 0.0134, 'slope_ci': [0.0075, 0.0194], 'gain_8_76': 0.045, 'gain_ci': [0.025, 0.066], 'Cs_chosen': [0.01]}
+fixed|imag_FF|E1 {'acc': {8: 0.526, 16: 0.541, 32: 0.556, 64: 0.57, 76: 0.581}, 'slope_per_doubling': 0.016, 'slope_ci': [0.0096, 0.0225], 'gain_8_76': 0.055, 'gain_ci': [0.033, 0.076], 'Cs_chosen': [0.1]}
+fixed|imag_FF|E2 {'acc': {8: 0.554, 16: 0.56, 32: 0.591, 64: 0.596, 76: 0.607}, 'slope_per_doubling': 0.0165, 'slope_ci': [0.008, 0.0244], 'gain_8_76': 0.053, 'gain_ci': [0.024, 0.079], 'Cs_chosen': [0.1]}
+fixed|imag_FF|E3 {'acc': {8: 0.543, 16: 0.551, 32: 0.555, 64: 0.559, 76: 0.554}, 'slope_per_doubling': 0.004, 'slope_ci': [-0.0007, 0.0086], 'gain_8_76': 0.011, 'gain_ci': [-0.002, 0.024], 'Cs_chosen': [0.01]}
+fixed|imag_LR|bb-E1 {'diff': -0.0126, 'ci': [-0.0216, -0.0034]}
+fixed|imag_LR|bb-E2 {'diff': -0.004, 'ci': [-0.0125, 0.0036]}
+fixed|imag_LR|bb-E3 {'diff': -0.0058, 'ci': [-0.0124, 0.0011]}
+fixed|imag_LR|fb-E1 {'diff': -0.0134, 'ci': [-0.021, -0.0052]}
+fixed|imag_LR|fb-E2 {'diff': -0.0048, 'ci': [-0.0135, 0.0034]}
+fixed|imag_LR|fb-E3 {'diff': -0.0066, 'ci': [-0.0152, 0.0023]}
+fixed|imag_FF|bb-E1 {'diff': -0.0034, 'ci': [-0.0124, 0.0062]}
+fixed|imag_FF|bb-E2 {'diff': -0.0039, 'ci': [-0.0148, 0.0074]}
+fixed|imag_FF|bb-E3 {'diff': 0.0086, 'ci': [0.0006, 0.017]}
+fixed|imag_FF|fb-E1 {'diff': -0.0026, 'ci': [-0.0103, 0.0052]}
+fixed|imag_FF|fb-E2 {'diff': -0.0031, 'ci': [-0.0132, 0.0077]}
+fixed|imag_FF|fb-E3 {'diff': 0.0094, 'ci': [0.0023, 0.0165]}
+tuned|imag_LR|bb {'acc': {8: 0.661, 16: 0.674, 32: 0.683, 64: 0.684, 76: 0.685}, 'slope_per_doubling': 0.007, 'slope_ci': [0.0032, 0.0107], 'gain_8_76': 0.024, 'gain_ci': [0.013, 0.034], 'Cs_chosen': [0.001, 0.003, 0.01, 0.03, 0.1]}
+tuned|imag_LR|fb {'acc': {8: 0.638, 16: 0.654, 32: 0.672, 64: 0.671, 76: 0.674}, 'slope_per_doubling': 0.0107, 'slope_ci': [0.0038, 0.0174], 'gain_8_76': 0.036, 'gain_ci': [0.014, 0.057], 'Cs_chosen': [0.001, 0.003, 0.01, 0.03, 0.1]}
+tuned|imag_LR|E1 {'acc': {8: 0.644, 16: 0.673, 32: 0.704, 64: 0.716, 76: 0.717}, 'slope_per_doubling': 0.0227, 'slope_ci': [0.0162, 0.0295], 'gain_8_76': 0.073, 'gain_ci': [0.052, 0.095], 'Cs_chosen': [0.1]}
+tuned|imag_LR|E2 {'acc': {8: 0.72, 16: 0.747, 32: 0.763, 64: 0.767, 76: 0.766}, 'slope_per_doubling': 0.0138, 'slope_ci': [0.0086, 0.0189], 'gain_8_76': 0.046, 'gain_ci': [0.029, 0.064], 'Cs_chosen': [0.001, 0.003, 0.01, 0.03, 0.1]}
+tuned|imag_LR|E3 {'acc': {8: 0.606, 16: 0.622, 32: 0.642, 64: 0.65, 76: 0.656}, 'slope_per_doubling': 0.0152, 'slope_ci': [0.0106, 0.0196], 'gain_8_76': 0.05, 'gain_ci': [0.034, 0.065], 'Cs_chosen': [0.01, 0.03, 0.1]}
+tuned|imag_FF|bb {'acc': {8: 0.669, 16: 0.68, 32: 0.69, 64: 0.696, 76: 0.704}, 'slope_per_doubling': 0.0097, 'slope_ci': [0.0045, 0.015], 'gain_8_76': 0.034, 'gain_ci': [0.016, 0.053], 'Cs_chosen': [0.003, 0.01, 0.03, 0.1]}
+tuned|imag_FF|fb {'acc': {8: 0.646, 16: 0.668, 32: 0.678, 64: 0.684, 76: 0.694}, 'slope_per_doubling': 0.0131, 'slope_ci': [0.0074, 0.0189], 'gain_8_76': 0.048, 'gain_ci': [0.028, 0.069], 'Cs_chosen': [0.001, 0.003, 0.01, 0.03, 0.1]}
+tuned|imag_FF|E1 {'acc': {8: 0.52, 16: 0.538, 32: 0.551, 64: 0.565, 76: 0.554}, 'slope_per_doubling': 0.012, 'slope_ci': [0.0062, 0.0179], 'gain_8_76': 0.034, 'gain_ci': [0.011, 0.06], 'Cs_chosen': [0.001, 0.003, 0.01, 0.03, 0.1]}
+tuned|imag_FF|E2 {'acc': {8: 0.554, 16: 0.568, 32: 0.592, 64: 0.607, 76: 0.607}, 'slope_per_doubling': 0.0171, 'slope_ci': [0.0104, 0.0241], 'gain_8_76': 0.052, 'gain_ci': [0.027, 0.078], 'Cs_chosen': [0.001, 0.003, 0.01, 0.03, 0.1]}
+tuned|imag_FF|E3 {'acc': {8: 0.538, 16: 0.548, 32: 0.559, 64: 0.561, 76: 0.553}, 'slope_per_doubling': 0.0056, 'slope_ci': [-0.0002, 0.0115], 'gain_8_76': 0.015, 'gain_ci': [-0.007, 0.036], 'Cs_chosen': [0.001, 0.003, 0.01, 0.03, 0.1]}
+tuned|imag_LR|bb-E1 {'diff': -0.0157, 'ci': [-0.0236, -0.008]}
+tuned|imag_LR|bb-E2 {'diff': -0.0068, 'ci': [-0.0142, -0.0006]}
+tuned|imag_LR|bb-E3 {'diff': -0.0082, 'ci': [-0.0136, -0.0023]}
+tuned|imag_LR|fb-E1 {'diff': -0.012, 'ci': [-0.0207, -0.0029]}
+tuned|imag_LR|fb-E2 {'diff': -0.003, 'ci': [-0.0131, 0.0065]}
+tuned|imag_LR|fb-E3 {'diff': -0.0044, 'ci': [-0.0123, 0.0029]}
+tuned|imag_FF|bb-E1 {'diff': -0.0024, 'ci': [-0.0096, 0.0053]}
+tuned|imag_FF|bb-E2 {'diff': -0.0075, 'ci': [-0.016, 0.0013]}
+tuned|imag_FF|bb-E3 {'diff': 0.004, 'ci': [-0.0042, 0.0123]}
+tuned|imag_FF|fb-E1 {'diff': 0.0011, 'ci': [-0.006, 0.0085]}
+tuned|imag_FF|fb-E2 {'diff': -0.0041, 'ci': [-0.0126, 0.0052]}
+tuned|imag_FF|fb-E3 {'diff': 0.0075, 'ci': [-0.0001, 0.014]}

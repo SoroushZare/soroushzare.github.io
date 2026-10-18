@@ -1,0 +1,6 @@
+imag_LR bb {'real_mean': 0.693, 'null_mean': 0.5068, 'null_p95_cohort': 0.5808, 'null_max_cohort': 0.6341, 'p_cohort': 0.000999000999000999, 'null_p95_single_subject': 0.6667, 'null_max_single_subject': 0.9556, 'frac_subj_p05': 0.6, 'n_sig_BH05': 15, 'n_test': 30, 'n_perm': 1000}
+imag_LR fb {'real_mean': 0.672, 'null_mean': 0.5038, 'null_p95_cohort': 0.5415, 'null_max_cohort': 0.5852, 'p_cohort': 0.000999000999000999, 'null_p95_single_subject': 0.6444, 'null_max_single_subject': 0.8667, 'frac_subj_p05': 0.467, 'n_sig_BH05': 14, 'n_test': 30, 'n_perm': 1000}
+imag_FF bb {'real_mean': 0.696, 'null_mean': 0.5061, 'null_p95_cohort': 0.5889, 'null_max_cohort': 0.643, 'p_cohort': 0.000999000999000999, 'null_p95_single_subject': 0.7111, 'null_max_single_subject': 0.9778, 'frac_subj_p05': 0.533, 'n_sig_BH05': 15, 'n_test': 30, 'n_perm': 1000}
+imag_FF fb {'real_mean': 0.694, 'null_mean': 0.5025, 'null_p95_cohort': 0.5415, 'null_max_cohort': 0.5763, 'p_cohort': 0.000999000999000999, 'null_p95_single_subject': 0.6444, 'null_max_single_subject': 0.8889, 'frac_subj_p05': 0.5, 'n_sig_BH05': 15, 'n_test': 30, 'n_perm': 1000}
+imag_LR 0.486 0.518
+imag_FF 0.517 0.506
