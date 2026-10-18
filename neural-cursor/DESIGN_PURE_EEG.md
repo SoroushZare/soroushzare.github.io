@@ -184,6 +184,53 @@ The dry penalty is an **unsourced planning range** (C2), measured at G2. Anchors
 
 **Reading.** 1-D y plus a goal posterior is the expected headline. Expect 15–30% without usable y; none excluded; results by tercile of a rest-mu predictor (Blankertz 2010). Learning is documented only with gel and sighted feedback (Perdikis 2018; Meng & He 2019); auditory feedback is slower (Nijboer 2008).
 
+## 8b. What the full design does in simulation (run, not argued)
+
+Everything below is produced by `neural_cursor.simulate_champion` and `neural_cursor.realtime_demo`
+(outputs in `results/`). The simulator embeds stated, calibrated signals; it tests whether the *system and
+its controls* behave as designed, not what real brains will give.
+
+**Certification needs volume.** Four simulated days, three strong responders (y ERD depth 0.3–0.4), screen
+leak 1, per person over all days (slopes relative to the identity-trial margin, 95% CR2 intervals):
+
+| held-out min / session | person | body slope | screen slope | all-32 shadow (no-display null) | verdict |
+|---|---|---|---|---|---|
+| 8 | 1 | 0.71 [0.46, 0.97] | 0.01 [−0.17, 0.20] | 1.56 (−0.08) | inconclusive |
+| 24 | 1 | 0.80 [0.62, 0.99] | −0.03 [−0.15, 0.09] | 1.90 (−0.06) | inconclusive |
+| 48 | 1 | 0.80 [0.67, 0.94] | −0.01 [−0.10, 0.07] | 1.91 (−0.04) | **CERTIFIED** |
+| 48 | 0 | 0.86 [0.69, 1.02] | −0.04 [−0.15, 0.06] | 3.64 (0.13) | inconclusive |
+| 48 | 2 | 1.03 [0.87, 1.20] | 0.09 [0.00, 0.17] | 1.99 (0.01) | SCREEN_READING |
+
+- The screen interval narrows as 1/√trials and crosses inside ±10% only at about 900 held-out trials per
+  person (48 min × 4 sessions). At the default 8 min per session, nothing can be certified; the 3-day
+  default runs (`results/champion_d3_*`) are NO_BODY_SIGNAL or inconclusive for exactly this reason.
+  **Held-out minutes are the binding resource of the study** and are now sized accordingly (§6, §9).
+- Person 2 is flagged although the deployed decoder never trained on screen data: in held-out blocks the
+  simulated display-driven activity spills onto the motor channels and the output moves with it by ~9% of
+  the margin. Screen-blind training does not guarantee a screen-blind decoder; it has to be measured.
+- Pooling across people uses random effects; with only two y-axis people its interval has one degree of
+  freedom and spans ±35 — a cross-person verdict needs the planned ≥ 6 deep plus the broad cohort.
+
+**The controls work in both directions.**
+
+| condition (48 min, 4 days) | deployed screen slope, per person | verdict |
+|---|---|---|
+| covert leak 0 (above) | −0.04, −0.01, 0.09 | 1 certified, 1 inconclusive, 1 flagged |
+| covert leak 1 (attention toward the imagined screen direction during blind training) | 0.30, 0.36, 0.35 | SCREEN_READING for all three, held-out and replay |
+| screen leak 0 (3-day runs) | — | no shadow fires; nothing flagged as screen reading |
+
+The all-32-channel shadow's screen slope grows with the screen leak (0.09, 1.08, 2.41, 3.72 at leak 0, 0.5,
+1, 2 in the 3-day runs) and stays at its null when there is no display pathway, so a pass means something.
+
+**Control in closed loop (simulated).** Sighted success 0.12–0.32 per trial on 8 targets with the goal
+posterior, 0.7–1.3 bits/s throughput, 3.6–6.9 s time-to-target; blind (hidden-cursor) success 0.2–0.4.
+x is earned by 0–4 of 9 person-days; the dry penalty lowers y AUC from 0.72 to 0.62 to 0.56 (0, 0.4, 0.7).
+
+**Real time.** Simulated EEG streamed over a real LSL outlet, decoded at 16 Hz by the deployed body decoder,
+driving a screen cursor and a planar arm together: latency p50/p95 13/18 ms, no dropped samples. The
+imagined y direction moved both devices the right way in 4/4 segments; the earned x axis moved them the
+wrong way in 2/2 (`results/realtime_demo.md`) — x stays secondary, exactly as §3 predicts.
+
 ## 9. Pre-registration: endpoints, falsifiers, power
 
 Filed on OSF at the end of M3. H1–H3 directions are hypotheses with two-sided tests, revised beforehand if Stieger contradicts them. Each has a smallest effect of interest (SESOI): **supported** if the CI excludes 0 in the predicted direction; **falsified** only if the 90% CI lies inside ±SESOI; otherwise **inconclusive**, reported as such.
