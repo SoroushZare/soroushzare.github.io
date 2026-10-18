@@ -1,3 +1,10 @@
+> **Superseded.** This was the first design round, when eye-driven pointing (EOG) was allowed. The PI
+> then required pure EEG: no EOG or gaze as control, no SSVEP, control by thinking. The design of record is
+> now [`DESIGN_PURE_EEG.md`](DESIGN_PURE_EEG.md), chosen by an eight-contender tournament
+> ([`proposals/pure_eeg_tournament/`](proposals/pure_eeg_tournament/)) and checked against real data on 106
+> people ([`results/realdata/`](results/realdata/)). The simulation numbers below were regenerated with the
+> current simulator; the regenerated tables in `results/` are authoritative where they differ.
+
 # Neural cursor — design of record
 
 Continuous 2-D cursor control from a g.tec 32-channel dry hybrid-electrode cap at 500 Hz, with no
