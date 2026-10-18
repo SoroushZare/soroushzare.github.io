@@ -1,0 +1,166 @@
+{
+ "experiment": "E2b pooled population prior + k own labelled trials vs own-only, imag_LR; fixed test = last 15 trials",
+ "test_subjects": [
+  1,
+  2,
+  3,
+  16,
+  33,
+  42,
+  46,
+  49,
+  51,
+  57,
+  62,
+  64,
+  66,
+  71,
+  72,
+  73,
+  77,
+  79,
+  84,
+  91,
+  95,
+  96,
+  101,
+  105,
+  106
+ ],
+ "table": {
+  "pooled+own_0": {
+   "n": 25,
+   "mean": 0.736,
+   "ci95": [
+    0.68,
+    0.792
+   ],
+   "median": 0.7333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "own_only_0": {
+   "n": 25,
+   "mean": 0.5,
+   "ci95": [
+    0.5,
+    0.5
+   ],
+   "median": 0.5,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "pooled+own_4": {
+   "n": 25,
+   "mean": 0.7306666666666666,
+   "ci95": [
+    0.6745999999999999,
+    0.7893333333333333
+   ],
+   "median": 0.7333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "own_only_4": {
+   "n": 25,
+   "mean": 0.5813333333333334,
+   "ci95": [
+    0.5306666666666667,
+    0.6346666666666667
+   ],
+   "median": 0.5333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "pooled+own_8": {
+   "n": 25,
+   "mean": 0.7333333333333333,
+   "ci95": [
+    0.6719999999999999,
+    0.7973999999999998
+   ],
+   "median": 0.7333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "own_only_8": {
+   "n": 25,
+   "mean": 0.616,
+   "ci95": [
+    0.56,
+    0.6773333333333333
+   ],
+   "median": 0.6,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "pooled+own_16": {
+   "n": 25,
+   "mean": 0.7333333333333333,
+   "ci95": [
+    0.672,
+    0.792
+   ],
+   "median": 0.7333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "own_only_16": {
+   "n": 25,
+   "mean": 0.5946666666666667,
+   "ci95": [
+    0.5413333333333333,
+    0.6533333333333334
+   ],
+   "median": 0.5333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "pooled+own_24": {
+   "n": 25,
+   "mean": 0.7413333333333334,
+   "ci95": [
+    0.6799333333333334,
+    0.8000666666666665
+   ],
+   "median": 0.7333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "own_only_24": {
+   "n": 25,
+   "mean": 0.6666666666666667,
+   "ci95": [
+    0.608,
+    0.7306666666666666
+   ],
+   "median": 0.6,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "pooled+own_30": {
+   "n": 25,
+   "mean": 0.7413333333333334,
+   "ci95": [
+    0.6826666666666666,
+    0.8
+   ],
+   "median": 0.7333333333333333,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "own_only_30": {
+   "n": 25,
+   "mean": 0.6773333333333333,
+   "ci95": [
+    0.6186666666666667,
+    0.7360000000000001
+   ],
+   "median": 0.6666666666666666,
+   "floor_p95": null,
+   "frac_above_floor": null
+  }
+ },
+ "note": "own_only with k<4 or one class is reported as 0.5 (cannot be trained)",
+ "generated_utc": "2026-10-18T06:20:09Z"
+}

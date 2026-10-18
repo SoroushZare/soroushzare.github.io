@@ -1,0 +1,51 @@
+{
+ "experiment": "E4 executed\u2194imagined transfer and E5 idle-vs-imagine detection, 32-ch TS+LR",
+ "subjects": 106,
+ "table": {
+  "exec_to_imag_LR": {
+   "n": 106,
+   "mean": 0.6563791554357592,
+   "ci95": [
+    0.6341569332135369,
+    0.6792157082958971
+   ],
+   "median": 0.6444444444444445,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "idle_vs_imagine": {
+   "n": 106,
+   "mean": 0.8438828990715782,
+   "ci95": [
+    0.8289989517819705,
+    0.8592493386243387
+   ],
+   "median": 0.8555555555555556,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "imag_LR_cv_plus_exec_data": {
+   "n": 106,
+   "mean": 0.7090745732255167,
+   "ci95": [
+    0.6810991314764899,
+    0.7369624138963762
+   ],
+   "median": 0.6888888888888889,
+   "floor_p95": null,
+   "frac_above_floor": null
+  },
+  "imag_to_exec_LR": {
+   "n": 106,
+   "mean": 0.666880341880342,
+   "ci95": [
+    0.642556543299468,
+    0.6911990001612641
+   ],
+   "median": 0.6666666666666666,
+   "floor_p95": null,
+   "frac_above_floor": null
+  }
+ },
+ "generated_utc": "2026-10-18T06:07:22Z"
+}

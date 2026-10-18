@@ -1,0 +1,165 @@
+{
+ "experiment": "E2 cross-subject zero-shot scaling, exec_LR, 32-ch, TS+LR",
+ "test_subjects": [
+  1,
+  2,
+  3,
+  16,
+  33,
+  42,
+  46,
+  49,
+  51,
+  57,
+  62,
+  64,
+  66,
+  71,
+  72,
+  73,
+  77,
+  79,
+  84,
+  91,
+  95,
+  96,
+  101,
+  105,
+  106
+ ],
+ "pool_size": 81,
+ "rungs": {
+  "RA_rest_aligned": {
+   "1": {
+    "mean": 0.5418888888888889,
+    "sd_over_draws": 0.04513450406053138,
+    "draws": 8,
+    "per_test_subject_mean": 0.5418888888888889,
+    "frac_test_subjects_above_0p64": 0.0
+   },
+   "2": {
+    "mean": 0.5822222222222222,
+    "sd_over_draws": 0.026180758177818918,
+    "draws": 8,
+    "per_test_subject_mean": 0.5822222222222222,
+    "frac_test_subjects_above_0p64": 0.16
+   },
+   "4": {
+    "mean": 0.6066666666666667,
+    "sd_over_draws": 0.011967032904743333,
+    "draws": 8,
+    "per_test_subject_mean": 0.6066666666666667,
+    "frac_test_subjects_above_0p64": 0.24
+   },
+   "8": {
+    "mean": 0.6254444444444445,
+    "sd_over_draws": 0.017788538410038992,
+    "draws": 8,
+    "per_test_subject_mean": 0.6254444444444445,
+    "frac_test_subjects_above_0p64": 0.4
+   },
+   "16": {
+    "mean": 0.6428888888888888,
+    "sd_over_draws": 0.016939981197243527,
+    "draws": 4,
+    "per_test_subject_mean": 0.642888888888889,
+    "frac_test_subjects_above_0p64": 0.52
+   },
+   "32": {
+    "mean": 0.6637777777777778,
+    "sd_over_draws": 0.0117147158694197,
+    "draws": 4,
+    "per_test_subject_mean": 0.6637777777777778,
+    "frac_test_subjects_above_0p64": 0.56
+   },
+   "48": {
+    "mean": 0.6753333333333333,
+    "sd_over_draws": 0.008785509955898125,
+    "draws": 4,
+    "per_test_subject_mean": 0.6753333333333333,
+    "frac_test_subjects_above_0p64": 0.56
+   },
+   "64": {
+    "mean": 0.6677777777777778,
+    "sd_over_draws": 0.004461079977752132,
+    "draws": 4,
+    "per_test_subject_mean": 0.6677777777777777,
+    "frac_test_subjects_above_0p64": 0.56
+   },
+   "81": {
+    "mean": 0.6728888888888889,
+    "sd_over_draws": 0.0,
+    "draws": 1,
+    "per_test_subject_mean": 0.6728888888888889,
+    "frac_test_subjects_above_0p64": 0.64
+   }
+  },
+  "unaligned": {
+   "1": {
+    "mean": 0.5178888888888888,
+    "sd_over_draws": 0.012056963563450398,
+    "draws": 8,
+    "per_test_subject_mean": 0.5178888888888888,
+    "frac_test_subjects_above_0p64": 0.0
+   },
+   "2": {
+    "mean": 0.5331111111111111,
+    "sd_over_draws": 0.012592374725784181,
+    "draws": 8,
+    "per_test_subject_mean": 0.533111111111111,
+    "frac_test_subjects_above_0p64": 0.0
+   },
+   "4": {
+    "mean": 0.5638888888888889,
+    "sd_over_draws": 0.018892483318132782,
+    "draws": 8,
+    "per_test_subject_mean": 0.5638888888888889,
+    "frac_test_subjects_above_0p64": 0.04
+   },
+   "8": {
+    "mean": 0.5833333333333333,
+    "sd_over_draws": 0.013847493867835903,
+    "draws": 8,
+    "per_test_subject_mean": 0.5833333333333334,
+    "frac_test_subjects_above_0p64": 0.12
+   },
+   "16": {
+    "mean": 0.616,
+    "sd_over_draws": 0.021416504538945332,
+    "draws": 4,
+    "per_test_subject_mean": 0.616,
+    "frac_test_subjects_above_0p64": 0.36
+   },
+   "32": {
+    "mean": 0.628,
+    "sd_over_draws": 0.01561891856960494,
+    "draws": 4,
+    "per_test_subject_mean": 0.628,
+    "frac_test_subjects_above_0p64": 0.4
+   },
+   "48": {
+    "mean": 0.6515555555555556,
+    "sd_over_draws": 0.005221040055320326,
+    "draws": 4,
+    "per_test_subject_mean": 0.6515555555555556,
+    "frac_test_subjects_above_0p64": 0.44
+   },
+   "64": {
+    "mean": 0.6528888888888889,
+    "sd_over_draws": 0.008279082671198798,
+    "draws": 4,
+    "per_test_subject_mean": 0.652888888888889,
+    "frac_test_subjects_above_0p64": 0.44
+   },
+   "81": {
+    "mean": 0.6622222222222222,
+    "sd_over_draws": 0.0,
+    "draws": 1,
+    "per_test_subject_mean": 0.6622222222222222,
+    "frac_test_subjects_above_0p64": 0.52
+   }
+  }
+ },
+ "floor_note": "zero-shot accuracy on 25 fixed held-out subjects \u00d7 ~45 trials; per-subject binomial p95 at n=45 is 0.644; for the 25-subject mean the label-permutation p95 is \u22480.52",
+ "generated_utc": "2026-10-18T06:10:18Z"
+}
