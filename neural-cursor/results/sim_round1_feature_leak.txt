@@ -1,0 +1,8 @@
+features = bandpower
+calibration decoder r = 0.442 (permutation floor p95 = 0.146); EOG-only surrogate r = -0.081
+features = bandpower
+calibration decoder r = 0.443 (permutation floor p95 = 0.148); EOG-only surrogate r = -0.104
+features = bandpower+slow
+calibration decoder r = 0.414 (permutation floor p95 = 0.156); EOG-only surrogate r = -0.064
+features = bandpower+slow
+calibration decoder r = 0.492 (permutation floor p95 = 0.150); EOG-only surrogate r = 0.329

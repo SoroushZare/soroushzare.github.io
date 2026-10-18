@@ -1,0 +1,70 @@
+{
+ "experiment": "E2-deep EEGNet zero-shot scaling, imag_LR, 32-ch, rest-EA",
+ "test_subjects": [
+  1,
+  2,
+  3,
+  16,
+  33,
+  42,
+  46,
+  49,
+  51,
+  57,
+  62,
+  64,
+  66,
+  71,
+  72,
+  73,
+  77,
+  79,
+  84,
+  91,
+  95,
+  96,
+  101,
+  105,
+  106
+ ],
+ "pool_size": 81,
+ "rungs": {
+  "4": {
+   "mean": 0.48311111111111116,
+   "sd": 0.0048888888888888316,
+   "draws": 2,
+   "frac_test_subjects_above_0p64": 0.0
+  },
+  "8": {
+   "mean": 0.5155555555555555,
+   "sd": 0.014222222222222247,
+   "draws": 2,
+   "frac_test_subjects_above_0p64": 0.0
+  },
+  "16": {
+   "mean": 0.5715555555555556,
+   "sd": 0.04177777777777775,
+   "draws": 2,
+   "frac_test_subjects_above_0p64": 0.2
+  },
+  "32": {
+   "mean": 0.6391111111111111,
+   "sd": 0.002666666666666706,
+   "draws": 2,
+   "frac_test_subjects_above_0p64": 0.4
+  },
+  "64": {
+   "mean": 0.6551111111111112,
+   "sd": 0.008000000000000063,
+   "draws": 2,
+   "frac_test_subjects_above_0p64": 0.44
+  },
+  "81": {
+   "mean": 0.6657777777777778,
+   "sd": 0.0008888888888889945,
+   "draws": 2,
+   "frac_test_subjects_above_0p64": 0.52
+  }
+ },
+ "generated_utc": "2026-10-18T10:13:55Z"
+}
