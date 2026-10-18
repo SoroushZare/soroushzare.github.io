@@ -25,7 +25,8 @@ Pipeline
 
 Event schema (``events.csv``, written by ``RunLogger.event(kind, payload, t)``)
 -----------------------------------------------------------------------------
-Only two kinds are read; every other kind (markers, gate flags, auditor sync pulses) is ignored.
+For the original blocks only two kinds are read; every other kind (markers, gate flags, auditor sync
+pulses) is ignored.  Champion trials read a few more (see "Champion trials" below).
 
 ``trial_start``  payload (JSON object)::
 
@@ -60,6 +61,61 @@ A ``trial_start`` that arrives while another trial is open discards the open one
 crashed run must not inject mislabelled windows.  An unknown ``block`` raises ``ValueError`` — a
 protocol that writes a new block kind must be added here deliberately, not silently relabelled.
 
+Champion trials (body-coordinate SMR; ``protocol.session_plan_champion``)
+-------------------------------------------------------------------------
+Five more ``block`` values (``CHAMPION_BLOCKS``): "fixation_probe", "blind_closed_loop", "sighted",
+"heldout_mapping" and "pixel_replay".  Their ``trial_start`` payload (``protocol.
+champion_trial_start_payload``) adds::
+
+    {"source": "L1" | "L2b" | "S" | "H" | "R" | "J",   # required, and allowed for the block
+                                       # (SOURCES_BY_BLOCK): fixation_probe → L1; blind_closed_loop →
+                                       # L2b, or J ("just intend"); sighted → S | J; heldout_mapping
+                                       # → H; pixel_replay → R
+     "mapping": "identity" | "rot+90" | "rot-90" | "mirror_x" | "mirror_y",
+                                       # required: identity for L1/L2b/S/J, held out for H, the host
+                                       # block's mapping for R
+     "body_cue": [bx, by],             # L1/L2b: the cued body vector in {-1, 0, 1}², THE label
+                                       # (L1: one class, so exactly one non-zero entry)
+     "cue_class": "FEET+RIGHT", "cue_mode": "central_glyph" | "body_word" | "goal_word",
+     "variant": "C2b" | "C2c",         # heldout_mapping: open loop (frozen cursor) or closed loop
+     "replay_goal": [x, y],            # pixel_replay: goal A that the replayed trajectory aimed at;
+                                       # "goal" is the goal B the person holds
+     "instructed": true | false}       # whether imagery instruction was given (logged, not checked)
+
+``feedback_visible`` must be false for fixation_probe / blind_closed_loop and true for the others.
+"goal" may be null only for L1 (it has no goal) and L2b (the hidden goal is not needed for the label).
+For all the other sources it is required at trial start: no hindsight reveal.  Further events:
+
+``cue``           an L1, L2b or blind-J ``trial_start`` must have a ``cue`` since the previous
+                  ``trial_start``, its ``cue_offset`` before the start, and the start at least
+                  ``CUE_LOCKOUT_S`` (1.0 s) after cue onset.  Otherwise ``ValueError``: the
+                  class-specific cue-evoked response would sit inside the labelled windows.  A ``cue``
+                  payload that carries ``"body"`` must equal the trial's ``body_cue``.
+``fixation_break``  (gaze left the 1° window; logged by the presentation layer from the eye tracker)
+                  discards the open L1 / L2b / blind-J trial.  The proposal aborts and repeats it.  Gaze
+                  only selects trials here and never reaches a decoder: this module reads no auditor file.
+``outcome_flash`` while a blind_closed_loop trial is open → ``ValueError``.  The flash must follow
+                  ``trial_end``, so windows end before it.
+``body_report``   ``{"trial", "class"}``, the C2b keyed report, must come after that trial's
+                  ``trial_end`` (a keypress inside the window is a movement → ``ValueError``).  It is
+                  attached to the held-out trial as ``body_report``.
+``trial_end``     with ``"aborted": true`` discards a champion trial.
+
+Labels and provenance of champion windows.  ``labels`` stay unit vectors.  For L1 / L2b they are the
+normalised cued body vector (body = screen under the identity, and nothing is drawn).  For blind J they
+are start_pos → goal.  For the visible kinds they follow the screen rule above (goal − displayed
+cursor).  L1 windows also end at most ``L1_LABEL_END_S`` (4.0 s) after cue onset.  Provenance adds
+``source``, ``mapping`` and ``instructed``; ``body_label`` ([bx, by], ints; the deployed decoder's
+label), ``cue_class`` and ``cue_mode`` for L1 / L2b; ``cursor_pos`` (the displayed cursor at the window
+end) for visible trials; ``variant`` and ``body_report`` for H; ``replay_goal`` for R.  ``display_goal``
+is the goal for the drawn-target kinds (``CHAMPION_TARGET_BLOCKS``) and None for L1 / L2b / blind J.
+Windows of the original blocks keep exactly their original provenance keys.
+
+Champion trainers: ``BodyTrainer`` fits the deployed ``BodyCoordinateDecoder`` and refuses any window
+whose source is not L1 / L2b.  ``ShadowTrainer`` fits the never-deployed leak positive control on S
+windows only, with ReFIT labels mapped to body coordinates (``refit_body_labels``).  The original
+``Trainer`` never selects champion blocks: they are not in ``BLOCK_KINDS``.
+
 Windows
 -------
 EEG is replayed through the online preprocessing (``CausalFilter`` → ``AmplitudeGate`` → CAR over good
@@ -91,25 +147,51 @@ import math
 import os
 import time
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import joblib
 import numpy as np
 
+from .body_decoder import AXES, TRAINABLE_SOURCES, BodyCoordinateDecoder
 from .config import Config
 from .decoder import VelocityDecoder
 from .logger import RunLogger
+from .mapping import BODY_VECTORS, HELDOUT_MAPPINGS, MAPPING_NAMES, TRAINING_MAPPING, Mapping
 from .signal import AmplitudeGate, CausalFilter, common_average
 
 BLOCK_KINDS: Tuple[str, ...] = ("cued_blank", "closed_loop", "blank_feedback", "free")
+"""The original protocol's blocks: the ones ``Trainer`` can select."""
+CHAMPION_BLOCKS: Tuple[str, ...] = ("fixation_probe", "blind_closed_loop", "sighted", "heldout_mapping",
+                                    "pixel_replay")
+ALL_BLOCKS: Tuple[str, ...] = BLOCK_KINDS + CHAMPION_BLOCKS
 EVENT_TRIAL_START = "trial_start"
 EVENT_TRIAL_END = "trial_end"
 EVENT_CUE, EVENT_CUE_OFFSET = "cue", "cue_offset"
 EVENT_REALTIME_START = "realtime_start"
+EVENT_FIXATION_BREAK = "fixation_break"
+EVENT_OUTCOME_FLASH = "outcome_flash"
+EVENT_BODY_REPORT = "body_report"
 TARGET_BLOCKS: Tuple[str, ...] = ("closed_loop", "blank_feedback", "free")
 """Blocks that draw the targets (and so the goal) at their screen positions (protocol.screen_items)."""
+CHAMPION_TARGET_BLOCKS: Tuple[str, ...] = ("sighted", "heldout_mapping", "pixel_replay")
+"""Champion blocks that draw the goal; L1 and L2b draw nothing at a trial-dependent position."""
+SOURCES_BY_BLOCK: Dict[str, Tuple[str, ...]] = {
+    "fixation_probe": ("L1",), "blind_closed_loop": ("L2b", "J"), "sighted": ("S", "J"),
+    "heldout_mapping": ("H",), "pixel_replay": ("R",),
+}
+DEPLOYED_SOURCES: Tuple[str, ...] = tuple(sorted(TRAINABLE_SOURCES))
+"""L1 and L2b: labels nothing on the screen can identify (``body_decoder.TRAINABLE_SOURCES``)."""
+SHADOW_SOURCES: Tuple[str, ...] = ("S",)
+"""The shadow decoder's training data: sighted identity-mapping closed loop."""
+FIXATION_BLOCKS: Tuple[str, ...] = ("fixation_probe", "blind_closed_loop")
+"""Blocks with gaze-contingent fixation; a ``fixation_break`` discards their open trial."""
+CUE_LOCKOUT_S = 1.0
+"""Cued champion windows start ≥ this long after cue onset (``protocol.CUE_LOCKOUT_S``)."""
+L1_LABEL_END_S = 4.0
+"""Fixation-probe windows end ≤ this long after cue onset (``protocol.L1_LABEL_END_S``)."""
+HELDOUT_VARIANTS: Tuple[str, ...] = ("C2b", "C2c")
 RUN_FILES: Tuple[str, ...] = ("eeg.f32", "eeg_ts.f64", "events.csv", "cursor.csv")
 """The only files ``SessionStore`` ever opens in a run directory (pure-EEG rule: auditor streams that
 share the directory are invisible to the decoder path by construction, not by convention)."""
@@ -122,7 +204,11 @@ Key = Tuple[str, float]
 # ----------------------------------------------------------------------------------------------
 @dataclass(frozen=True)
 class Trial:
-    """One trial as parsed from events.csv; ``goal`` is None when it was never revealed."""
+    """One trial as parsed from events.csv; ``goal`` is None when it was never revealed.
+
+    Champion trials also carry their ``source`` and validated champion fields in ``info``
+    (mapping, instructed, and per source cue_t / body_cue / cue_class / cue_mode, variant /
+    body_report, replay_goal); for the original blocks ``source`` is None and ``info`` empty."""
     session: str
     trial: int
     t_start: float
@@ -131,6 +217,8 @@ class Trial:
     block: str
     feedback_visible: bool
     start_pos: np.ndarray
+    source: Optional[str] = None
+    info: Dict[str, object] = field(default_factory=dict)
 
 
 @dataclass
@@ -206,42 +294,126 @@ class SessionStore:
 def parse_trials(session: str, events: Sequence[Tuple[float, str, object]]) -> List[Trial]:
     """Pair trial_start/trial_end events per the schema in the module docstring."""
     trials: List[Trial] = []
-    open_: Optional[Tuple[float, dict, int]] = None
+    open_: Optional[Tuple[float, dict, int, Optional[dict]]] = None
     counter = 0
     cue_on = False                                          # a cue was presented and has not ended
+    cue_t: Optional[float] = None                           # onset of the last cue since the last trial_start
+    cue_body: Optional[list] = None                         # that cue's body vector, when it logged one
+    reports: Dict[int, Tuple[int, int]] = {}                # C2b keyed reports by trial id
     for t, kind, payload in events:
         if kind == EVENT_CUE:
-            cue_on = True
+            cue_on, cue_t = True, t
+            cue_body = payload.get("body") if isinstance(payload, dict) else None
         elif kind == EVENT_CUE_OFFSET:
             cue_on = False
+        elif kind == EVENT_FIXATION_BREAK:
+            if open_ is not None and open_[1].get("block") in FIXATION_BLOCKS:
+                open_ = None                                # aborted: fixation (the label's premise) failed
+        elif kind == EVENT_OUTCOME_FLASH:
+            if open_ is not None and open_[1].get("block") == "blind_closed_loop":
+                raise ValueError(f"{session}: '{EVENT_OUTCOME_FLASH}' at t={t} inside an open blind trial; the "
+                                 f"outcome display must follow trial_end so no labelled window sees it")
+        elif kind == EVENT_BODY_REPORT:
+            q = payload if isinstance(payload, dict) else {}
+            if q.get("trial") is None or q.get("class") not in BODY_VECTORS:
+                raise ValueError(f"{session}: '{EVENT_BODY_REPORT}' at t={t} needs a trial id and a class "
+                                 f"in {tuple(BODY_VECTORS)}, got {payload!r}")
+            if open_ is not None and int(q["trial"]) == open_[2]:
+                raise ValueError(f"{session}: body report at t={t} inside its own trial; the keypress must "
+                                 f"follow trial_end")
+            reports[int(q["trial"])] = tuple(int(round(v)) for v in BODY_VECTORS[q["class"]])
         elif kind == EVENT_TRIAL_START:
             p = payload or {}
             block = p.get("block")
-            if block not in BLOCK_KINDS:
+            if block not in ALL_BLOCKS:
                 raise ValueError(f"{session}: trial_start at t={t} has block {block!r}; "
-                                 f"expected one of {BLOCK_KINDS}")
+                                 f"expected one of {ALL_BLOCKS}")
             if block == "cued_blank" and cue_on:
                 raise ValueError(f"{session}: cued_blank trial_start at t={t} follows a cue with no "
                                  f"'{EVENT_CUE_OFFSET}' event; the cue may have been on screen during the "
                                  f"labelled intent")
             if "feedback_visible" not in p:
                 raise ValueError(f"{session}: trial_start at t={t} lacks 'feedback_visible'")
+            info = _champion_info(session, t, p, cue_on, cue_t, cue_body) if block in CHAMPION_BLOCKS else None
+            cue_t, cue_body = None, None                    # a cue belongs to the one trial it precedes
             tid = int(p["trial"]) if p.get("trial") is not None else counter
             counter += 1
-            open_ = (t, p, tid)
+            open_ = (t, p, tid, info)
         elif kind == EVENT_TRIAL_END and open_ is not None:
-            t0, p, tid = open_
+            t0, p, tid, info = open_
             q = payload or {}
             if q.get("trial") is not None and int(q["trial"]) != tid:
                 continue                                    # an end for some other (discarded) trial
+            open_ = None
+            if info is not None and q.get("aborted"):
+                continue                                    # aborted champion trial: repeated, never labelled
             goal = p.get("goal") if p.get("goal") is not None else q.get("goal")
             trials.append(Trial(
                 session=session, trial=tid, t_start=t0, t_end=t,
                 goal=None if goal is None else np.asarray(goal, float),
                 block=p["block"], feedback_visible=bool(p["feedback_visible"]),
-                start_pos=np.asarray(p.get("start_pos", (0.0, 0.0)), float)))
-            open_ = None
-    return trials
+                start_pos=np.asarray(p.get("start_pos", (0.0, 0.0)), float),
+                source=None if info is None else info["source"], info=info or {}))
+    return [replace(tr, info=dict(tr.info, body_report=reports.get(tr.trial)))
+            if tr.block == "heldout_mapping" else tr for tr in trials]
+
+
+def _body_cue(session: str, t: float, value) -> Tuple[int, int]:
+    """Validate a ``body_cue``: two integers in {−1, 0, 1}, not both zero."""
+    v = np.asarray(value if value is not None else (), float)
+    if v.shape != (2,) or not np.isin(v, (-1, 0, 1)).all() or not v.any():
+        raise ValueError(f"{session}: trial_start at t={t} needs 'body_cue' [bx, by] in {{-1, 0, 1}}², "
+                         f"not both 0; got {value!r}")
+    return int(v[0]), int(v[1])
+
+
+def _champion_info(session: str, t: float, p: dict, cue_on: bool, cue_t: Optional[float],
+                   cue_body: Optional[list]) -> dict:
+    """Validate a champion ``trial_start`` (module docstring) and return the fields labelling needs."""
+    block, src = p["block"], p.get("source")
+    where = f"{session}: {block} trial_start at t={t}"
+    if src not in SOURCES_BY_BLOCK[block]:
+        raise ValueError(f"{where} has source {src!r}; expected one of {SOURCES_BY_BLOCK[block]}")
+    if bool(p["feedback_visible"]) != (block in CHAMPION_TARGET_BLOCKS):
+        raise ValueError(f"{where}: feedback_visible must be {block in CHAMPION_TARGET_BLOCKS}")
+    mapping = p.get("mapping")
+    if mapping not in MAPPING_NAMES:
+        raise ValueError(f"{where}: mapping {mapping!r} not in {MAPPING_NAMES}")
+    if src == "H" and mapping not in HELDOUT_MAPPINGS:
+        raise ValueError(f"{where}: a held-out block needs a held-out mapping {HELDOUT_MAPPINGS}, got {mapping!r}")
+    if src in ("L1", "L2b", "S", "J") and mapping != TRAINING_MAPPING:
+        raise ValueError(f"{where}: source {src} runs under {TRAINING_MAPPING!r} only, got {mapping!r}")
+    info: Dict[str, object] = {"source": src, "mapping": mapping, "instructed": p.get("instructed")}
+    if src in DEPLOYED_SOURCES or (src == "J" and block == "blind_closed_loop"):
+        if cue_t is None:
+            raise ValueError(f"{where} has no 'cue' event since the previous trial; its cue onset (and so "
+                             f"the {CUE_LOCKOUT_S} s lockout) is unknown")
+        if cue_on:
+            raise ValueError(f"{where} follows a cue with no '{EVENT_CUE_OFFSET}' event; the cue may still "
+                             f"have been presented during the labelled intent")
+        if t - cue_t < CUE_LOCKOUT_S - 1e-9:
+            raise ValueError(f"{where} is {t - cue_t:.3f} s after cue onset; labelled windows must start "
+                             f">= {CUE_LOCKOUT_S} s after it (cue-evoked responses differ by class)")
+        info["cue_t"] = cue_t
+    if src in DEPLOYED_SOURCES:
+        body = _body_cue(session, t, p.get("body_cue"))
+        if src == "L1" and sum(v != 0 for v in body) != 1:
+            raise ValueError(f"{where}: a fixation probe cues one class, got body_cue {list(body)}")
+        if cue_body is not None and tuple(int(v) for v in cue_body) != body:
+            raise ValueError(f"{where}: body_cue {list(body)} differs from the presented cue {cue_body}")
+        info.update(body_cue=body, cue_class=p.get("cue_class"), cue_mode=p.get("cue_mode"))
+    elif p.get("goal") is None:
+        raise ValueError(f"{where}: source {src} needs its goal at trial start")
+    if src == "H":
+        if p.get("variant") not in HELDOUT_VARIANTS:
+            raise ValueError(f"{where}: variant must be one of {HELDOUT_VARIANTS}, got {p.get('variant')!r}")
+        info["variant"] = p["variant"]
+    if src == "R":
+        rg = np.asarray(p.get("replay_goal") if p.get("replay_goal") is not None else (), float)
+        if rg.shape != (2,):
+            raise ValueError(f"{where}: a pixel-replay trial needs 'replay_goal' [x, y]")
+        info["replay_goal"] = rg.tolist()
+    return info
 
 
 # ----------------------------------------------------------------------------------------------
@@ -282,6 +454,7 @@ class LabelledSet:
         """Provenance mix: how the labels were obtained, for registry metadata and audits."""
         return {"n": len(self),
                 "block": dict(Counter(p["block"] for p in self.provenance)),
+                "source": dict(Counter(p["source"] for p in self.provenance if "source" in p)),
                 "feedback_visible": int(sum(bool(p["feedback_visible"]) for p in self.provenance)),
                 "sessions": sorted({p["session"] for p in self.provenance})}
 
@@ -323,7 +496,8 @@ class Labeler:
 
     def signature(self) -> str:
         """Hash of everything that changes the produced windows; used to invalidate label caches."""
-        d = dict(label_rule="hidden_cursor_from_start_pos+display_goal", hop_s=self.hop_s, settle_s=self.settle_s,
+        d = dict(label_rule="hidden_cursor_from_start_pos+display_goal+champion_sources_v1", hop_s=self.hop_s,
+                 settle_s=self.settle_s,
                  min_goal_dist=self.min_goal_dist,
                  window_s=self.cfg.decoder.window_s, fs=self.fs, pre=repr(self.cfg.pre),
                  hw=repr(self.cfg.hardware))
@@ -369,9 +543,13 @@ class Labeler:
         t_min = ts[0] + self.settle_s
         windows, labels, prov = [], [], []
         for tr in session.trials:
-            if tr.goal is None:
+            cue_labelled = tr.source in DEPLOYED_SOURCES        # L1 / L2b: the label is the cue itself
+            if tr.goal is None and not cue_labelled:
                 continue
-            n_ends = int(math.floor((tr.t_end - tr.t_start - self.cfg.decoder.window_s) / self.hop_s + 1e-9)) + 1
+            t_last = tr.t_end
+            if tr.source == "L1":
+                t_last = min(t_last, float(tr.info["cue_t"]) + L1_LABEL_END_S)
+            n_ends = int(math.floor((t_last - tr.t_start - self.cfg.decoder.window_s) / self.hop_s + 1e-9)) + 1
             for k in range(max(0, n_ends)):
                 te = tr.t_start + self.cfg.decoder.window_s + k * self.hop_s
                 e = int(np.searchsorted(ts, te + half, side="right"))
@@ -381,18 +559,41 @@ class Labeler:
                 if ts[e - 1] - ts[s] > self.max_span:
                     continue
                 t_end = float(ts[e - 1])
-                d = tr.goal - self._reference_pos(session.cursor, tr, t_end)
+                ref = None if cue_labelled else self._reference_pos(session.cursor, tr, t_end)
+                d = np.asarray(tr.info["body_cue"], float) if cue_labelled else tr.goal - ref
                 dist = float(np.linalg.norm(d))
-                if dist < self.min_goal_dist:
+                if not cue_labelled and dist < self.min_goal_dist:
                     continue
                 raw = xf[s:e]
                 good = gate.update(raw)
                 windows.append(common_average(raw, good).astype(np.float32))
                 labels.append(d / dist)
-                prov.append({"block": tr.block, "feedback_visible": tr.feedback_visible,
-                             "session": session.id, "t": t_end, "trial": tr.trial,
-                             "display_goal": tr.goal.tolist() if tr.block in TARGET_BLOCKS else None})
+                p = {"block": tr.block, "feedback_visible": tr.feedback_visible,
+                     "session": session.id, "t": t_end, "trial": tr.trial,
+                     "display_goal": (tr.goal.tolist() if tr.block in TARGET_BLOCKS + CHAMPION_TARGET_BLOCKS
+                                      else None)}
+                if tr.source is not None:
+                    p.update(self._champion_provenance(tr, ref))
+                prov.append(p)
         return LabelledSet(windows, np.asarray(labels, float).reshape(-1, 2), prov)
+
+    @staticmethod
+    def _champion_provenance(tr: Trial, ref: Optional[np.ndarray]) -> dict:
+        """The champion provenance fields of one window (module docstring); ``ref`` is the cursor as
+        the person knows it at the window end (None for cue-labelled windows)."""
+        out: Dict[str, object] = {"source": tr.source, "mapping": tr.info["mapping"],
+                                  "instructed": tr.info["instructed"]}
+        if tr.source in DEPLOYED_SOURCES:
+            out.update(body_label=list(tr.info["body_cue"]), cue_class=tr.info["cue_class"],
+                       cue_mode=tr.info["cue_mode"])
+        if tr.feedback_visible:
+            out["cursor_pos"] = [float(v) for v in ref]
+        if tr.source == "H":
+            report = tr.info.get("body_report")
+            out.update(variant=tr.info["variant"], body_report=None if report is None else list(report))
+        if tr.source == "R":
+            out["replay_goal"] = list(tr.info["replay_goal"])
+        return out
 
 
 # ----------------------------------------------------------------------------------------------
@@ -534,6 +735,157 @@ class Trainer:
                               "recenter_visible": self.recenter_visible, "free_weight": w_free,
                               "free_weight_share": float(own_w[free].sum() / own_w.sum()) if free.any() else 0.0,
                               "train_mix": own.mix(), "data_hash": own.data_hash()}
+        return dec
+
+
+# ----------------------------------------------------------------------------------------------
+# Champion trainers: the deployed body decoder (L1/L2b only) and the shadow positive control (S only)
+# ----------------------------------------------------------------------------------------------
+def require_sources(data: LabelledSet, allowed: Sequence[str], who: str) -> None:
+    """Raise unless every window's provenance ``source`` is in ``allowed``.
+
+    The trainers refuse mixed data instead of filtering it.  A silent filter would hide a caller that
+    passed S, H, R or J windows, and the certification then only tests the decoder that caller thought
+    it trained.  ``BodyTrainer.select`` / ``ShadowTrainer.select`` make the selection explicit."""
+    bad = Counter(str(p.get("source")) for p in data.provenance if p.get("source") not in allowed)
+    if bad:
+        raise ValueError(f"{who} trains only on source(s) {list(allowed)}; got {dict(bad)} windows of other "
+                         f"sources (None = an original-protocol block). S has no deployed label, H/R/J "
+                         f"are test-only")
+
+
+def body_labels(data: LabelledSet) -> np.ndarray:
+    """(n, 2) integer cued body vectors (``body_label``) of L1 / L2b windows."""
+    missing = [i for i, p in enumerate(data.provenance) if p.get("body_label") is None]
+    if missing:
+        raise ValueError(f"{len(missing)} windows carry no cue-defined body label (only L1/L2b do)")
+    return np.array([p["body_label"] for p in data.provenance], int).reshape(-1, 2)
+
+
+def refit_body_labels(data: LabelledSet) -> np.ndarray:
+    """ReFIT labels in body coordinates: ``M⁻¹ u`` per window, with ``u`` = the window's screen label
+    (goal − displayed cursor, unit) and ``M`` its block's mapping.  This is the body velocity a decoder
+    that reads the screen would be taught to output."""
+    out = np.empty((len(data), 2))
+    for i, p in enumerate(data.provenance):
+        if p.get("mapping") is None:
+            raise ValueError("ReFIT body labels need the window's screen mapping (champion provenance)")
+        out[i] = Mapping(p["mapping"]).screen_to_body(data.labels[i])
+    return out
+
+
+def _source_mask(data: LabelledSet, sources: Sequence[str]) -> np.ndarray:
+    return np.array([p.get("source") in sources for p in data.provenance], bool)
+
+
+class BodyTrainer:
+    """Fits the deployed ``BodyCoordinateDecoder`` on fixation probes (L1) and blind closed loop (L2b).
+
+    Those are the only labels nothing on the screen can identify.  ``fit`` raises on any other window
+    (``require_sources``), and so does the decoder itself.  Sighted data reach the deployed decoder
+    only through unsupervised re-centring (``session_references``, rest covariances per session),
+    never as labels.  Pass windows of the decoder's length: label with ``Labeler(decoder.loop_config(
+    cfg))`` (1.0-s windows by default).
+
+    window_s          1.0 s, the champion's real-time window (the proposal's per-window unit).
+    decoder_options   extra ``BodyCoordinateDecoder`` hyperparameters (band, C, x-earning rule).
+    """
+
+    def __init__(self, cfg: Config, window_s: float = 1.0, decoder_options: Optional[dict] = None):
+        self.cfg = cfg
+        self.window_s = window_s
+        self.decoder_options = dict(decoder_options or {})
+        self.last_fit_info: dict = {}
+
+    @staticmethod
+    def select(data: LabelledSet) -> LabelledSet:
+        """The L1 / L2b windows of ``data``."""
+        return data.mask(_source_mask(data, DEPLOYED_SOURCES))
+
+    def fit(self, data: LabelledSet,
+            session_references: Optional[Dict[str, np.ndarray]] = None) -> BodyCoordinateDecoder:
+        require_sources(data, DEPLOYED_SOURCES, "the deployed body decoder")
+        check_eeg_windows(data.windows, self.cfg.hardware.n_channels, "deployed body decoder")
+        dec = BodyCoordinateDecoder(self.cfg, self.cfg.hardware.fs, window_s=self.window_s, **self.decoder_options)
+        dec.fit(list(data.windows), body_labels(data), data.provenance, session_references)
+        self.last_fit_info = {"role": "deployed", "n": len(data), "sources": list(DEPLOYED_SOURCES),
+                              "train_mix": data.mix(), "data_hash": data.data_hash()}
+        return dec
+
+
+SHADOW_AXIS_MIN = math.sin(math.pi / 8)
+"""A ReFIT body label ``u`` gives an axis a class (sign uᵢ) only if |uᵢ| ≥ sin 22.5° ≈ 0.38.  This is
+the 8-direction geometry of the L2b cues: a direction within ±22.5° of the other axis counts as 0 on
+this one.  Smaller components are too close to 0 to have a sign worth teaching."""
+
+
+class ShadowBodyDecoder(BodyCoordinateDecoder):
+    """The leak positive control (never deployed).  It is the deployed decoder's model (same features,
+    re-centring, per-axis logistic classifiers and 2p − 1 output), trained on S windows with ReFIT
+    labels instead of cue-defined ones.
+
+    The S label (goal − displayed cursor) is exactly the display-identifiable label the design keeps
+    away from the deployed decoder.  If the certification test cannot see this decoder follow the
+    screen under held-out mappings and replays, the test is insensitive (``certify.certify``).
+    ``x_enabled`` is copied from the deployed decoder by ``ShadowTrainer``, so both are scored on the
+    same axes.  ``earn_x`` refuses S windows, as it should: x is earned on L1 / L2b only."""
+
+    def fit(self, windows: List[np.ndarray], body_labels: np.ndarray, provenance: Sequence[dict],
+            session_references: Optional[Dict[str, np.ndarray]] = None) -> "ShadowBodyDecoder":
+        """Per-axis classifiers on S windows; ``body_labels`` in {−1, 0, 1}² (0 = not trained on that axis)."""
+        bad = sorted({str(p.get("source")) for p in provenance if p.get("source") not in SHADOW_SOURCES})
+        if bad:
+            raise ValueError(f"the shadow decoder trains only on {list(SHADOW_SOURCES)} windows, got {bad}")
+        y = self._labels(body_labels, len(windows))
+        if not (np.any(y[:, 1] > 0) and np.any(y[:, 1] < 0)):
+            raise ValueError("the shadow's y axis needs windows with goals both above and below the cursor")
+        X = self._feature_matrix(windows, provenance, session_references)
+        for k, axis in enumerate(AXES):
+            m = y[:, k] != 0
+            self._models[axis] = self._classifier().fit(X[m], y[m, k] > 0) if len(np.unique(y[m, k])) == 2 else None
+        return self
+
+
+class ShadowTrainer:
+    """Fits the ``ShadowBodyDecoder`` on sighted (S) windows only.
+
+    The labels are ReFIT, ``u = (goal − displayed cursor)/‖·‖``, mapped to body coordinates through the
+    block's ``M⁻¹`` (``refit_body_labels``; S always runs under the identity) and given a sign per axis
+    beyond ``axis_min``.  Same person, same windows as the deployed decoder's sighted blocks, same
+    model.  Only the label source differs, which is the whole point of the control.
+
+    window_s, decoder_options  as ``BodyTrainer`` (the shadow must match the deployed model).
+    axis_min                   ``SHADOW_AXIS_MIN``.
+    """
+
+    def __init__(self, cfg: Config, window_s: float = 1.0, axis_min: float = SHADOW_AXIS_MIN,
+                 decoder_options: Optional[dict] = None):
+        self.cfg = cfg
+        self.window_s = window_s
+        self.axis_min = axis_min
+        self.decoder_options = dict(decoder_options or {})
+        self.last_fit_info: dict = {}
+
+    @staticmethod
+    def select(data: LabelledSet) -> LabelledSet:
+        """The S windows of ``data``."""
+        return data.mask(_source_mask(data, SHADOW_SOURCES))
+
+    def axis_labels(self, data: LabelledSet) -> np.ndarray:
+        """(n, 2) {−1, 0, 1} labels: the sign of each ReFIT body component with |uᵢ| ≥ ``axis_min``."""
+        u = refit_body_labels(data)
+        return np.where(np.abs(u) >= self.axis_min, np.sign(u), 0.0).astype(int)
+
+    def fit(self, data: LabelledSet, x_enabled: bool = False,
+            session_references: Optional[Dict[str, np.ndarray]] = None) -> ShadowBodyDecoder:
+        require_sources(data, SHADOW_SOURCES, "the shadow decoder")
+        check_eeg_windows(data.windows, self.cfg.hardware.n_channels, "shadow decoder")
+        dec = ShadowBodyDecoder(self.cfg, self.cfg.hardware.fs, window_s=self.window_s, **self.decoder_options)
+        dec.fit(list(data.windows), self.axis_labels(data), data.provenance, session_references)
+        dec.x_enabled = bool(x_enabled)
+        self.last_fit_info = {"role": "shadow", "n": len(data), "sources": list(SHADOW_SOURCES),
+                              "axis_min": self.axis_min, "x_enabled": dec.x_enabled,
+                              "train_mix": data.mix(), "data_hash": data.data_hash()}
         return dec
 
 

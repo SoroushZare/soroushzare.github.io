@@ -51,7 +51,7 @@ from threadpoolctl import threadpool_limits
 from .config import Config
 from .decoder import VelocityDecoder
 from .features import slow_shift
-from .protocol import BLOCK_KINDS as PROTOCOL_KINDS, PROVENANCE_BLOCK, Block
+from .protocol import ALL_BLOCK_KINDS, Block
 
 FRONTAL = ("FP1", "FP2", "AF3", "AF4", "F7", "F8")   # where gaze-position EOG is largest
 OCCIPITAL = ("PO7", "PO3", "PO4", "PO8", "Oz")       # where screen-driven visual responses are largest
@@ -74,10 +74,12 @@ so those windows train the decoder but are never evidence that it reads the brai
 _EPS = 1e-12
 
 SPATIAL_BLOCKS: Tuple[str, ...] = tuple(sorted(
-    PROVENANCE_BLOCK[k] for k in PROTOCOL_KINDS
-    if PROVENANCE_BLOCK[k] is not None and any(it.spatial for it in Block(k, 1.0).screen_items())))
+    Block(k, 1.0).provenance_block for k in ALL_BLOCK_KINDS
+    if Block(k, 1.0).provenance_block is not None and any(it.spatial for it in Block(k, 1.0).screen_items())))
 """Provenance blocks whose screen shows something at a trial-dependent position (the targets), derived
-from the renderer's contract ``protocol.Block.screen_items`` so the two cannot disagree."""
+from the renderer's contract ``protocol.Block.screen_items`` so the two cannot disagree.  Champion
+kinds are included (sighted, heldout_mapping, pixel_replay): an audit of champion data must see their
+drawn goals, not treat those windows as having nothing on screen."""
 
 CursorLogs = Union[np.ndarray, Mapping[str, np.ndarray]]
 

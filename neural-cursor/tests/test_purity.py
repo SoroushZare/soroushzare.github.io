@@ -7,7 +7,7 @@ import pytest
 
 from neural_cursor.acquisition import SimulatedEEG
 from neural_cursor.config import DEFAULT
-from neural_cursor.data_engine import TARGET_BLOCKS
+from neural_cursor.data_engine import CHAMPION_TARGET_BLOCKS, TARGET_BLOCKS
 from neural_cursor.purity import (SPATIAL_BLOCKS, PurityAudit, _PermutationCV, circular_shift_permutations,
                                   displayed_velocity, slow_binned_means)
 from neural_cursor.signal import CausalFilter, common_average
@@ -228,7 +228,7 @@ def test_display_surrogate_sees_the_goal_when_the_cursor_is_hidden():
     """blank_feedback draws the targets: the label (start → goal) is exactly the displayed goal's
     direction.  The display surrogate must see it (DISPLAY_LEAK), never treat 'cursor hidden' as
     'nothing displayed'; and a target block without a displayed goal cannot be audited."""
-    assert set(SPATIAL_BLOCKS) == set(TARGET_BLOCKS)                 # renderer contract == labeler's
+    assert set(SPATIAL_BLOCKS) == set(TARGET_BLOCKS + CHAMPION_TARGET_BLOCKS)   # renderer == labeler
     rng = np.random.default_rng(10)
     n = 200
     goals = 0.6 * _unit(rng, n)

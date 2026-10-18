@@ -1,0 +1,2338 @@
+{
+  "dry_penalties": [
+    0.0
+  ],
+  "conditions": {
+    "0": {
+      "config": {
+        "days": 3,
+        "hours": 1.0,
+        "users": 3,
+        "pop": 10,
+        "seed": 20261004,
+        "dry_penalty": 0.0,
+        "screen_leak": 1.0,
+        "covert_leak": 0.0,
+        "replay_attention": "cursor",
+        "x_responder_prob": 0.2,
+        "y_depth_range": [
+          0.1,
+          0.4
+        ],
+        "x_depth_range": [
+          0.25,
+          0.5
+        ],
+        "user_learning_rate": 0.0,
+        "pop_minutes": 3.0,
+        "rest_s": 60.0,
+        "eval_minutes": 2.0,
+        "assist_gain": 0.5,
+        "label_hop_s": 0.5,
+        "x_permutations": 200,
+        "n_boot": 2000,
+        "slot_minutes": []
+      },
+      "population": [
+        {
+          "index": 3,
+          "seed": 1416919907,
+          "heterogeneity": 0.6788,
+          "intent_gain_uv": 6.675,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.3946,
+          "x_depth": 0.295,
+          "x_responder": false
+        },
+        {
+          "index": 4,
+          "seed": 1333723623,
+          "heterogeneity": 0.4903,
+          "intent_gain_uv": 4.3301,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.3504,
+          "x_depth": 0.32,
+          "x_responder": true
+        },
+        {
+          "index": 5,
+          "seed": 1121788369,
+          "heterogeneity": 0.6438,
+          "intent_gain_uv": 7.9082,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.299,
+          "x_depth": 0.4159,
+          "x_responder": true
+        },
+        {
+          "index": 6,
+          "seed": 1961120918,
+          "heterogeneity": 0.5536,
+          "intent_gain_uv": 7.7753,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.1266,
+          "x_depth": 0.4976,
+          "x_responder": true
+        },
+        {
+          "index": 7,
+          "seed": 17887002,
+          "heterogeneity": 0.3372,
+          "intent_gain_uv": 4.6509,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.3447,
+          "x_depth": 0.4422,
+          "x_responder": false
+        },
+        {
+          "index": 8,
+          "seed": 1416747580,
+          "heterogeneity": 0.6647,
+          "intent_gain_uv": 4.5303,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.2746,
+          "x_depth": 0.4053,
+          "x_responder": true
+        },
+        {
+          "index": 9,
+          "seed": 857305424,
+          "heterogeneity": 0.3534,
+          "intent_gain_uv": 6.1895,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.3309,
+          "x_depth": 0.3474,
+          "x_responder": false
+        },
+        {
+          "index": 10,
+          "seed": 1853819805,
+          "heterogeneity": 0.4136,
+          "intent_gain_uv": 4.6165,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.2397,
+          "x_depth": 0.355,
+          "x_responder": true
+        },
+        {
+          "index": 11,
+          "seed": 1169122956,
+          "heterogeneity": 0.5088,
+          "intent_gain_uv": 7.1445,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.1474,
+          "x_depth": 0.3938,
+          "x_responder": false
+        },
+        {
+          "index": 12,
+          "seed": 345228125,
+          "heterogeneity": 0.6499,
+          "intent_gain_uv": 7.2953,
+          "ocular_leak": false,
+          "eye_gain_uv": 0.0,
+          "day_drift_sd": 0.1,
+          "user_learning_rate": 0.0,
+          "y_depth": 0.1304,
+          "x_depth": 0.4957,
+          "x_responder": false
+        }
+      ],
+      "per_user": [
+        {
+          "user": 0,
+          "subject": {
+            "index": 0,
+            "seed": 911245809,
+            "heterogeneity": 0.4625,
+            "intent_gain_uv": 6.4918,
+            "ocular_leak": false,
+            "eye_gain_uv": 0.0,
+            "day_drift_sd": 0.1,
+            "user_learning_rate": 0.0,
+            "y_depth": 0.2155,
+            "x_depth": 0.457,
+            "x_responder": true
+          },
+          "prior_l1": {
+            "auc": {
+              "x": 0.6083333333333333,
+              "y": 0.5708333333333333
+            },
+            "r": {
+              "x": 0.15591741547363766,
+              "y": 0.1191958174677792
+            },
+            "n": {
+              "x": 120,
+              "y": 120
+            }
+          },
+          "days": [
+            {
+              "day": 1,
+              "cum_hours": 1.0,
+              "x_earned": true,
+              "x_report": {
+                "auc": 0.8042424242424242,
+                "floor": 0.587896103896104,
+                "p_value": 0.004975124378109453,
+                "n_windows": 215,
+                "reason": "x earned"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.638611111111111,
+                  "y": 0.5894444444444444
+                },
+                "r": {
+                  "x": 0.23890444848520792,
+                  "y": 0.16011860526537186
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 66,
+                "success": 0.2878787878787879,
+                "time_to_target_s": 4.742105263157893,
+                "throughput_bps": 0.6720645207282926
+              },
+              "blind": {
+                "n_trials": 74,
+                "success": 0.28378378378378377,
+                "time_to_target_s": 5.5761904761904715,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1213,
+                "S": 579,
+                "H": 230,
+                "R": 93
+              },
+              "n_train_windows": {
+                "own": 1633,
+                "prior": 1200,
+                "shadow": 579
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "x",
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 46,
+                  "n_windows": 230,
+                  "deployed": {
+                    "beta_body": 0.1619215802557656,
+                    "ci_body": [
+                      0.085289027434574,
+                      0.23524779880695265
+                    ],
+                    "beta_screen": -0.039546363404799015,
+                    "ci_screen": [
+                      -0.11154453738196358,
+                      0.03418430040300042
+                    ],
+                    "rel_body": 1.323156635979327,
+                    "rel_screen": -0.323156635979327,
+                    "rel_ci_screen": [
+                      -0.9114961366549157,
+                      0.2793400598801914
+                    ],
+                    "scale": 0.1223752168509666,
+                    "regressor_corr": -0.014152364042064288,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.02473509756716091,
+                    "ci_body": [
+                      -0.07051084471543446,
+                      0.12308041754691253
+                    ],
+                    "beta_screen": 0.040574966343920306,
+                    "ci_screen": [
+                      -0.045437025187497496,
+                      0.12388174544111819
+                    ],
+                    "rel_body": 0.3787333235630793,
+                    "rel_screen": 0.6212666764369208,
+                    "rel_ci_screen": [
+                      -0.6957124594053284,
+                      1.8968247467921873
+                    ],
+                    "scale": 0.06531006391108121,
+                    "regressor_corr": -0.014152364042064288,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "x",
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 11,
+                  "n_windows": 93,
+                  "deployed": {
+                    "beta_body": 0.21253675864401816,
+                    "ci_body": [
+                      0.07868815473930499,
+                      0.3380675669673537
+                    ],
+                    "beta_screen": 0.01018258471109747,
+                    "ci_screen": [
+                      -0.07417532605406048,
+                      0.13912565331909366
+                    ],
+                    "rel_body": 0.954280645058917,
+                    "rel_screen": 0.045719354941083014,
+                    "rel_ci_screen": [
+                      -0.33304393294565066,
+                      0.6246680293829003
+                    ],
+                    "scale": 0.22271934335511565,
+                    "regressor_corr": -0.007305230969159719,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.2004247334136603,
+                    "ci_body": [
+                      0.05960793655751144,
+                      0.34589085510362966
+                    ],
+                    "beta_screen": -0.038000529715596545,
+                    "ci_screen": [
+                      -0.15543828312741545,
+                      0.09018180852265754
+                    ],
+                    "rel_body": 1.2339585409711296,
+                    "rel_screen": -0.23395854097112956,
+                    "rel_ci_screen": [
+                      -0.9569896578736831,
+                      0.5552239535081839
+                    ],
+                    "scale": 0.16242420369806376,
+                    "regressor_corr": -0.007305230969159719,
+                    "identifiable": true
+                  }
+                }
+              }
+            },
+            {
+              "day": 2,
+              "cum_hours": 2.0,
+              "x_earned": false,
+              "x_report": {
+                "auc": 0.5922436099075605,
+                "floor": 0.5453802599669206,
+                "p_value": 0.004975124378109453,
+                "n_windows": 1404,
+                "reason": "AUC 0.592 must exceed both 0.60 and the p95 circular-shift floor 0.545"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.6658333333333334,
+                  "y": 0.5841666666666666
+                },
+                "r": {
+                  "x": 0.2836071375943545,
+                  "y": 0.15542512027347094
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 61,
+                "success": 0.19672131147540983,
+                "time_to_target_s": 5.0333333333333306,
+                "throughput_bps": 0.883627588513576
+              },
+              "blind": {
+                "n_trials": 68,
+                "success": 0.0,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1292,
+                "S": 676,
+                "H": 230,
+                "R": 63
+              },
+              "n_train_windows": {
+                "own": 3345,
+                "prior": 1200,
+                "shadow": 1255
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": false,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 46,
+                  "n_windows": 230,
+                  "deployed": {
+                    "beta_body": 0.13401419428831776,
+                    "ci_body": [
+                      0.061191448388427896,
+                      0.21548943733656675
+                    ],
+                    "beta_screen": 0.0884642880619974,
+                    "ci_screen": [
+                      -0.018601211810915032,
+                      0.1860542324927108
+                    ],
+                    "rel_body": 0.6023692398139371,
+                    "rel_screen": 0.3976307601860629,
+                    "rel_ci_screen": [
+                      -0.08360903766695747,
+                      0.8362796731045179
+                    ],
+                    "scale": 0.22247848235031514,
+                    "regressor_corr": 0.4887979626274487,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.0674943486502105,
+                    "ci_body": [
+                      -0.004790838032342579,
+                      0.1364383849693078
+                    ],
+                    "beta_screen": 0.028567389084524747,
+                    "ci_screen": [
+                      -0.054874928910292366,
+                      0.11153474546518582
+                    ],
+                    "rel_body": 0.7026142795437379,
+                    "rel_screen": 0.29738572045626216,
+                    "rel_ci_screen": [
+                      -0.5712464734067576,
+                      1.1610735772152874
+                    ],
+                    "scale": 0.09606173773473525,
+                    "regressor_corr": 0.4887979626274487,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "NO_BODY_SIGNAL",
+                  "reason": "deployed \u03b2_body CI does not exclude 0",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": false,
+                    "deployed_body_sufficient": false,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 10,
+                  "n_windows": 63,
+                  "deployed": {
+                    "beta_body": 0.1626657114933388,
+                    "ci_body": [
+                      -0.08492975040386513,
+                      0.3234614535699358
+                    ],
+                    "beta_screen": 0.09285975932765073,
+                    "ci_screen": [
+                      -0.11926522308385361,
+                      0.254090827330325
+                    ],
+                    "rel_body": 0.6365929430467446,
+                    "rel_screen": 0.3634070569532553,
+                    "rel_ci_screen": [
+                      -0.4667449499287131,
+                      0.9943855166921126
+                    ],
+                    "scale": 0.25552547082098953,
+                    "regressor_corr": -0.2771547821818409,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": -0.07577794561690245,
+                    "ci_body": [
+                      -0.18315375526638417,
+                      0.06260769642632809
+                    ],
+                    "beta_screen": -0.062163896105026935,
+                    "ci_screen": [
+                      -0.18697754929579288,
+                      0.051792124758676325
+                    ],
+                    "rel_body": null,
+                    "rel_screen": null,
+                    "rel_ci_screen": [
+                      null,
+                      null
+                    ],
+                    "scale": -0.1379418417219294,
+                    "regressor_corr": -0.2771547821818409,
+                    "identifiable": true
+                  }
+                }
+              }
+            },
+            {
+              "day": 3,
+              "cum_hours": 3.0,
+              "x_earned": true,
+              "x_report": {
+                "auc": 0.6195210135970334,
+                "floor": 0.5398472651421509,
+                "p_value": 0.004975124378109453,
+                "n_windows": 1609,
+                "reason": "x earned"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.6897222222222222,
+                  "y": 0.5847222222222221
+                },
+                "r": {
+                  "x": 0.32539691630047896,
+                  "y": 0.15026120891490827
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 68,
+                "success": 0.3382352941176471,
+                "time_to_target_s": 4.830434782608694,
+                "throughput_bps": 0.847481839599571
+              },
+              "blind": {
+                "n_trials": 71,
+                "success": 0.19718309859154928,
+                "time_to_target_s": 5.378571428571425,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 18,
+                "success": 0.2222222222222222,
+                "time_to_target_s": 4.924999999999998,
+                "throughput_bps": 1.4850471993452843
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1215,
+                "S": 517,
+                "H": 257,
+                "R": 138
+              },
+              "n_train_windows": {
+                "own": 4980,
+                "prior": 1200,
+                "shadow": 1772
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "NO_BODY_SIGNAL",
+                  "reason": "deployed \u03b2_body CI does not exclude 0",
+                  "axes": [
+                    "x",
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": false,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": true
+                  },
+                  "n_trials": 41,
+                  "n_windows": 257,
+                  "deployed": {
+                    "beta_body": 0.04961059378238057,
+                    "ci_body": [
+                      -0.022154996435440215,
+                      0.11670735580727164
+                    ],
+                    "beta_screen": -0.004417100372718502,
+                    "ci_screen": [
+                      -0.06952163744227337,
+                      0.06087176297420421
+                    ],
+                    "rel_body": 1.0977375289995652,
+                    "rel_screen": -0.09773752899956513,
+                    "rel_ci_screen": [
+                      -1.5383107654919657,
+                      1.346914309598165
+                    ],
+                    "scale": 0.04519349340966207,
+                    "regressor_corr": 0.013629667003960644,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.03518723059923269,
+                    "ci_body": [
+                      -0.021319384678513156,
+                      0.09326229934933793
+                    ],
+                    "beta_screen": 0.06710524402382824,
+                    "ci_screen": [
+                      0.005863679743634427,
+                      0.12624594235273776
+                    ],
+                    "rel_body": 0.3439865027109242,
+                    "rel_screen": 0.6560134972890759,
+                    "rel_ci_screen": [
+                      0.05732268933019353,
+                      1.2341664703874191
+                    ],
+                    "scale": 0.10229247462306093,
+                    "regressor_corr": 0.013629667003960644,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "x",
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": false,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 17,
+                  "n_windows": 138,
+                  "deployed": {
+                    "beta_body": 0.1248172945426951,
+                    "ci_body": [
+                      0.017429337874330906,
+                      0.2405445383902441
+                    ],
+                    "beta_screen": 0.07821370221695863,
+                    "ci_screen": [
+                      -0.010810579197996197,
+                      0.15530231489427154
+                    ],
+                    "rel_body": 0.6147696486485396,
+                    "rel_screen": 0.3852303513514604,
+                    "rel_ci_screen": [
+                      -0.05324595441352072,
+                      0.7649192358451405
+                    ],
+                    "scale": 0.20303099675965375,
+                    "regressor_corr": -0.17339196181894811,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.03924331415771722,
+                    "ci_body": [
+                      -0.03992188327660019,
+                      0.13381459503063062
+                    ],
+                    "beta_screen": 0.035504632783847294,
+                    "ci_screen": [
+                      -0.005889578747275043,
+                      0.07571876789319328
+                    ],
+                    "rel_body": 0.525008589043875,
+                    "rel_screen": 0.47499141095612496,
+                    "rel_ci_screen": [
+                      -0.07879251522291739,
+                      1.0129879279813225
+                    ],
+                    "scale": 0.07474794694156452,
+                    "regressor_corr": -0.17339196181894811,
+                    "identifiable": true
+                  }
+                }
+              }
+            }
+          ],
+          "pooled_days": {
+            "heldout": {
+              "verdict": "SCREEN_READING",
+              "reason": "deployed \u03b2_screen CI is above 0 and not below the tolerance",
+              "axes": [
+                "y"
+              ],
+              "flags": {
+                "identifiable": true,
+                "deployed_screen_significant": true,
+                "deployed_screen_bounded": false,
+                "deployed_body_significant": true,
+                "deployed_body_sufficient": false,
+                "shadow_reads_screen": false
+              },
+              "n_trials": 133,
+              "n_windows": 717,
+              "deployed": {
+                "beta_body": 0.1044390242884709,
+                "ci_body": [
+                  0.05820353605325645,
+                  0.1532088216573706
+                ],
+                "beta_screen": 0.0664309328869451,
+                "ci_screen": [
+                  0.00363541087215308,
+                  0.12457667609603484
+                ],
+                "rel_body": 0.6112193507560445,
+                "rel_screen": 0.38878064924395545,
+                "rel_ci_screen": [
+                  0.02127589268616102,
+                  0.7290730222876088
+                ],
+                "scale": 0.170869957175416,
+                "regressor_corr": 0.15432932659390428,
+                "identifiable": true
+              },
+              "shadow": {
+                "beta_body": 0.039628987045497804,
+                "ci_body": [
+                  -0.012256460235919787,
+                  0.08940824455233079
+                ],
+                "beta_screen": 0.035630099533535735,
+                "ci_screen": [
+                  -0.01809757633613307,
+                  0.09351957649113257
+                ],
+                "rel_body": 0.5265674730702625,
+                "rel_screen": 0.47343252692973736,
+                "rel_ci_screen": [
+                  -0.2404703160611423,
+                  1.2426350191338387
+                ],
+                "scale": 0.07525908657903355,
+                "regressor_corr": 0.15432932659390428,
+                "identifiable": true
+              }
+            },
+            "replay": {
+              "verdict": "TEST_INSENSITIVE",
+              "reason": "the shadow positive control shows no screen reading",
+              "axes": [
+                "y"
+              ],
+              "flags": {
+                "identifiable": true,
+                "deployed_screen_significant": false,
+                "deployed_screen_bounded": false,
+                "deployed_body_significant": true,
+                "deployed_body_sufficient": true,
+                "shadow_reads_screen": false
+              },
+              "n_trials": 38,
+              "n_windows": 294,
+              "deployed": {
+                "beta_body": 0.13141031067672734,
+                "ci_body": [
+                  0.04137208259809489,
+                  0.21042806758316054
+                ],
+                "beta_screen": 0.05503937080943407,
+                "ci_screen": [
+                  -0.01604681484026636,
+                  0.12621112758520683
+                ],
+                "rel_body": 0.7048030848284438,
+                "rel_screen": 0.2951969151715562,
+                "rel_ci_screen": [
+                  -0.08606512337462684,
+                  0.6769179039577733
+                ],
+                "scale": 0.18644968148616142,
+                "regressor_corr": -0.135333960512502,
+                "identifiable": true
+              },
+              "shadow": {
+                "beta_body": 0.0712680960112582,
+                "ci_body": [
+                  -0.004306232032598848,
+                  0.14538011244454185
+                ],
+                "beta_screen": 0.0112906677966015,
+                "ci_screen": [
+                  -0.04232012887570941,
+                  0.06430575283583584
+                ],
+                "rel_body": 0.8632408326403912,
+                "rel_screen": 0.13675916735960883,
+                "rel_ci_screen": [
+                  -0.5126061356030198,
+                  0.778908862849444
+                ],
+                "scale": 0.0825587638078597,
+                "regressor_corr": -0.135333960512502,
+                "identifiable": true
+              }
+            }
+          }
+        },
+        {
+          "user": 1,
+          "subject": {
+            "index": 1,
+            "seed": 905387283,
+            "heterogeneity": 0.6471,
+            "intent_gain_uv": 4.3118,
+            "ocular_leak": false,
+            "eye_gain_uv": 0.0,
+            "day_drift_sd": 0.1,
+            "user_learning_rate": 0.0,
+            "y_depth": 0.3592,
+            "x_depth": 0.3548,
+            "x_responder": false
+          },
+          "prior_l1": {
+            "auc": {
+              "x": 0.4388888888888889,
+              "y": 0.6325
+            },
+            "r": {
+              "x": -0.10899097022166566,
+              "y": 0.22775688584369708
+            },
+            "n": {
+              "x": 120,
+              "y": 120
+            }
+          },
+          "days": [
+            {
+              "day": 1,
+              "cum_hours": 1.0,
+              "x_earned": false,
+              "x_report": {
+                "auc": 0.5933180778032037,
+                "floor": 0.5971990846681922,
+                "p_value": 0.05970149253731343,
+                "n_windows": 210,
+                "reason": "AUC 0.593 must exceed both 0.60 and the p95 circular-shift floor 0.597"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.47583333333333333,
+                  "y": 0.7183333333333333
+                },
+                "r": {
+                  "x": -0.05639487161615403,
+                  "y": 0.37485191565228043
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 65,
+                "success": 0.15384615384615385,
+                "time_to_target_s": 3.84,
+                "throughput_bps": 0.9213869236296213
+              },
+              "blind": {
+                "n_trials": 73,
+                "success": 0.2191780821917808,
+                "time_to_target_s": 4.787499999999998,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1215,
+                "S": 719,
+                "H": 230,
+                "R": 53
+              },
+              "n_train_windows": {
+                "own": 1635,
+                "prior": 1200,
+                "shadow": 719
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 46,
+                  "n_windows": 230,
+                  "deployed": {
+                    "beta_body": 0.2279220998469814,
+                    "ci_body": [
+                      0.11350800896093396,
+                      0.34338946811967336
+                    ],
+                    "beta_screen": -0.020126142639885103,
+                    "ci_screen": [
+                      -0.11546899394461821,
+                      0.06894633668404827
+                    ],
+                    "rel_body": 1.0968553137914359,
+                    "rel_screen": -0.09685531379143593,
+                    "rel_ci_screen": [
+                      -0.5556845065543696,
+                      0.3317982583045833
+                    ],
+                    "scale": 0.2077959572070963,
+                    "regressor_corr": -0.025278304117420682,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.11795826448541454,
+                    "ci_body": [
+                      0.022903052580060413,
+                      0.22246440878199258
+                    ],
+                    "beta_screen": -0.04555667272316824,
+                    "ci_screen": [
+                      -0.14526415510202603,
+                      0.052670169377430555
+                    ],
+                    "rel_body": 1.6292219772290104,
+                    "rel_screen": -0.6292219772290103,
+                    "rel_ci_screen": [
+                      -2.006366870759516,
+                      0.7274725333441542
+                    ],
+                    "scale": 0.0724015917622463,
+                    "regressor_corr": -0.025278304117420682,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "NO_BODY_SIGNAL",
+                  "reason": "deployed \u03b2_body CI does not exclude 0",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": false,
+                    "deployed_body_sufficient": false,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 8,
+                  "n_windows": 53,
+                  "deployed": {
+                    "beta_body": 0.061624881757543715,
+                    "ci_body": [
+                      -0.09449146208111428,
+                      0.28198149264652966
+                    ],
+                    "beta_screen": 0.09291011504598978,
+                    "ci_screen": [
+                      -0.02143029698839022,
+                      0.16749307722217568
+                    ],
+                    "rel_body": 0.3987762191880062,
+                    "rel_screen": 0.6012237808119938,
+                    "rel_ci_screen": [
+                      -0.13867601146448016,
+                      1.0838520767895463
+                    ],
+                    "scale": 0.1545349968035335,
+                    "regressor_corr": 0.2229811741295785,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": -0.03201153286093965,
+                    "ci_body": [
+                      -0.2914314564461519,
+                      0.102403843500228
+                    ],
+                    "beta_screen": 0.09312125483127873,
+                    "ci_screen": [
+                      -0.028728076858116108,
+                      0.23353745705516427
+                    ],
+                    "rel_body": -0.5238369907242768,
+                    "rel_screen": 1.5238369907242768,
+                    "rel_ci_screen": [
+                      -0.4701064893088517,
+                      3.821608895038284
+                    ],
+                    "scale": 0.06110972197033908,
+                    "regressor_corr": 0.2229811741295785,
+                    "identifiable": true
+                  }
+                }
+              }
+            },
+            {
+              "day": 2,
+              "cum_hours": 2.0,
+              "x_earned": false,
+              "x_report": {
+                "auc": 0.4603409090909091,
+                "floor": 0.5692181818181818,
+                "p_value": 0.7711442786069652,
+                "n_windows": 420,
+                "reason": "AUC 0.460 must exceed both 0.60 and the p95 circular-shift floor 0.569"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.48472222222222217,
+                  "y": 0.7663888888888889
+                },
+                "r": {
+                  "x": -0.03704071455594782,
+                  "y": 0.45018816747374335
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 63,
+                "success": 0.19047619047619047,
+                "time_to_target_s": 4.366666666666666,
+                "throughput_bps": 1.1331509715948995
+              },
+              "blind": {
+                "n_trials": 75,
+                "success": 0.32,
+                "time_to_target_s": 5.354166666666662,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1193,
+                "S": 635,
+                "H": 230,
+                "R": 87
+              },
+              "n_train_windows": {
+                "own": 3248,
+                "prior": 1200,
+                "shadow": 1354
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 46,
+                  "n_windows": 230,
+                  "deployed": {
+                    "beta_body": 0.3161832350055817,
+                    "ci_body": [
+                      0.18046718823334823,
+                      0.4469106563418347
+                    ],
+                    "beta_screen": 0.011768923057668747,
+                    "ci_screen": [
+                      -0.12762177643094816,
+                      0.12710685452820236
+                    ],
+                    "rel_body": 0.9641139026888217,
+                    "rel_screen": 0.035886097311178346,
+                    "rel_ci_screen": [
+                      -0.38914754269229235,
+                      0.3875774298264807
+                    ],
+                    "scale": 0.32795215806325045,
+                    "regressor_corr": -0.47202411658585763,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.03252736681160319,
+                    "ci_body": [
+                      -0.08767321520456936,
+                      0.14517881173120603
+                    ],
+                    "beta_screen": 0.0058647790431963056,
+                    "ci_screen": [
+                      -0.10555742424302575,
+                      0.10110180725139253
+                    ],
+                    "rel_body": 0.8472401343395308,
+                    "rel_screen": 0.15275986566046906,
+                    "rel_ci_screen": [
+                      -2.749453615910082,
+                      2.6333981860186526
+                    ],
+                    "scale": 0.0383921458547995,
+                    "regressor_corr": -0.47202411658585763,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "NO_BODY_SIGNAL",
+                  "reason": "deployed \u03b2_body CI does not exclude 0",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": false,
+                    "deployed_body_sufficient": false,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 11,
+                  "n_windows": 87,
+                  "deployed": {
+                    "beta_body": -0.050047335309584995,
+                    "ci_body": [
+                      -0.2924047910592258,
+                      0.159583142914774
+                    ],
+                    "beta_screen": 0.05100949662519358,
+                    "ci_screen": [
+                      -0.10120348812836748,
+                      0.21141858245328934
+                    ],
+                    "rel_body": -52.015534710963905,
+                    "rel_screen": 53.015534710963905,
+                    "rel_ci_screen": [
+                      -105.18349312802552,
+                      219.73298970096647
+                    ],
+                    "scale": 0.000962161315608584,
+                    "regressor_corr": 0.2899760307579174,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": -0.02293924981708323,
+                    "ci_body": [
+                      -0.16425017516164103,
+                      0.05140015410071312
+                    ],
+                    "beta_screen": 0.0027242227798738405,
+                    "ci_screen": [
+                      -0.08905588711418572,
+                      0.10197014230100512
+                    ],
+                    "rel_body": null,
+                    "rel_screen": null,
+                    "rel_ci_screen": [
+                      null,
+                      null
+                    ],
+                    "scale": -0.02021502703720939,
+                    "regressor_corr": 0.2899760307579174,
+                    "identifiable": true
+                  }
+                }
+              }
+            },
+            {
+              "day": 3,
+              "cum_hours": 3.0,
+              "x_earned": false,
+              "x_report": {
+                "auc": 0.49455572675911663,
+                "floor": 0.5574884437596301,
+                "p_value": 0.5373134328358209,
+                "n_windows": 625,
+                "reason": "AUC 0.495 must exceed both 0.60 and the p95 circular-shift floor 0.557"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.5258333333333334,
+                  "y": 0.7819444444444444
+                },
+                "r": {
+                  "x": 0.05636712711829998,
+                  "y": 0.47369139997853
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 59,
+                "success": 0.13559322033898305,
+                "time_to_target_s": 5.212499999999997,
+                "throughput_bps": 0.6845390977523124
+              },
+              "blind": {
+                "n_trials": 75,
+                "success": 0.28,
+                "time_to_target_s": 4.861904761904759,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 17,
+                "success": 0.35294117647058826,
+                "time_to_target_s": 4.083333333333333,
+                "throughput_bps": 0.9649493251038548
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1200,
+                "S": 704,
+                "H": 294,
+                "R": 103
+              },
+              "n_train_windows": {
+                "own": 4868,
+                "prior": 1200,
+                "shadow": 2058
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 40,
+                  "n_windows": 294,
+                  "deployed": {
+                    "beta_body": 0.16429156968137903,
+                    "ci_body": [
+                      0.044060215392735524,
+                      0.2881754125808646
+                    ],
+                    "beta_screen": -0.010928351646019876,
+                    "ci_screen": [
+                      -0.1311317429148908,
+                      0.10980631228902454
+                    ],
+                    "rel_body": 1.0712579703661425,
+                    "rel_screen": -0.07125797036614251,
+                    "rel_ci_screen": [
+                      -0.8550403714445878,
+                      0.715988577285251
+                    ],
+                    "scale": 0.15336321803535916,
+                    "regressor_corr": 0.20197865238911608,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.021263353914014394,
+                    "ci_body": [
+                      -0.06710807091305268,
+                      0.11441154831442442
+                    ],
+                    "beta_screen": 0.06065608273917739,
+                    "ci_screen": [
+                      -0.007500878758718318,
+                      0.13605763104143972
+                    ],
+                    "rel_body": 0.25956421067729496,
+                    "rel_screen": 0.7404357893227049,
+                    "rel_ci_screen": [
+                      -0.0915640910773532,
+                      1.6608711753895902
+                    ],
+                    "scale": 0.08191943665319179,
+                    "regressor_corr": 0.20197865238911608,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": false,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 13,
+                  "n_windows": 103,
+                  "deployed": {
+                    "beta_body": 0.21502168695226878,
+                    "ci_body": [
+                      0.028516430285604747,
+                      0.3531074377195141
+                    ],
+                    "beta_screen": 0.11254621663928745,
+                    "ci_screen": [
+                      -0.030312002590543424,
+                      0.2478535373214983
+                    ],
+                    "rel_body": 0.6564186679912904,
+                    "rel_screen": 0.34358133200870955,
+                    "rel_ci_screen": [
+                      -0.0925365466463387,
+                      0.7566478113513416
+                    ],
+                    "scale": 0.32756790359155624,
+                    "regressor_corr": 0.23035891801130567,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.12352742155998762,
+                    "ci_body": [
+                      -0.01623010159836505,
+                      0.3057655742270047
+                    ],
+                    "beta_screen": 0.07772723730292061,
+                    "ci_screen": [
+                      -0.0646611844973589,
+                      0.20902401059088033
+                    ],
+                    "rel_body": 0.6137866435386856,
+                    "rel_screen": 0.38621335646131444,
+                    "rel_ci_screen": [
+                      -0.32129037341394007,
+                      1.0386045807429705
+                    ],
+                    "scale": 0.20125465886290822,
+                    "regressor_corr": 0.23035891801130567,
+                    "identifiable": true
+                  }
+                }
+              }
+            }
+          ],
+          "pooled_days": {
+            "heldout": {
+              "verdict": "TEST_INSENSITIVE",
+              "reason": "the shadow positive control shows no screen reading",
+              "axes": [
+                "y"
+              ],
+              "flags": {
+                "identifiable": true,
+                "deployed_screen_significant": false,
+                "deployed_screen_bounded": false,
+                "deployed_body_significant": true,
+                "deployed_body_sufficient": true,
+                "shadow_reads_screen": false
+              },
+              "n_trials": 132,
+              "n_windows": 754,
+              "deployed": {
+                "beta_body": 0.229472621958465,
+                "ci_body": [
+                  0.1659486679315489,
+                  0.2961254442550726
+                ],
+                "beta_screen": -0.025124928134520483,
+                "ci_screen": [
+                  -0.09192554292651327,
+                  0.03802943058830189
+                ],
+                "rel_body": 1.122951855557356,
+                "rel_screen": -0.12295185555735623,
+                "rel_ci_screen": [
+                  -0.4498486927173819,
+                  0.18610158928960605
+                ],
+                "scale": 0.20434769382394452,
+                "regressor_corr": -0.05489646119982782,
+                "identifiable": true
+              },
+              "shadow": {
+                "beta_body": 0.052609669931036024,
+                "ci_body": [
+                  -0.0016974362706147288,
+                  0.11075555367172839
+                ],
+                "beta_screen": 0.005444994154300156,
+                "ci_screen": [
+                  -0.04772091964717499,
+                  0.061422073635590976
+                ],
+                "rel_body": 0.9062091868054493,
+                "rel_screen": 0.09379081319455067,
+                "rel_ci_screen": [
+                  -0.8219997548694566,
+                  1.0580041173833157
+                ],
+                "scale": 0.05805466408533618,
+                "regressor_corr": -0.05489646119982782,
+                "identifiable": true
+              }
+            },
+            "replay": {
+              "verdict": "SCREEN_READING",
+              "reason": "deployed \u03b2_screen CI is above 0 and not below the tolerance",
+              "axes": [
+                "y"
+              ],
+              "flags": {
+                "identifiable": true,
+                "deployed_screen_significant": true,
+                "deployed_screen_bounded": false,
+                "deployed_body_significant": false,
+                "deployed_body_sufficient": false,
+                "shadow_reads_screen": false
+              },
+              "n_trials": 32,
+              "n_windows": 243,
+              "deployed": {
+                "beta_body": 0.101896295721976,
+                "ci_body": [
+                  -0.0119205368196965,
+                  0.21509029134089383
+                ],
+                "beta_screen": 0.08670731036474554,
+                "ci_screen": [
+                  0.0003987558719635068,
+                  0.17273523362910434
+                ],
+                "rel_body": 0.5402669537247512,
+                "rel_screen": 0.4597330462752487,
+                "rel_ci_screen": [
+                  0.002114253699794878,
+                  0.9158638968423499
+                ],
+                "scale": 0.18860360608672155,
+                "regressor_corr": 0.2280680351883634,
+                "identifiable": true
+              },
+              "shadow": {
+                "beta_body": 0.06799297261180995,
+                "ci_body": [
+                  -0.031710784496616365,
+                  0.1534909392424972
+                ],
+                "beta_screen": 0.03848819717739412,
+                "ci_screen": [
+                  -0.023382761880646055,
+                  0.10288159583167324
+                ],
+                "rel_body": 0.6385445684566815,
+                "rel_screen": 0.36145543154331844,
+                "rel_ci_screen": [
+                  -0.2195952761125356,
+                  0.9661952064890276
+                ],
+                "scale": 0.10648116978920408,
+                "regressor_corr": 0.2280680351883634,
+                "identifiable": true
+              }
+            }
+          }
+        },
+        {
+          "user": 2,
+          "subject": {
+            "index": 2,
+            "seed": 315437062,
+            "heterogeneity": 0.5255,
+            "intent_gain_uv": 5.1378,
+            "ocular_leak": false,
+            "eye_gain_uv": 0.0,
+            "day_drift_sd": 0.1,
+            "user_learning_rate": 0.0,
+            "y_depth": 0.3994,
+            "x_depth": 0.3844,
+            "x_responder": true
+          },
+          "prior_l1": {
+            "auc": {
+              "x": 0.6358333333333335,
+              "y": 0.8049999999999999
+            },
+            "r": {
+              "x": 0.2399059751383757,
+              "y": 0.5270548999628405
+            },
+            "n": {
+              "x": 120,
+              "y": 120
+            }
+          },
+          "days": [
+            {
+              "day": 1,
+              "cum_hours": 1.0,
+              "x_earned": false,
+              "x_report": {
+                "auc": 0.4389090909090909,
+                "floor": 0.6371272727272727,
+                "p_value": 0.8109452736318408,
+                "n_windows": 210,
+                "reason": "AUC 0.439 must exceed both 0.60 and the p95 circular-shift floor 0.637"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.6252777777777778,
+                  "y": 0.8788888888888889
+                },
+                "r": {
+                  "x": 0.21595926708601795,
+                  "y": 0.6720400499819436
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 65,
+                "success": 0.24615384615384617,
+                "time_to_target_s": 4.524999999999999,
+                "throughput_bps": 0.7806777908543366
+              },
+              "blind": {
+                "n_trials": 73,
+                "success": 0.2191780821917808,
+                "time_to_target_s": 4.687499999999997,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1209,
+                "S": 581,
+                "H": 230,
+                "R": 111
+              },
+              "n_train_windows": {
+                "own": 1629,
+                "prior": 1200,
+                "shadow": 581
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "INCONCLUSIVE",
+                  "reason": "deployed \u03b2_screen CI reaches 10% of the margin: screen reading is neither shown nor excluded",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": true
+                  },
+                  "n_trials": 46,
+                  "n_windows": 230,
+                  "deployed": {
+                    "beta_body": 0.4158247135200444,
+                    "ci_body": [
+                      0.31733250886372955,
+                      0.5109979698159508
+                    ],
+                    "beta_screen": 0.06057452164342145,
+                    "ci_screen": [
+                      -0.05451976843514039,
+                      0.18698296822948013
+                    ],
+                    "rel_body": 0.8728492466562491,
+                    "rel_screen": 0.12715075334375095,
+                    "rel_ci_screen": [
+                      -0.11444134333346094,
+                      0.39249216713230256
+                    ],
+                    "scale": 0.47639923516346583,
+                    "regressor_corr": 0.014791407278599872,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.04897208240130642,
+                    "ci_body": [
+                      -0.04108252270485501,
+                      0.12891576251519724
+                    ],
+                    "beta_screen": 0.1003680173736084,
+                    "ci_screen": [
+                      0.02627344804076622,
+                      0.18107633768416567
+                    ],
+                    "rel_body": 0.3279231932690354,
+                    "rel_screen": 0.6720768067309647,
+                    "rel_ci_screen": [
+                      0.1759302965537423,
+                      1.2125098212541956
+                    ],
+                    "scale": 0.1493400997749148,
+                    "regressor_corr": 0.014791407278599872,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 13,
+                  "n_windows": 111,
+                  "deployed": {
+                    "beta_body": 0.24938724344969093,
+                    "ci_body": [
+                      0.060970865662491394,
+                      0.46840843604539156
+                    ],
+                    "beta_screen": 0.046215871651518324,
+                    "ci_screen": [
+                      -0.05259056414105055,
+                      0.1627650993129697
+                    ],
+                    "rel_body": 0.8436556677161714,
+                    "rel_screen": 0.1563443322838287,
+                    "rel_ci_screen": [
+                      -0.1779093705526225,
+                      0.5506203791433045
+                    ],
+                    "scale": 0.29560311510120924,
+                    "regressor_corr": 0.08402803699786124,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.05429605979790407,
+                    "ci_body": [
+                      -0.08964733448483804,
+                      0.17046369206435102
+                    ],
+                    "beta_screen": -0.13613573964638104,
+                    "ci_screen": [
+                      -0.21583448625095192,
+                      -0.01308616600993403
+                    ],
+                    "rel_body": null,
+                    "rel_screen": null,
+                    "rel_ci_screen": [
+                      null,
+                      null
+                    ],
+                    "scale": -0.08183967984847697,
+                    "regressor_corr": 0.08402803699786124,
+                    "identifiable": true
+                  }
+                }
+              }
+            },
+            {
+              "day": 2,
+              "cum_hours": 2.0,
+              "x_earned": false,
+              "x_report": {
+                "auc": 0.5846031746031747,
+                "floor": 0.5848820861678005,
+                "p_value": 0.05970149253731343,
+                "n_windows": 420,
+                "reason": "AUC 0.585 must exceed both 0.60 and the p95 circular-shift floor 0.585"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.65,
+                  "y": 0.8919444444444444
+                },
+                "r": {
+                  "x": 0.26920337544650275,
+                  "y": 0.6847779042652573
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 60,
+                "success": 0.15,
+                "time_to_target_s": 4.01111111111111,
+                "throughput_bps": 0.802068930762105
+              },
+              "blind": {
+                "n_trials": 71,
+                "success": 0.2112676056338028,
+                "time_to_target_s": 5.719999999999997,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1215,
+                "S": 680,
+                "H": 230,
+                "R": 91
+              },
+              "n_train_windows": {
+                "own": 3264,
+                "prior": 1200,
+                "shadow": 1261
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 46,
+                  "n_windows": 230,
+                  "deployed": {
+                    "beta_body": 0.3776625043956943,
+                    "ci_body": [
+                      0.17722389570969838,
+                      0.5823871015958325
+                    ],
+                    "beta_screen": 0.04596525403812248,
+                    "ci_screen": [
+                      -0.10775337807951019,
+                      0.21072161054359584
+                    ],
+                    "rel_body": 0.8914961233700562,
+                    "rel_screen": 0.10850387662994378,
+                    "rel_ci_screen": [
+                      -0.25435863428280153,
+                      0.49742163101551523
+                    ],
+                    "scale": 0.4236277584338168,
+                    "regressor_corr": -0.5144233453527935,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.10185066013381992,
+                    "ci_body": [
+                      -0.009344516659737463,
+                      0.20896332167777418
+                    ],
+                    "beta_screen": 0.014698918842398045,
+                    "ci_screen": [
+                      -0.07956673680245124,
+                      0.11394889299258183
+                    ],
+                    "rel_body": 0.8738826946307771,
+                    "rel_screen": 0.12611730536922292,
+                    "rel_ci_screen": [
+                      -0.6826857505738987,
+                      0.9776860113397166
+                    ],
+                    "scale": 0.11654957897621797,
+                    "regressor_corr": -0.5144233453527935,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 10,
+                  "n_windows": 91,
+                  "deployed": {
+                    "beta_body": 0.33128262305240885,
+                    "ci_body": [
+                      0.11687168386763112,
+                      0.4858063642046352
+                    ],
+                    "beta_screen": -0.06658602095758981,
+                    "ci_screen": [
+                      -0.1545419547842854,
+                      0.05141102598528019
+                    ],
+                    "rel_body": 1.251556009524208,
+                    "rel_screen": -0.25155600952420804,
+                    "rel_ci_screen": [
+                      -0.5838456314181385,
+                      0.19422624082973247
+                    ],
+                    "scale": 0.26469660209481904,
+                    "regressor_corr": 0.12404267007836202,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.03307231425499253,
+                    "ci_body": [
+                      -0.08511240367667477,
+                      0.1299315653175334
+                    ],
+                    "beta_screen": -0.08773750972725512,
+                    "ci_screen": [
+                      -0.1743800999344367,
+                      -0.012290740427294793
+                    ],
+                    "rel_body": null,
+                    "rel_screen": null,
+                    "rel_ci_screen": [
+                      null,
+                      null
+                    ],
+                    "scale": -0.05466519547226259,
+                    "regressor_corr": 0.12404267007836202,
+                    "identifiable": true
+                  }
+                }
+              }
+            },
+            {
+              "day": 3,
+              "cum_hours": 3.0,
+              "x_earned": false,
+              "x_report": {
+                "auc": 0.5551686507936509,
+                "floor": 0.5615644841269841,
+                "p_value": 0.06467661691542288,
+                "n_windows": 635,
+                "reason": "AUC 0.555 must exceed both 0.60 and the p95 circular-shift floor 0.562"
+              },
+              "l1": {
+                "auc": {
+                  "x": 0.6894444444444444,
+                  "y": 0.9002777777777777
+                },
+                "r": {
+                  "x": 0.3407590648503575,
+                  "y": 0.6927069893911385
+                },
+                "n": {
+                  "x": 120,
+                  "y": 120
+                }
+              },
+              "sighted": {
+                "n_trials": 60,
+                "success": 0.25,
+                "time_to_target_s": 5.406666666666663,
+                "throughput_bps": 0.7664252832584862
+              },
+              "blind": {
+                "n_trials": 73,
+                "success": 0.2191780821917808,
+                "time_to_target_s": 5.868749999999994,
+                "throughput_bps": null
+              },
+              "heldout_closed_loop": {
+                "n_trials": 17,
+                "success": 0.29411764705882354,
+                "time_to_target_s": 5.019999999999996,
+                "throughput_bps": 0.7105972597521131
+              },
+              "n_windows": {
+                "L1": 420,
+                "L2b": 1249,
+                "S": 654,
+                "H": 297,
+                "R": 108
+              },
+              "n_train_windows": {
+                "own": 4933,
+                "prior": 1200,
+                "shadow": 1915
+              },
+              "certification": {
+                "heldout": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 40,
+                  "n_windows": 297,
+                  "deployed": {
+                    "beta_body": 0.30366656525452024,
+                    "ci_body": [
+                      0.22106373224316592,
+                      0.39695997850987547
+                    ],
+                    "beta_screen": 0.019353192294932403,
+                    "ci_screen": [
+                      -0.07305719467872783,
+                      0.12612790448173758
+                    ],
+                    "rel_body": 0.9400866608230007,
+                    "rel_screen": 0.05991333917699919,
+                    "rel_ci_screen": [
+                      -0.22616943072760232,
+                      0.3904649840572927
+                    ],
+                    "scale": 0.32301975754945267,
+                    "regressor_corr": -0.12010640267212619,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.06756434630672044,
+                    "ci_body": [
+                      -0.014232065444798294,
+                      0.152260452330059
+                    ],
+                    "beta_screen": 0.019355392184517334,
+                    "ci_screen": [
+                      -0.043427589990195914,
+                      0.09320755758477388
+                    ],
+                    "rel_body": 0.7773187940910739,
+                    "rel_screen": 0.22268120590892618,
+                    "rel_ci_screen": [
+                      -0.4996286314710182,
+                      1.0723405201474459
+                    ],
+                    "scale": 0.08691973849123777,
+                    "regressor_corr": -0.12010640267212619,
+                    "identifiable": true
+                  }
+                },
+                "replay": {
+                  "verdict": "TEST_INSENSITIVE",
+                  "reason": "the shadow positive control shows no screen reading",
+                  "axes": [
+                    "y"
+                  ],
+                  "flags": {
+                    "identifiable": true,
+                    "deployed_screen_significant": false,
+                    "deployed_screen_bounded": false,
+                    "deployed_body_significant": true,
+                    "deployed_body_sufficient": true,
+                    "shadow_reads_screen": false
+                  },
+                  "n_trials": 14,
+                  "n_windows": 108,
+                  "deployed": {
+                    "beta_body": 0.3983675735014374,
+                    "ci_body": [
+                      0.2604281095882971,
+                      0.5343996698292897
+                    ],
+                    "beta_screen": 0.0024529033808959153,
+                    "ci_screen": [
+                      -0.12437013349398102,
+                      0.11833853864850542
+                    ],
+                    "rel_body": 0.993880294240516,
+                    "rel_screen": 0.006119705759483941,
+                    "rel_ci_screen": [
+                      -0.3102888716199289,
+                      0.2952407510937756
+                    ],
+                    "scale": 0.40082047688233335,
+                    "regressor_corr": -0.016794333969523994,
+                    "identifiable": true
+                  },
+                  "shadow": {
+                    "beta_body": 0.0972134147188244,
+                    "ci_body": [
+                      0.004727390021730374,
+                      0.1648026567392065
+                    ],
+                    "beta_screen": 0.0016316785455500165,
+                    "ci_screen": [
+                      -0.049566431618850826,
+                      0.06345152168604272
+                    ],
+                    "rel_body": 0.9834925691133107,
+                    "rel_screen": 0.016507430886689278,
+                    "rel_ci_screen": [
+                      -0.5014556613981715,
+                      0.641928896928987
+                    ],
+                    "scale": 0.09884509326437442,
+                    "regressor_corr": -0.016794333969523994,
+                    "identifiable": true
+                  }
+                }
+              }
+            }
+          ],
+          "pooled_days": {
+            "heldout": {
+              "verdict": "TEST_INSENSITIVE",
+              "reason": "the shadow positive control shows no screen reading",
+              "axes": [
+                "y"
+              ],
+              "flags": {
+                "identifiable": true,
+                "deployed_screen_significant": false,
+                "deployed_screen_bounded": false,
+                "deployed_body_significant": true,
+                "deployed_body_sufficient": true,
+                "shadow_reads_screen": false
+              },
+              "n_trials": 132,
+              "n_windows": 757,
+              "deployed": {
+                "beta_body": 0.37392738889635,
+                "ci_body": [
+                  0.31500963972811585,
+                  0.43380398649402846
+                ],
+                "beta_screen": 0.02974995786490323,
+                "ci_screen": [
+                  -0.032399430926165734,
+                  0.09538635649352152
+                ],
+                "rel_body": 0.9263026322789962,
+                "rel_screen": 0.07369736772100376,
+                "rel_ci_screen": [
+                  -0.08026071114990685,
+                  0.2362935578595542
+                ],
+                "scale": 0.4036773467612533,
+                "regressor_corr": -0.20728825511781515,
+                "identifiable": true
+              },
+              "shadow": {
+                "beta_body": 0.07015484468732076,
+                "ci_body": [
+                  0.01856944955978576,
+                  0.12057872156660633
+                ],
+                "beta_screen": 0.025851663010133866,
+                "ci_screen": [
+                  -0.01754766720120112,
+                  0.07487888900214135
+                ],
+                "rel_body": 0.7307300970513351,
+                "rel_screen": 0.269269902948665,
+                "rel_ci_screen": [
+                  -0.182775809911752,
+                  0.7799355564323539
+                ],
+                "scale": 0.09600650769745463,
+                "regressor_corr": -0.20728825511781515,
+                "identifiable": true
+              }
+            },
+            "replay": {
+              "verdict": "TEST_INSENSITIVE",
+              "reason": "the shadow positive control shows no screen reading",
+              "axes": [
+                "y"
+              ],
+              "flags": {
+                "identifiable": true,
+                "deployed_screen_significant": false,
+                "deployed_screen_bounded": false,
+                "deployed_body_significant": true,
+                "deployed_body_sufficient": true,
+                "shadow_reads_screen": false
+              },
+              "n_trials": 37,
+              "n_windows": 310,
+              "deployed": {
+                "beta_body": 0.3709200044630601,
+                "ci_body": [
+                  0.27606708711217126,
+                  0.4597324793596406
+                ],
+                "beta_screen": 0.012173864172698298,
+                "ci_screen": [
+                  -0.0468641795564882,
+                  0.07297325700898459
+                ],
+                "rel_body": 0.9682222421986266,
+                "rel_screen": 0.03177775780137343,
+                "rel_ci_screen": [
+                  -0.12233080034242513,
+                  0.19048401183984176
+                ],
+                "scale": 0.3830938686357584,
+                "regressor_corr": 0.1132322916221327,
+                "identifiable": true
+              },
+              "shadow": {
+                "beta_body": 0.06333621299765714,
+                "ci_body": [
+                  0.01010311881656745,
+                  0.11143882084375126
+                ],
+                "beta_screen": -0.08088401103932896,
+                "ci_screen": [
+                  -0.13087522353190914,
+                  -0.019824754619062756
+                ],
+                "rel_body": null,
+                "rel_screen": null,
+                "rel_ci_screen": [
+                  null,
+                  null
+                ],
+                "scale": -0.017547798041671822,
+                "regressor_corr": 0.1132322916221327,
+                "identifiable": true
+              }
+            }
+          }
+        }
+      ],
+      "pooled_all_users": {
+        "heldout": {
+          "verdict": "TEST_INSENSITIVE",
+          "reason": "the shadow positive control shows no screen reading",
+          "axes": [
+            "y"
+          ],
+          "flags": {
+            "identifiable": true,
+            "deployed_screen_significant": false,
+            "deployed_screen_bounded": false,
+            "deployed_body_significant": true,
+            "deployed_body_sufficient": true,
+            "shadow_reads_screen": false
+          },
+          "n_trials": 397,
+          "n_windows": 2228,
+          "deployed": {
+            "beta_body": 0.22725707084654673,
+            "ci_body": [
+              0.1912919441450683,
+              0.2641465113558797
+            ],
+            "beta_screen": 0.006744167294157873,
+            "ci_screen": [
+              -0.03220202637944416,
+              0.04567485672255319
+            ],
+            "rel_body": 0.9711789247452502,
+            "rel_screen": 0.02882107525474979,
+            "rel_ci_screen": [
+              -0.13761476920084129,
+              0.19519066260277207
+            ],
+            "scale": 0.2340012381407046,
+            "regressor_corr": -0.035435927648973575,
+            "identifiable": true
+          },
+          "shadow": {
+            "beta_body": 0.04922700499530648,
+            "ci_body": [
+              0.009743508640099867,
+              0.09093296656904991
+            ],
+            "beta_screen": 0.019199757049431117,
+            "ci_screen": [
+              -0.017914375987610216,
+              0.056319889339542975
+            ],
+            "rel_body": 0.719411579976877,
+            "rel_screen": 0.28058842002312284,
+            "rel_ci_screen": [
+              -0.26180364892756064,
+              0.8230681630488503
+            ],
+            "scale": 0.0684267620447376,
+            "regressor_corr": -0.035435927648973575,
+            "identifiable": true
+          }
+        },
+        "replay": {
+          "verdict": "SCREEN_READING",
+          "reason": "deployed \u03b2_screen CI is above 0 and not below the tolerance",
+          "axes": [
+            "y"
+          ],
+          "flags": {
+            "identifiable": true,
+            "deployed_screen_significant": true,
+            "deployed_screen_bounded": false,
+            "deployed_body_significant": true,
+            "deployed_body_sufficient": true,
+            "shadow_reads_screen": false
+          },
+          "n_trials": 107,
+          "n_windows": 847,
+          "deployed": {
+            "beta_body": 0.2363645900114396,
+            "ci_body": [
+              0.17684378041318974,
+              0.29186031193322687
+            ],
+            "beta_screen": 0.050052928093422724,
+            "ci_screen": [
+              0.009447449587501492,
+              0.09217862277545366
+            ],
+            "rel_body": 0.8252448787888125,
+            "rel_screen": 0.17475512121118755,
+            "rel_ci_screen": [
+              0.03298488741195858,
+              0.32183304773175747
+            ],
+            "scale": 0.2864175181048623,
+            "regressor_corr": 0.05330895054841253,
+            "identifiable": true
+          },
+          "shadow": {
+            "beta_body": 0.012313984059214562,
+            "ci_body": [
+              -0.05416615498094139,
+              0.076109062271109
+            ],
+            "beta_screen": 0.007387864243308347,
+            "ci_screen": [
+              -0.039898736644371414,
+              0.055905073736602744
+            ],
+            "rel_body": 0.6250166923495041,
+            "rel_screen": 0.37498330765049576,
+            "rel_ci_screen": [
+              -2.025126578568885,
+              2.8375547754798136
+            ],
+            "scale": 0.01970184830252291,
+            "regressor_corr": 0.05330895054841253,
+            "identifiable": true
+          }
+        }
+      },
+      "runtime_s": 252.04475861600076
+    }
+  },
+  "runtime_s": 252.04593433399714
+}

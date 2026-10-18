@@ -384,3 +384,314 @@ def test_cue_offset_and_cursor_source_are_enforced(tmp_path):
                 Labeler(CFG).label(sess)
         else:
             assert len(Labeler(CFG).label(sess)) > 0
+
+
+# ----------------------------------------------------------------------------------------------
+# Champion: label sources, body labels, and the deployed / shadow trainers
+# ----------------------------------------------------------------------------------------------
+from dataclasses import replace as _replace                                    # noqa: E402
+
+from neural_cursor import protocol as P                                        # noqa: E402
+from neural_cursor.body_decoder import BodyCoordinateDecoder                   # noqa: E402
+from neural_cursor.data_engine import (BodyTrainer, ShadowBodyDecoder, ShadowTrainer, body_labels,  # noqa: E402
+                                       parse_trials, refit_body_labels)
+from neural_cursor.mapping import Mapping                                      # noqa: E402
+from neural_cursor.protocol import Block                                       # noqa: E402
+
+CFG1 = _replace(CFG, decoder=_replace(CFG.decoder, window_s=1.0))   # the body decoder's 1-s windows
+LEGACY_KEYS = {"block", "feedback_visible", "session", "t", "trial", "display_goal"}
+N_L1, N_L2B = 32, 24
+L1_ABORTED_AT, L2B_ABORTED_AT = 5, 3                                # trial indices aborted by the protocol
+
+
+def _unit(v):
+    v = np.asarray(v, float)
+    return v / np.linalg.norm(v)
+
+
+def make_champion_run(root, seed=3, t0=2000.0):
+    """One champion session in miniature, logged through RunLogger.  It holds L1 fixation probes (one
+    lost to a fixation break, each logged 0.5 s past its 4.0-s label end), L2b blind closed loop (one
+    aborted, each followed by its outcome flash), a blind just-intend trial, S trials with one pixel
+    replay, held-out C2c (rot+90) and C2b (mirror_y, keyed report) trials, and an original-protocol
+    cued_blank trial.  The simulated intent is the body vector the person should produce."""
+    lg = RunLogger(root, CFG1, tag="champion")
+    sim = SimulatedEEG(CFG1.hardware, seed=seed)
+    now = lambda: t0 + sim.n_sent / FS
+    expect = {"cue_t": {}, "aborted": set(), "end": {}, "report": {}, "goal": {}}
+
+    def emit(sec, intent=(0.0, 0.0)):
+        n = int(round(sec * FS))
+        ts = now() + np.arange(n) / FS                                       # before generate() advances the clock
+        sim.set_intent(*np.asarray(intent, float))
+        lg.eeg(sim.generate(n), ts)
+
+    emit(SETTLE_S)
+    gm = P.glyph_map(1, seed)
+    fix, ct = P.FixationProbeTiming(), P.ClosedLoopTiming()
+    tid = 0
+
+    l1 = P.BodyCueScheduler(seed, glyphs=gm, logger=lg)
+    for i in range(N_L1):
+        expect["cue_t"][tid] = now()
+        cue = l1.next(t=now())
+        emit(fix.cue_s, cue.body)
+        lg.event("cue_offset", {"seq": cue.seq}, t=now())
+        emit(fix.label_start_s - fix.cue_s, cue.body)
+        lg.event("trial_start", P.champion_trial_start_payload(Block("fixation_probe", 900), tid, cue=cue), t=now())
+        if i == L1_ABORTED_AT:
+            emit(1.2, cue.body)
+            lg.event("fixation_break", {"trial": tid}, t=now())
+            expect["aborted"].add(tid)
+        emit(fix.label_end_s - fix.label_start_s + 0.5 - (1.2 if i == L1_ABORTED_AT else 0.0), cue.body)
+        lg.event("trial_end", {"trial": tid}, t=now())
+        emit(1.0)
+        tid += 1
+
+    l2 = P.BodyCueScheduler(seed + 1, classes=P.L2B_CLASSES_XY, modes=P.BODY_CUE_MODES, glyphs=gm, logger=lg)
+    blind = Block("blind_closed_loop", 1200)
+    for i in range(N_L2B):
+        expect["cue_t"][tid] = now()
+        cue = l2.next(t=now())
+        emit(ct.cue_s, cue.body)
+        lg.event("cue_offset", {"seq": cue.seq}, t=now())
+        p = P.champion_trial_start_payload(blind, tid, cue=cue)
+        lg.event("trial_start", p, t=now())
+        pos = np.zeros(2)
+        for _ in range(25):                                                  # the hidden cursor moves (logged)
+            lg.cursor(now(), pos, np.zeros(2), 0.5, -1, 0.0)
+            emit(0.1, cue.body)
+            pos = pos + 0.02 * _unit(cue.body)
+        aborted = i == L2B_ABORTED_AT
+        lg.event("trial_end", {"trial": tid, "aborted": True} if aborted else {"trial": tid}, t=now())
+        if aborted:
+            expect["aborted"].add(tid)
+        expect["end"][tid] = now()
+        lg.event("outcome_flash", {"hit": False}, t=now())
+        emit(ct.outcome_s + 0.5)
+        tid += 1
+
+    word = P.CueScheduler(seed=seed, logger=lg).next(t=now(), mode="auditory")  # blind just intend: goal word
+    expect["cue_t"][tid] = now()
+    emit(ct.cue_s, word.vector)
+    lg.event("cue_offset", {"seq": word.seq}, t=now())
+    lg.event("trial_start", P.champion_trial_start_payload(Block("blind_closed_loop", 300, just_intend=True),
+                                                           tid, cue=word), t=now())
+    emit(2.5, word.vector)
+    lg.event("trial_end", {"trial": tid}, t=now())
+    emit(1.0)
+    tid += 1
+
+    rng = np.random.default_rng(seed)
+    visible = ([(Block("sighted", 900), None, False)] * 6 + [(Block("sighted", 900), "replay", False)]
+               + [(Block("heldout_mapping", 240, mapping="rot+90"), None, False)] * 3
+               + [(Block("heldout_mapping", 240, mapping="mirror_y", variant="C2b"), None, True)] * 2)
+    for k, (block, replay, frozen) in enumerate(visible):
+        a = rng.uniform(0, 2 * np.pi)
+        goal = 0.7 * np.array([np.cos(a), np.sin(a)])
+        replay_goal = -goal if replay else None                              # the replay aims elsewhere
+        emit(ct.label_start_s)                                               # target onset → trial_start
+        lg.event("trial_start", P.champion_trial_start_payload(block, tid, goal=goal, replay_goal=replay_goal),
+                 t=now())
+        expect["goal"][tid] = goal
+        M, pos = Mapping(block.mapping), np.zeros(2)
+        for _ in range(25):
+            lg.cursor(now(), pos, np.zeros(2), 0.5, -1, 0.0)
+            emit(0.1, M.screen_to_body(_unit(goal - pos)))                   # body intent toward the goal
+            if not frozen:
+                pos = pos + 0.025 * _unit((replay_goal if replay else goal) - pos)
+        lg.event("trial_end", {"trial": tid}, t=now())
+        if frozen:
+            cls = ("FEET", "RIGHT")[k % 2]
+            lg.event("body_report", {"trial": tid, "class": cls}, t=now() + 0.5)
+            expect["report"][tid] = list(P.body_vector(cls))
+        emit(1.5)
+        tid += 1
+
+    lg.event("trial_start", {"trial": tid, "goal": [0.6, 0.0], "block": "cued_blank", "feedback_visible": False},
+             t=now())
+    emit(2.5, (1.0, 0.0))
+    lg.event("trial_end", {"trial": tid}, t=now())
+    emit(1.0)
+    lg.close()
+    return lg.dir, expect
+
+
+@pytest.fixture(scope="module")
+def champion(tmp_path_factory):
+    root = str(tmp_path_factory.mktemp("champion"))
+    run, expect = make_champion_run(root)
+    sess = SessionStore(root).load(run)
+    return sess, Labeler(CFG1).label(sess), expect
+
+
+def _by_source(ls, *sources):
+    return ls.mask(np.array([p.get("source") in sources for p in ls.provenance], bool))
+
+
+def test_champion_labels_sources_and_provenance(champion):
+    """Every window carries its source.  L1/L2b labels are the cued body vector, and their windows
+    lie ≥ 1.0 s after the cue (L1: ≤ 4.0 s after it) and before the outcome flash.  Aborted trials
+    are gone.  Drawn-target windows keep the screen rule and expose the goal, mapping, displayed
+    cursor, variant, report and replay goal.  Original-protocol windows keep their provenance."""
+    sess, ls, ex = champion
+    srcs = [p.get("source") for p in ls.provenance]
+    assert set(srcs) == {"L1", "L2b", "J", "S", "R", "H", None}
+    assert {p["trial"] for p in ls.provenance}.isdisjoint(ex["aborted"])
+    assert len({p["trial"] for p in ls.provenance if p.get("source") == "L1"}) == N_L1 - 1
+    assert len({p["trial"] for p in ls.provenance if p.get("source") == "L2b"}) == N_L2B - 1
+    assert ls.mix()["source"]["L1"] > 0
+    win = CFG1.decoder.window_s
+    for lab, p in zip(ls.labels, ls.provenance):
+        src = p.get("source")
+        if src is None:
+            assert set(p) == LEGACY_KEYS                                     # original blocks: unchanged
+            continue
+        if src == "H":
+            assert p["mapping"] == {"C2c": "rot+90", "C2b": "mirror_y"}[p["variant"]]
+        if src in ("L1", "L2b"):
+            assert p["display_goal"] is None and "cursor_pos" not in p
+            assert np.allclose(lab, _unit(p["body_label"]))
+            cue_t = ex["cue_t"][p["trial"]]
+            assert p["t"] - win >= cue_t + P.CUE_LOCKOUT_S - 1.0 / FS        # cue-evoked response excluded
+            if src == "L1":
+                assert sum(v != 0 for v in p["body_label"]) == 1
+                assert p["t"] <= cue_t + P.L1_LABEL_END_S + 1e-6             # clipped at the label end
+            else:
+                assert p["t"] <= ex["end"][p["trial"]] + 1e-6                # before the outcome flash
+        elif src == "J":
+            assert p["display_goal"] is None and "body_label" not in p
+        else:
+            goal = ex["goal"][p["trial"]]
+            assert np.allclose(p["display_goal"], goal) and p["feedback_visible"]
+            assert np.allclose(lab, _unit(goal - np.array(p["cursor_pos"])), atol=1e-6)
+            if src == "H":
+                assert p["body_report"] == ex["report"].get(p["trial"])
+            if src == "R":
+                assert np.allclose(p["replay_goal"], -goal) and p["block"] == "pixel_replay"
+    # both ends of the L1 window range are used: the first window starts at cue + 1.0 s and the
+    # last one ends at cue + 4.0 s
+    l1 = _by_source(ls, "L1")
+    first = min(p["t"] - ex["cue_t"][p["trial"]] for p in l1.provenance)
+    last = max(p["t"] - ex["cue_t"][p["trial"]] for p in l1.provenance)
+    assert abs(first - (P.CUE_LOCKOUT_S + win)) < 2.0 / FS and abs(last - P.L1_LABEL_END_S) < 2.0 / FS
+    # ReFIT body labels apply M⁻¹: under rot+90 a cursor-up label is a body-right (x +) intent
+    h = _by_source(ls, "H")
+    for u, b, p in zip(h.labels, refit_body_labels(h), h.provenance):
+        assert np.allclose(b, Mapping(p["mapping"]).M.T @ u)
+    assert np.allclose(refit_body_labels(_by_source(ls, "S")), _by_source(ls, "S").labels)  # identity
+
+
+def test_champion_protocol_violations_raise():
+    gm = P.glyph_map(1, 0)
+    cue = P.BodyCueScheduler(0, glyphs=gm).next()
+    l1 = P.champion_trial_start_payload(Block("fixation_probe", 300), 0, cue=cue)
+    on = (0.0, "cue", {"seq": 0, "body": list(cue.body)})
+    off = (0.75, "cue_offset", {"seq": 0})
+    end = (4.0, "trial_end", {"trial": 0})
+    assert len(parse_trials("s", [on, off, (1.0, "trial_start", l1), end])) == 1
+    bad = {
+        "after cue onset": [on, off, (0.9, "trial_start", l1), end],             # inside the 1.0-s lockout
+        "no 'cue' event": [(1.0, "trial_start", l1), end],
+        "cue_offset": [on, (1.0, "trial_start", l1), end],
+        "differs": [(0.0, "cue", {"seq": 0, "body": [0, -1] if list(cue.body) != [0, -1] else [0, 1]}), off,
+                    (1.0, "trial_start", l1), end],
+        "one class": [on, off, (1.0, "trial_start", dict(l1, body_cue=[1, 1])), end],
+        "source": [on, off, (1.0, "trial_start", dict(l1, source="S")), end],
+        "feedback_visible must": [on, off, (1.0, "trial_start", dict(l1, feedback_visible=True)), end],
+        "runs under": [(0.0, "trial_start", P.champion_trial_start_payload(Block("sighted", 60), 0, goal=(0.5, 0))
+                                          | {"mapping": "rot+90"}), end],
+        "held-out mapping": [(0.0, "trial_start", P.champion_trial_start_payload(
+            Block("heldout_mapping", 60), 0, goal=(0.5, 0)) | {"mapping": "identity"}), end],
+        "replay_goal": [(0.0, "trial_start", {k: v for k, v in P.champion_trial_start_payload(
+            Block("sighted", 60), 0, goal=(0.5, 0), replay_goal=(0, 0.5)).items() if k != "replay_goal"}), end],
+        "needs its goal": [(0.0, "trial_start", P.champion_trial_start_payload(Block("sighted", 60), 0, goal=(0.5, 0))
+                                               | {"goal": None}), end],
+        "outcome": [on, (1.0, "cue_offset", {}), (1.0, "trial_start", P.champion_trial_start_payload(
+            Block("blind_closed_loop", 60), 0, cue=cue)), (2.0, "outcome_flash", {}), end],
+        "keypress": [(0.0, "trial_start", P.champion_trial_start_payload(
+            Block("heldout_mapping", 60, variant="C2b"), 0, goal=(0.5, 0))),
+            (1.0, "body_report", {"trial": 0, "class": "FEET"}), end],
+    }
+    for match, events in bad.items():
+        with pytest.raises(ValueError, match=match):
+            parse_trials("s", events)
+    # an aborted trial and a fixation break both discard; a break in a sighted trial does not
+    assert parse_trials("s", [on, off, (1.0, "trial_start", l1), (4.0, "trial_end", {"trial": 0, "aborted": True})]) == []
+    assert parse_trials("s", [on, off, (1.0, "trial_start", l1), (2.0, "fixation_break", {}), end]) == []
+    s = P.champion_trial_start_payload(Block("sighted", 60), 0, goal=(0.5, 0))
+    assert len(parse_trials("s", [(0.0, "trial_start", s), (1.0, "fixation_break", {}), end])) == 1
+
+
+def test_deployed_trainer_uses_only_L1_L2b(champion):
+    """The deployed body decoder's trainer refuses S, H, R and J windows, and original-protocol
+    windows, whether alone or mixed in.  On the L1/L2b selection it trains, and the y axis it learns
+    from cue-defined labels decodes held-out fixation probes.  The original Trainer never selects a
+    champion window."""
+    _, ls, _ = champion
+    trainer = BodyTrainer(CFG1)
+    for src in ("S", "H", "R", "J", None):
+        part = ls.mask(np.array([p.get("source") == src for p in ls.provenance], bool))
+        assert len(part) > 0
+        with pytest.raises(ValueError, match="trains only on"):
+            trainer.fit(part)
+        with pytest.raises(ValueError, match="trains only on"):
+            trainer.fit(LabelledSet.concat([BodyTrainer.select(ls), part]))
+    sel = BodyTrainer.select(ls)
+    assert {p["source"] for p in sel.provenance} == {"L1", "L2b"}
+    l1_trials = sorted({p["trial"] for p in sel.provenance if p["source"] == "L1"})
+    test_trials = set(l1_trials[len(l1_trials) // 2:])
+    is_test = np.array([p["trial"] in test_trials for p in sel.provenance])
+    seen = []
+
+    class Spy(BodyCoordinateDecoder):
+        def fit(self, windows, labels, provenance, session_references=None):
+            seen.extend(p["source"] for p in provenance)
+            assert all(np.shape(w) == (FS, CFG1.hardware.n_channels) for w in windows)   # only EEG
+            return super().fit(windows, labels, provenance, session_references)
+
+    import neural_cursor.data_engine as de
+    original = de.BodyCoordinateDecoder
+    de.BodyCoordinateDecoder = Spy
+    try:
+        dec = trainer.fit(sel.mask(~is_test))
+    finally:
+        de.BodyCoordinateDecoder = original
+    assert set(seen) == {"L1", "L2b"} and isinstance(dec, BodyCoordinateDecoder)
+    assert set(trainer.last_fit_info["train_mix"]["source"]) == {"L1", "L2b"}
+    test = sel.mask(is_test)
+    y = body_labels(test)[:, 1]
+    out = dec.predict_many(test.windows)[:, 1]
+    m = y != 0
+    assert np.mean(np.sign(out[m]) == y[m]) > 0.8                           # feet vs hands from cue labels
+    gaze = LabelledSet([np.zeros((FS, 4), np.float32)] * len(sel), sel.labels, sel.provenance)
+    with pytest.raises(ValueError, match="only EEG"):
+        trainer.fit(gaze)
+    assert not any(p.get("source") for p in Trainer(CFG1).select(ls).provenance)
+
+
+def test_shadow_trainer_uses_S_with_refit_body_labels(champion):
+    """The shadow positive control trains only on S, with ReFIT labels in body coordinates given a sign
+    per axis beyond sin 22.5°.  It is the deployed model class, takes the deployed decoder's x status,
+    and cannot earn x on its own sighted data."""
+    _, ls, _ = champion
+    shadow = ShadowTrainer(CFG1)
+    for src in ("L1", "L2b", "H", "R", "J"):
+        with pytest.raises(ValueError, match="trains only on"):
+            shadow.fit(_by_source(ls, src))
+    s = ShadowTrainer.select(ls)
+    assert {p["source"] for p in s.provenance} == {"S"}
+    lab = shadow.axis_labels(s)
+    u = refit_body_labels(s)
+    assert np.array_equal(lab, np.where(np.abs(u) >= np.sin(np.pi / 8), np.sign(u), 0).astype(int))
+    assert np.any(lab[:, 1] > 0) and np.any(lab[:, 1] < 0)
+    dec = shadow.fit(s, x_enabled=True)
+    assert isinstance(dec, ShadowBodyDecoder) and isinstance(dec, BodyCoordinateDecoder) and dec.x_enabled
+    assert dec.predict(s.windows[0]).shape == (2,)
+    assert shadow.last_fit_info["role"] == "shadow" and set(shadow.last_fit_info["train_mix"]["source"]) == {"S"}
+    assert not ShadowTrainer(CFG1).fit(s).x_enabled
+    with pytest.raises(ValueError):
+        dec.earn_x(s.windows, lab, s.provenance)                            # x is earned on L1/L2b only
+    with pytest.raises(ValueError, match="trains only on"):
+        ShadowBodyDecoder(CFG1, FS).fit(_by_source(ls, "L1").windows, body_labels(_by_source(ls, "L1")),
+                                        _by_source(ls, "L1").provenance)
