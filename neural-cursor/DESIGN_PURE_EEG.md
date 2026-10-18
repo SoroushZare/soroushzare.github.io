@@ -204,7 +204,10 @@ leak 1, per person over all days (slopes relative to the identity-trial margin, 
 - The screen interval narrows as 1/√trials and crosses inside ±10% only at about 900 held-out trials per
   person (48 min × 4 sessions). At the default 8 min per session, nothing can be certified; the 3-day
   default runs (`results/champion_d3_*`) are NO_BODY_SIGNAL or inconclusive for exactly this reason.
-  **Held-out minutes are the binding resource of the study** and are now sized accordingly (§6, §9).
+  **Held-out minutes are the binding resource of the study.** The plan (§6, §9) gives ~1,600 rotated
+  held-out trials per deep person (32 H blocks × ~50), above the ~900 these strong, gel-equivalent
+  simulated responders needed; the requirement grows as 1/ρ², so weaker or dry-penalised people need
+  proportionally more, and the G2 pilot must re-size H time from the measured ρ before collection.
 - Person 2 is flagged although the deployed decoder never trained on screen data: in held-out blocks the
   simulated display-driven activity spills onto the motor channels and the output moves with it by ~9% of
   the margin. Screen-blind training does not guarantee a screen-blind decoder; it has to be measured.
