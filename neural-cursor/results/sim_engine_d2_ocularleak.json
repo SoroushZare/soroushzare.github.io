@@ -1,0 +1,849 @@
+{
+  "config": {
+    "days": 2,
+    "hours": 0.5,
+    "pop": 0,
+    "users": 2,
+    "seed": 20261004,
+    "pop_minutes": 4.0,
+    "assist_gain": 0.5,
+    "label_hop_s": 0.5,
+    "min_new_windows": 200,
+    "min_heldout": 40,
+    "audit_max_windows": 1500,
+    "audit_permutations": 200,
+    "ocular_leak_fraction": 1.0,
+    "user_learning_rate": 0.0,
+    "eval_minutes": 2.0,
+    "intent_angle_sd_deg": 30.0,
+    "intent_lapse_prob": 0.15,
+    "heterogeneity_range": [
+      0.3,
+      0.7
+    ],
+    "pop_ref_windows": 300.0,
+    "min_heldout_trials": 8
+  },
+  "targets": [
+    {
+      "index": 0,
+      "seed": 911245809,
+      "heterogeneity": 0.4625,
+      "intent_gain_uv": 6.4918,
+      "ocular_leak": true,
+      "eye_gain_uv": 1.0,
+      "day_drift_sd": 0.1,
+      "user_learning_rate": 0.0
+    },
+    {
+      "index": 1,
+      "seed": 905387283,
+      "heterogeneity": 0.6471,
+      "intent_gain_uv": 4.3118,
+      "ocular_leak": true,
+      "eye_gain_uv": 1.0,
+      "day_drift_sd": 0.1,
+      "user_learning_rate": 0.0
+    }
+  ],
+  "population": [],
+  "conditions": {
+    "own": {
+      "mean_by_day": [
+        {
+          "day": 1,
+          "cum_hours": 0.5,
+          "n_users": 2,
+          "deployed": [
+            "none"
+          ],
+          "decoder_score_defined_zero": true,
+          "decoder_cosine_ci95": null,
+          "promoted": 2,
+          "decoder_cosine": 0.0,
+          "decoder_r": 0.0,
+          "decoder_constant_ceiling": 0.02717292742680261,
+          "n_eval_windows": 272.0,
+          "closed_loop.success": 0.0,
+          "closed_loop.time_to_target_s": null,
+          "closed_loop.throughput_bps": null,
+          "blank_feedback.success": 0.0,
+          "free_use.success": null,
+          "purity.scores.full.score": 0.2730373580113643,
+          "purity.scores.full.floor": 0.04860417322285994,
+          "purity.certification_scores.full.score": 0.31145458514997254,
+          "purity.certification_scores.full.floor": 0.04973597690592625,
+          "purity.certification_scores.slow.score": -0.024271255512816833,
+          "purity.certification_scores.frontal.score": 0.008775674279560918,
+          "purity_flags": {
+            "PASS": 2
+          }
+        },
+        {
+          "day": 2,
+          "cum_hours": 1.0,
+          "n_users": 2,
+          "deployed": [
+            "v1"
+          ],
+          "decoder_score_defined_zero": false,
+          "decoder_cosine_ci95": null,
+          "promoted": 0,
+          "decoder_cosine": 0.3640050439179824,
+          "decoder_r": 0.3775833624996085,
+          "decoder_constant_ceiling": 0.02717292742680261,
+          "n_eval_windows": 272.0,
+          "closed_loop.success": 0.4861111111111111,
+          "closed_loop.time_to_target_s": 5.293137254901957,
+          "closed_loop.throughput_bps": 0.7602236461076332,
+          "blank_feedback.success": 0.30727272727272725,
+          "free_use.success": null,
+          "purity.scores.full.score": 0.27097484556782336,
+          "purity.scores.full.floor": 0.06161681024732611,
+          "purity.certification_scores.full.score": 0.26952294418521383,
+          "purity.certification_scores.full.floor": 0.059269852719126076,
+          "purity.certification_scores.slow.score": -0.028148838022329873,
+          "purity.certification_scores.frontal.score": -0.03258445280289159,
+          "purity_flags": {
+            "PASS": 2
+          }
+        }
+      ],
+      "per_user": [
+        {
+          "user": 0,
+          "condition": "own",
+          "subject": {
+            "index": 0,
+            "seed": 911245809,
+            "heterogeneity": 0.4625,
+            "intent_gain_uv": 6.4918,
+            "ocular_leak": true,
+            "eye_gain_uv": 1.0,
+            "day_drift_sd": 0.1,
+            "user_learning_rate": 0.0
+          },
+          "days": [
+            {
+              "day": 1,
+              "cum_hours": 0.5,
+              "cum_task_hours": 0.375,
+              "deployed": "none",
+              "decoder_cosine": 0.0,
+              "decoder_r": 0.0,
+              "decoder_cosine_ci95": [
+                0.0,
+                0.0
+              ],
+              "decoder_constant_ceiling": 0.05434585485360511,
+              "decoder_score_defined_zero": true,
+              "n_eval_windows": 272,
+              "n_eval_trials": 34,
+              "today": {
+                "cosine": 0.0,
+                "r": 0.0,
+                "n": 1088,
+                "constant_ceiling": 0.03140544443665459
+              },
+              "closed_loop": {
+                "n_trials": 16,
+                "success": 0.0,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "blank_feedback": {
+                "n_trials": 10,
+                "success": 0.0,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "free_use": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows_day": 1868,
+              "n_windows_total": 1868,
+              "retrain": {
+                "promoted": true,
+                "challenger_cosine": 0.45374958191649856,
+                "champion_cosine": 0.0,
+                "floor": 0.13548255347301286,
+                "p_value": 0.0004997501249375312,
+                "n_heldout": 224,
+                "n_heldout_trials": 28,
+                "n_fresh": 0,
+                "n_train": 1644,
+                "version": 1
+              },
+              "champion_version": 1,
+              "purity": {
+                "flags": [
+                  "PASS"
+                ],
+                "whole_set_flags": [
+                  "DISPLAY_LEAK"
+                ],
+                "certification_scores": {
+                  "intercept": {
+                    "score": -0.013802164732484207,
+                    "floor": -0.008716603336795263,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.3197628650091579,
+                    "floor": 0.050577708766713386,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": -0.0033398527966817674,
+                    "floor": 0.049864040007229,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": -0.07275185086171868,
+                    "floor": 0.04945757151921634,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.21553426629327702,
+                    "floor": 0.050889412220379036,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "skipped": "nothing spatial was displayed on certifying windows"
+                  },
+                  "auditor:eyetracker": {
+                    "score": -0.013802164732484207,
+                    "floor": -0.008716603336795263,
+                    "beats_floor": false
+                  }
+                },
+                "n": 1500,
+                "scores": {
+                  "intercept": {
+                    "score": 0.08539498976624273,
+                    "floor": 0.08784152808134159,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.2920307668657531,
+                    "floor": 0.05448253383618547,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": 0.025908870464575184,
+                    "floor": 0.05965874405035741,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": 0.02773752713788438,
+                    "floor": 0.04508256370568834,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.2051230490369165,
+                    "floor": 0.061828341126136006,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "score": 0.42473133763445425,
+                    "floor": 0.09649221574733347,
+                    "beats_floor": true
+                  },
+                  "auditor:eyetracker": {
+                    "score": 0.42473133763445425,
+                    "floor": 0.09649221574733349,
+                    "beats_floor": true
+                  }
+                },
+                "feedback": {
+                  "visible": 0.12517982411006323,
+                  "blank": 0.0067307775668928385,
+                  "difference": 0.1184490465431704,
+                  "ci95": [
+                    -0.356969521330192,
+                    0.5954869592265645
+                  ],
+                  "visible_raw": 0.23876139953108333,
+                  "blank_raw": 0.28584433246541563,
+                  "intercept_visible": 0.1135815754210201,
+                  "intercept_blank": 0.2791135548985228,
+                  "n_visible": 385,
+                  "n_blank": 241,
+                  "n_visible_trials": 16,
+                  "n_blank_trials": 10
+                },
+                "by_block": {
+                  "blank_feedback": {
+                    "n": 241,
+                    "full": 0.28584433246541563,
+                    "intercept": 0.2791135548985228
+                  },
+                  "closed_loop": {
+                    "n": 385,
+                    "full": 0.23876139953108333,
+                    "intercept": 0.1135815754210201
+                  },
+                  "cued_blank": {
+                    "n": 874,
+                    "full": 0.31720197637871617,
+                    "intercept": 0.019562026752548593
+                  }
+                },
+                "untested": [
+                  "visual-cortex responses to the display on target-display windows: occipital channels also carry alpha-lateralised attention (intent), so the occipital surrogate cannot separate a visual leak from intent; only cued_blank windows certify decoding"
+                ]
+              },
+              "modulation_depth": 0.8114808831386726
+            },
+            {
+              "day": 2,
+              "cum_hours": 1.0,
+              "cum_task_hours": 0.75,
+              "deployed": "v1",
+              "decoder_cosine": 0.38090107297497044,
+              "decoder_r": 0.3783585980602081,
+              "decoder_cosine_ci95": [
+                0.30971776795644423,
+                0.44961863764117577
+              ],
+              "decoder_constant_ceiling": 0.05434585485360511,
+              "decoder_score_defined_zero": false,
+              "n_eval_windows": 272,
+              "n_eval_trials": 34,
+              "today": {
+                "cosine": 0.34951111215301844,
+                "r": 0.3991194885169112,
+                "n": 872,
+                "constant_ceiling": 0.03453683448467759
+              },
+              "closed_loop": {
+                "n_trials": 72,
+                "success": 0.4722222222222222,
+                "time_to_target_s": 4.952941176470586,
+                "throughput_bps": 0.8108177313788704
+              },
+              "blank_feedback": {
+                "n_trials": 25,
+                "success": 0.16,
+                "time_to_target_s": 4.849999999999998,
+                "throughput_bps": 1.0726901032966751
+              },
+              "free_use": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows_day": 1732,
+              "n_windows_total": 3600,
+              "retrain": {
+                "promoted": false,
+                "challenger_cosine": 0.42745755579776695,
+                "champion_cosine": 0.3908664803100922,
+                "ci95": [
+                  -0.015743904801739313,
+                  0.08879000304676163
+                ],
+                "n_heldout": 616,
+                "n_heldout_trials": 77,
+                "n_fresh": 392,
+                "n_train": 2984,
+                "version": 2
+              },
+              "champion_version": 1,
+              "purity": {
+                "flags": [
+                  "PASS"
+                ],
+                "whole_set_flags": [
+                  "DISPLAY_LEAK"
+                ],
+                "certification_scores": {
+                  "intercept": {
+                    "score": 0.013793561799890216,
+                    "floor": 0.020815978033622905,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.2738336270076372,
+                    "floor": 0.06368143830084311,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": -0.015518997223875754,
+                    "floor": 0.055027137108606766,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": -0.015361358657968482,
+                    "floor": 0.04827041360216175,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.15445568515765457,
+                    "floor": 0.04492990891986811,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "skipped": "nothing spatial was displayed on certifying windows"
+                  },
+                  "auditor:eyetracker": {
+                    "score": 0.013793561799890216,
+                    "floor": 0.020815978033622905,
+                    "beats_floor": false
+                  }
+                },
+                "n": 1500,
+                "scores": {
+                  "intercept": {
+                    "score": 0.12894523326314974,
+                    "floor": 0.13825744706811696,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.280381550513464,
+                    "floor": 0.07324017914446224,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": 0.08747165975071275,
+                    "floor": 0.10831037457470837,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": 0.05926672936205931,
+                    "floor": 0.0729078135764269,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.19588181370982932,
+                    "floor": 0.1163823185644273,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "score": 0.49458400008162395,
+                    "floor": 0.12246231524098734,
+                    "beats_floor": true
+                  },
+                  "auditor:eyetracker": {
+                    "score": 0.423541898702265,
+                    "floor": 0.1252843688071496,
+                    "beats_floor": true
+                  }
+                },
+                "feedback": {
+                  "visible": 0.0209117556742998,
+                  "blank": -0.019441944536388936,
+                  "difference": 0.04035370021068874,
+                  "ci95": [
+                    -0.22857177450008434,
+                    0.28058739774896835
+                  ],
+                  "visible_raw": 0.23253210011894837,
+                  "blank_raw": 0.30539091269881313,
+                  "intercept_visible": 0.21162034444464856,
+                  "intercept_blank": 0.32483285723520205,
+                  "n_visible": 531,
+                  "n_blank": 215,
+                  "n_visible_trials": 72,
+                  "n_blank_trials": 25
+                },
+                "by_block": {
+                  "blank_feedback": {
+                    "n": 215,
+                    "full": 0.30539091269881313,
+                    "intercept": 0.32483285723520205
+                  },
+                  "closed_loop": {
+                    "n": 531,
+                    "full": 0.23253210011894837,
+                    "intercept": 0.21162034444464856
+                  },
+                  "cued_blank": {
+                    "n": 754,
+                    "full": 0.30694792357664474,
+                    "intercept": 0.014865229030567664
+                  }
+                },
+                "untested": [
+                  "visual-cortex responses to the display on target-display windows: occipital channels also carry alpha-lateralised attention (intent), so the occipital surrogate cannot separate a visual leak from intent; only cued_blank windows certify decoding"
+                ]
+              },
+              "modulation_depth": 0.8114808831386726
+            }
+          ]
+        },
+        {
+          "user": 1,
+          "condition": "own",
+          "subject": {
+            "index": 1,
+            "seed": 905387283,
+            "heterogeneity": 0.6471,
+            "intent_gain_uv": 4.3118,
+            "ocular_leak": true,
+            "eye_gain_uv": 1.0,
+            "day_drift_sd": 0.1,
+            "user_learning_rate": 0.0
+          },
+          "days": [
+            {
+              "day": 1,
+              "cum_hours": 0.5,
+              "cum_task_hours": 0.375,
+              "deployed": "none",
+              "decoder_cosine": 0.0,
+              "decoder_r": 0.0,
+              "decoder_cosine_ci95": [
+                0.0,
+                0.0
+              ],
+              "decoder_constant_ceiling": 1.1020596200323245e-16,
+              "decoder_score_defined_zero": true,
+              "n_eval_windows": 272,
+              "n_eval_trials": 34,
+              "today": {
+                "cosine": 0.0,
+                "r": 0.0,
+                "n": 1088,
+                "constant_ceiling": 0.02325204161888515
+              },
+              "closed_loop": {
+                "n_trials": 16,
+                "success": 0.0,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "blank_feedback": {
+                "n_trials": 10,
+                "success": 0.0,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "free_use": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows_day": 1868,
+              "n_windows_total": 1868,
+              "retrain": {
+                "promoted": true,
+                "challenger_cosine": 0.3187880932307356,
+                "champion_cosine": 0.0,
+                "floor": 0.1252356288155625,
+                "p_value": 0.0004997501249375312,
+                "n_heldout": 224,
+                "n_heldout_trials": 28,
+                "n_fresh": 0,
+                "n_train": 1644,
+                "version": 1
+              },
+              "champion_version": 1,
+              "purity": {
+                "flags": [
+                  "PASS"
+                ],
+                "whole_set_flags": [
+                  "DISPLAY_LEAK"
+                ],
+                "certification_scores": {
+                  "intercept": {
+                    "score": -0.06942365670413705,
+                    "floor": 0.015149813849602069,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.3031463052907872,
+                    "floor": 0.04889424504513912,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": 0.020891201355803603,
+                    "floor": 0.04907186506479234,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": 0.02420933983608501,
+                    "floor": 0.0418372358724739,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.14029876138568456,
+                    "floor": 0.04750781605071706,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "skipped": "nothing spatial was displayed on certifying windows"
+                  },
+                  "auditor:eyetracker": {
+                    "score": -0.06942365670413705,
+                    "floor": 0.015149813849602069,
+                    "beats_floor": false
+                  }
+                },
+                "n": 1500,
+                "scores": {
+                  "intercept": {
+                    "score": -0.021663370263757007,
+                    "floor": 0.03908029533754693,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.25404394915697553,
+                    "floor": 0.04272581260953441,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": 0.031065616450963878,
+                    "floor": 0.031380053061681595,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": 0.03182683799160589,
+                    "floor": 0.038222674819891306,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.1381467565641929,
+                    "floor": 0.04022881115914935,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "score": 0.3946398530935251,
+                    "floor": 0.08004828745420195,
+                    "beats_floor": true
+                  },
+                  "auditor:eyetracker": {
+                    "score": 0.3946398530935251,
+                    "floor": 0.08004828745420191,
+                    "beats_floor": true
+                  }
+                },
+                "feedback": {
+                  "visible": 0.2727240583681025,
+                  "blank": 0.2111508139982599,
+                  "difference": 0.06157324436984257,
+                  "ci95": [
+                    -0.5080425536729675,
+                    0.6397579240554478
+                  ],
+                  "visible_raw": 0.21573814662200536,
+                  "blank_raw": 0.1862869830342615,
+                  "intercept_visible": -0.05698591174609705,
+                  "intercept_blank": -0.024863830963998405,
+                  "n_visible": 385,
+                  "n_blank": 241,
+                  "n_visible_trials": 16,
+                  "n_blank_trials": 10
+                },
+                "by_block": {
+                  "blank_feedback": {
+                    "n": 241,
+                    "full": 0.1862869830342615,
+                    "intercept": -0.024863830963998405
+                  },
+                  "closed_loop": {
+                    "n": 385,
+                    "full": 0.21573814662200536,
+                    "intercept": -0.05698591174609705
+                  },
+                  "cued_blank": {
+                    "n": 874,
+                    "full": 0.2896013436781861,
+                    "intercept": -0.005221162598472157
+                  }
+                },
+                "untested": [
+                  "visual-cortex responses to the display on target-display windows: occipital channels also carry alpha-lateralised attention (intent), so the occipital surrogate cannot separate a visual leak from intent; only cued_blank windows certify decoding"
+                ]
+              },
+              "modulation_depth": 0.5389796474365944
+            },
+            {
+              "day": 2,
+              "cum_hours": 1.0,
+              "cum_task_hours": 0.75,
+              "deployed": "v1",
+              "decoder_cosine": 0.3471090148609943,
+              "decoder_r": 0.3768081269390089,
+              "decoder_cosine_ci95": [
+                0.27592000286545254,
+                0.4238143904792142
+              ],
+              "decoder_constant_ceiling": 1.1020596200323245e-16,
+              "decoder_score_defined_zero": false,
+              "n_eval_windows": 272,
+              "n_eval_trials": 34,
+              "today": {
+                "cosine": 0.32353691774050897,
+                "r": 0.3511783722403751,
+                "n": 872,
+                "constant_ceiling": 0.03782665711575835
+              },
+              "closed_loop": {
+                "n_trials": 66,
+                "success": 0.5,
+                "time_to_target_s": 5.633333333333328,
+                "throughput_bps": 0.709629560836396
+              },
+              "blank_feedback": {
+                "n_trials": 22,
+                "success": 0.45454545454545453,
+                "time_to_target_s": 5.469999999999996,
+                "throughput_bps": 0.9179033088141204
+              },
+              "free_use": {
+                "n_trials": 0,
+                "success": null,
+                "time_to_target_s": null,
+                "throughput_bps": null
+              },
+              "n_windows_day": 1770,
+              "n_windows_total": 3638,
+              "retrain": {
+                "promoted": false,
+                "challenger_cosine": 0.35445997249234884,
+                "champion_cosine": 0.3252181467802921,
+                "ci95": [
+                  -0.004603226565968477,
+                  0.06442135335193264
+                ],
+                "n_heldout": 616,
+                "n_heldout_trials": 77,
+                "n_fresh": 392,
+                "n_train": 3022,
+                "version": 2
+              },
+              "champion_version": 1,
+              "purity": {
+                "flags": [
+                  "PASS"
+                ],
+                "whole_set_flags": [
+                  "DISPLAY_LEAK"
+                ],
+                "certification_scores": {
+                  "intercept": {
+                    "score": 0.017308270297094138,
+                    "floor": 0.01769165855844959,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.2652122613627905,
+                    "floor": 0.05485826713740904,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": -0.049649908381907436,
+                    "floor": 0.038286565876804214,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": -0.04093631738669126,
+                    "floor": 0.050798853913137064,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.12711191048911627,
+                    "floor": 0.04586140158277666,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "skipped": "nothing spatial was displayed on certifying windows"
+                  },
+                  "auditor:eyetracker": {
+                    "score": 0.017308270297094138,
+                    "floor": 0.01769165855844959,
+                    "beats_floor": false
+                  }
+                },
+                "n": 1500,
+                "scores": {
+                  "intercept": {
+                    "score": 0.07094777865786914,
+                    "floor": 0.08203568433008387,
+                    "beats_floor": false
+                  },
+                  "full": {
+                    "score": 0.2615681406221828,
+                    "floor": 0.049993441350189995,
+                    "beats_floor": true
+                  },
+                  "frontal": {
+                    "score": 0.03741170434321507,
+                    "floor": 0.05533739565363942,
+                    "beats_floor": false
+                  },
+                  "slow": {
+                    "score": -0.001107724310696314,
+                    "floor": 0.051527435821686784,
+                    "beats_floor": false
+                  },
+                  "occipital": {
+                    "score": 0.1437814907044384,
+                    "floor": 0.05780874801461716,
+                    "beats_floor": true
+                  },
+                  "display": {
+                    "score": 0.5051381754296307,
+                    "floor": 0.07643491572857154,
+                    "beats_floor": true
+                  },
+                  "auditor:eyetracker": {
+                    "score": 0.4458563625492327,
+                    "floor": 0.08982148762140188,
+                    "beats_floor": true
+                  }
+                },
+                "feedback": {
+                  "visible": 0.10919682272034559,
+                  "blank": 0.11228505930042927,
+                  "difference": -0.0030882365800836836,
+                  "ci95": [
+                    -0.3183694835826654,
+                    0.2869473125802303
+                  ],
+                  "visible_raw": 0.24511353734409963,
+                  "blank_raw": 0.2326077762043394,
+                  "intercept_visible": 0.13591671462375404,
+                  "intercept_blank": 0.12032271690391011,
+                  "n_visible": 544,
+                  "n_blank": 217,
+                  "n_visible_trials": 66,
+                  "n_blank_trials": 22
+                },
+                "by_block": {
+                  "blank_feedback": {
+                    "n": 217,
+                    "full": 0.2326077762043394,
+                    "intercept": 0.12032271690391011
+                  },
+                  "closed_loop": {
+                    "n": 544,
+                    "full": 0.24511353734409963,
+                    "intercept": 0.13591671462375404
+                  },
+                  "cued_blank": {
+                    "n": 739,
+                    "full": 0.2821847891498547,
+                    "intercept": 0.008623742440234188
+                  }
+                },
+                "untested": [
+                  "visual-cortex responses to the display on target-display windows: occipital channels also carry alpha-lateralised attention (intent), so the occipital surrogate cannot separate a visual leak from intent; only cued_blank windows certify decoding"
+                ]
+              },
+              "modulation_depth": 0.5389796474365944
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "runtime_s": 88.3676514130002
+}

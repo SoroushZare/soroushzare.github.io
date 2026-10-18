@@ -440,9 +440,17 @@ class PurityAudit:
         else:
             reports["display"] = {"skipped": "nothing spatial was displayed on certifying windows"}
         for name, F in auditor_feats.items():
-            reports[f"auditor:{name}"], _ = cv.evaluate(F[idx])
-        flags = [f for f in self._flags(reports, {}, chance=reports["intercept"]["score"]) if f != "PASS"]
-        if any(r.get("beats_floor", False) for k, r in reports.items() if k.startswith("auditor:")):
+            Fi = np.asarray(F, float)[idx]
+            if np.ptp(Fi, axis=0).max() < _EPS:
+                reports[f"auditor:{name}"] = {"skipped": "constant on certifying windows (fixation held)"}
+            else:
+                reports[f"auditor:{name}"], _ = cv.evaluate(Fi)
+        chance = reports["intercept"]["score"]
+        flags = [f for f in self._flags(reports, {}, chance=chance) if f != "PASS"]
+        # An auditor flags only if it beats its floor AND the no-information intercept: an intercept-only
+        # fit clears a shift-null floor ~5 % of the time on its own, which is not gaze tracking the cue.
+        if any(r.get("beats_floor", False) and r["score"] > chance
+               for k, r in reports.items() if k.startswith("auditor:") and "skipped" not in r):
             flags.append("GAZE_TRACKS_LABEL")
         decodes = bool(reports["full"].get("beats_floor", False))
         verdict = ([] if decodes else ["NO_CORTICAL_EVIDENCE"]) + flags

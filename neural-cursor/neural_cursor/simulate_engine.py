@@ -148,6 +148,9 @@ class SimConfig:
     eval_minutes: float = 2.0
     intent_angle_sd_deg: float = 0.0
     intent_lapse_prob: float = 0.0
+    fixation_break: float = 0.0     # gaze drift toward the cued direction on cued_blank trials, as a
+                                    # fraction of the full gaze range (0 = fixation held; > 0 makes the
+                                    # certifying windows themselves ocular, which the audit must catch)
     heterogeneity_range: Tuple[float, float] = HETEROGENEITY_RANGE
     pop_ref_windows: float = 300.0
     min_heldout_trials: int = 8
@@ -310,9 +313,12 @@ class DayRunner:
             self.emit(tm.settle_s)
             self._logger.event("trial_start", trial_start_payload(block, trial, cued_goal(cue)), t=self.t)
             self.subject.set_intent(*cue.vector)
+            if self.sim.fixation_break > 0:
+                self.subject.set_gaze(*(self.sim.fixation_break * np.asarray(cue.vector)))
             self.emit(tm.intent_s)
             self._logger.event("trial_end", {"trial": trial, "outcome": "cued"}, t=self.t)
             self.subject.set_intent(0.0, 0.0)
+            self.subject.set_gaze(0.0, 0.0)
             self.emit(tm.iti_s)
         return []
 
@@ -702,6 +708,7 @@ def to_markdown(res: dict) -> str:
              f"user learning rate {c['user_learning_rate']} (0 = users do not learn); topography heterogeneity "
              f"h ~ U{tuple(c['heterogeneity_range'])}; prior pseudo-count {c['pop_ref_windows']:g} windows; "
              f"intent mismatch {c['intent_angle_sd_deg']:g}° sd, lapse p {c['intent_lapse_prob']:g}; "
+             f"fixation break {c.get('fixation_break', 0.0):g}; "
              f"runtime {res['runtime_s']:.0f} s.",
              "decoder cosine [95 % trial CI] / r: the decoder deployed that day, on a FIXED evaluation pool "
              f"({c['eval_minutes']:g} min of auditory cued_blank per simulated day, never trained on), so every day "
@@ -784,6 +791,8 @@ def main(argv: Optional[Sequence[str]] = None) -> dict:
                     help="closed-loop intent error (deg sd, re-drawn every 1 s); 0 = oracle labels")
     ap.add_argument("--intent-lapse", type=float, default=SimConfig.intent_lapse_prob,
                     help="probability that a 1 s closed-loop segment carries no intent")
+    ap.add_argument("--fixation-break", type=float, default=SimConfig.fixation_break,
+                    help="gaze drift toward the cue on cued_blank trials (0 = fixation held)")
     ap.add_argument("--heterogeneity", type=float, nargs=2, default=SimConfig.heterogeneity_range,
                     metavar=("LO", "HI"), help="topography heterogeneity range h ~ U[LO, HI]")
     ap.add_argument("--pop-ref-windows", type=float, default=SimConfig.pop_ref_windows,
@@ -800,6 +809,7 @@ def main(argv: Optional[Sequence[str]] = None) -> dict:
                     audit_permutations=a.audit_permutations, min_heldout_trials=a.min_heldout_trials,
                     eval_minutes=a.eval_minutes, intent_angle_sd_deg=a.intent_angle_sd,
                     intent_lapse_prob=a.intent_lapse, heterogeneity_range=tuple(a.heterogeneity),
+                    fixation_break=a.fixation_break,
                     pop_ref_windows=a.pop_ref_windows)
     res = simulate(sim, DEFAULT, workers=a.workers, keep_dir=a.keep_runs or None)
     prefix = a.out or os.path.join("results", f"sim_engine_d{a.days}_h{a.hours:g}_pop{a.pop}")
