@@ -57,7 +57,7 @@ Feet/fists peaks at 1–2 s and fades (C1). Posterior with central regressed out
 | **R** pixel replay (in S) | Cursor replays toward A; no target drawn; goal B by auditory goal word | Test only | Circularity |
 | **J** just intend | Blind: auditory goal word. Sighted: drawn target | J-decoder (blind only) | Naturalness |
 
-**L2b window rule.** Windows ending 1.0–4.0 s after each cue or re-cue onset (the code's 1.0-s cue lockout); none after the hidden cursor is within the dwell radius. Decoders trained on early (1–2.5 s) vs late (2.5–4 s) windows are compared, since ERD decays.
+**L2b window rule.** Windows start 1.5 s after each cue or re-cue onset (the control onset; the cue stimulus ends at 1.0 s) and end at most 4.0 s after it; none after the hidden cursor is within the dwell radius (implemented in `data_engine.Labeler`). Decoders trained on early (1–2.5 s) vs late (2.5–4 s) windows are compared, since ERD decays.
 
 **What remains.** Nothing spatial is drawn; keys are redrawn; glyph/word cues alternate; a per-session label audit (pixel log, audio, gaze, IMU, timing) must sit at matched-n p95. Covert attention, microsaccade bias and cue-locked signatures remain (C3) and are measured (§5).
 
@@ -78,9 +78,9 @@ Feet/fists peaks at 1–2 s and fades (C1). Posterior with central regressed out
 
 **P2, held-out mappings.** H trials use **diagonal targets** (±dx, ±dy, independent signs). Under rot ±90° body-y moves the cursor horizontally, so the body drives the reachable axis while the unreachable vertical offset dy, the screen regressor for the y output, varies orthogonally. Mirrors are dropped (collinear, TEST_INSENSITIVE). C2c: closed loop; C2b: 3 s with the cursor frozen, then a keyed report. Each H block opens with 6 unscored familiarisation trials; ~20 identity trials (**I**) on the same targets are interleaved.
 - **External margin, always passed to `certify`:** the same frozen decoder's slope on I trials (same shift: moving eyes, visible cursor). It contains any screen component: conservative for β_body, < 1 point on β_screen at the 10% bound. Secondary: the L1 eval-probe slope. `certify`'s default (β_body + β_screen) would make the 70% criterion near-tautological.
-- Pass: β_body > 0 (absolute), β_body ≥ 70% of margin with lower CI ≥ 50%, upper CI of β_screen < 10%; inconclusive zone declared.
+- Pass: β_body > 0 (absolute), β_body ≥ 70% of margin with lower CI ≥ 50%, and β_screen shown inside ±10% of the margin by a two-sided equivalence test (TOST), so a decoder that reads the display with either sign fails; inconclusive zone declared. Inference is CR2 cluster-robust with t(G − k) intervals (trials are clusters) and the margin's own uncertainty propagated (Fieller ratios); units are pooled by random effects across people, and any single unit that reads the screen vetoes the pooled verdict (`certify.py`).
 - **Pooling:** per-person β (trial-cluster bootstrap) combined by a person-level random-effects model or person-then-trial bootstrap (to build; `certify` is trial-cluster only). Under no leak β_screen heterogeneity is ~0, so precision weighting is efficient; equal-weight and broad-only estimates are sensitivity analyses. Deep people contribute their first 33 sessions.
-- **Positive controls:** central-11 ReFIT shadow (matched n, differs only in provenance) and all-32 shadow. P2 counts as certification only after shadow detectability is shown in `sim_body` and the G2 pilots; otherwise the claim is "screen-blind labels with β_screen bounded below 10%".
+- **Positive controls:** central-11 ReFIT shadow and all-32 shadow, both trained on sighted (S) windows only — about a third of the deployed decoder's windows and without the prior, so they are *not* matched in n. Each counts as a positive control only when its β_screen exceeds its own no-display null (a screen-leak-0 twin in simulation; a no-display control session in real data). Without that null nothing can be CERTIFIED. P2 counts as certification only after shadow detectability is shown in `sim_body` and the G2 pilots; otherwise the claim is "screen-blind labels with β_screen bounded below 10%".
 
 **P3, pixel replay.** On 15% of S trials no target is drawn, goal B is an auditory goal word, and the cursor silently replays a past trajectory toward A. A post-trial keyed report gives the held intent; windows after a reported switch are excluded and switching is modelled. Pass: β_replay upper CI < 10% of margin on trials confirming B. Passive-watching ERD (action observation, attention) is reported separately, not a falsifier.
 
@@ -136,21 +136,21 @@ L2b precedes S so sighted strategies do not carry into labelled windows; INTERFA
 | Function | Module (status) |
 |---|---|
 | Causal 0.5–40 Hz filter, 50-Hz notch, amplitude gate, CAR over all good channels (FP1/FP2 gate-exempt, so ocular, saccadic and frontal EMG potentials enter central channels at ~1/n) | `signal` (implemented) |
-| **Local reference**: central 11 re-referenced to their own mean, which cancels the global CAR term exactly (as in central11.json) | to build |
+| **Local reference**: central 11 re-referenced to their own mean, which cancels the global CAR term exactly (as in central11.json) | `body_decoder` (implemented, Helmert basis keeps the covariance full rank) |
 | **Model A**: central 11, 1-s window, per-axis 8–30 Hz OAS covariance → rest re-centring → tangent space → L2 logistic → 2p − 1 | `body_decoder.BodyCoordinateDecoder` (implemented; `fit` refuses non-L1/L2b) |
-| x earned iff CV AUC ≥ 0.60 and > circular-shift p95; admitted only if purity confirms it beats the eye proxy (§3) | `earn_x` (implemented); eye-proxy check to build |
+| x earned iff CV AUC ≥ 0.60 and > circular-shift p95 on two consecutive retrains; admitted only if purity confirms it beats the eye proxy (§3) | `earn_x` (implemented, with the two-pass rule); eye-proxy check to build |
 | **Model B**: EEGNet, SSL-pretrained on public and unlabelled data, fine-tuned on L1/L2b; deployed only if it passes the primary purity family alone | to build |
-| Loop at 16 Hz (62.5-ms hop): `RealTimeLoop(rate_hz=16)` with the decoder's `loop_config` (config default is 10 Hz) | `realtime` (implemented) |
-| Idle gate: logistic REST vs imagery from L1 REST probes; Kalman smoother; disarm after 20 s idle, re-arm after a 2-s hold | to build |
+| Loop at 16 Hz (62.5-ms hop) via the decoder's `loop_config` | `realtime`, `realtime_demo` (implemented; simulated EEG over LSL drives cursor and arm at p95 latency 18 ms) |
+| Idle gate: logistic rest vs imagery, exact zero output when p(idle) > 0.7, armed only if its out-of-fold AUC ≥ 0.70 | `body_decoder` (implemented, trained on setup and inter-probe rest, source L0); dedicated REST probes, Kalman smoother and disarm/re-arm timing to build |
 | v_screen = g·M·v_body; goal posterior never reads the goal | `mapping.Mapping`, `task.GoalPosterior` (implemented) |
 | Labeler champion path (`source`, `body_label` from the cue); `BodyTrainer` (refuses non-L1/L2b); `ShadowTrainer` (S only). Legacy `Trainer` and blank_feedback unused | `data_engine` (implemented) |
-| Promotion: body metric (per-axis AUC on sel probes, trial-cluster paired bootstrap); sel probes excluded from the candidate they select; current `ChampionChallenger` scores 2-D mean cosine on cued_blank | to build |
-| Tests: end-to-end SessionStore → Labeler → BodyTrainer → `fit` → promotion; trainer refuses any window with `display_goal` not None; no gaze field read | to build |
+| Promotion: body metric (per-axis AUC on held-out L1 selection probes) when the decoder is a `BodyCoordinateDecoder` | `data_engine.ChampionChallenger` (implemented); sel/eval probe tagging in the protocol to build |
+| Tests: end-to-end SessionStore → Labeler → BodyTrainer → `fit` → promotion; trainer refuses any window with `display_goal` not None; no gaze field read | `tests/` (implemented) |
 | Block kinds fixation_probe, blind_closed_loop, sighted, heldout_mapping, pixel_replay | `protocol` (implemented); re-cue, R without drawn target, localiser, idle to build |
-| Simulator: transient ERD, 20% x-responders, screen-leak pathway | `sim_body` (implemented); `simulate_champion` dry-penalty sweep to build |
+| Simulator: transient ERD with post-imagery beta rebound, 20% x-responders, screen-leak and covert-leak pathways, dry penalty | `sim_body`, `simulate_champion` (implemented, with sweeps and a screen-leak-0 twin for the shadow null) |
 | EMG rim index (30–90 Hz) from a raw 500-Hz tap before the 40-Hz low-pass | to build |
 
-INTERFACES.md does not reference INTERFACES_CHAMPION.md (body_decoder, certify, mapping, sim_body), `source` provenance or champion block kinds; they are merged in M1, with the certify-window verdicts.
+Module contracts: `INTERFACES.md` (runtime) and `INTERFACES_CHAMPION.md` (body decoder, mapping, certify, sim_body, simulate_champion, realtime_demo, provenance `source`, champion block kinds).
 
 **Adaptation, per block.** Re-centring uses rest only (session-start 3-min rest plus L1 REST probes, class-free), updated between blocks, never within; this avoids removing class means on imbalanced stretches.
 
@@ -171,7 +171,7 @@ The dry penalty is an **unsourced planning range** (C2), measured at G2. Anchors
 
 | Quantity (dry, everyone reported) | Planning value | Basis |
 |---|---|---|
-| Per-1-s r on y, untrained | 0.10–0.25 | gel 0.629 → r 0.31; 20–70% loss |
+| Per-1-s r on y, untrained | 0.10–0.25 | gel 0.629 → r 0.31; 20–70% d′ loss (simulator `dry_penalty` ≈ 0.1–0.4; 0.7 removes the signal) |
 | Per-1-s r on x | 0.11–0.15 | gel 2–3 s 0.574; eye-confounded |
 | Fraction earning x | simulated | the old 10–35% used an n = 45 accuracy floor; `earn_x` at ~2,000 windows admits true AUC ≥ ~0.60 |
 | r on y at 30–60 h | 0.15–0.35 | upper end only with learning; no dry/blind precedent (C5) |
@@ -197,7 +197,7 @@ Filed on OSF at the end of M3. H1–H3 directions are hypotheses with two-sided 
 **Secondary.** x-earners; blind J ≥ 70% of cued at 30 h; robot pursuit; idle false commands ≤ 1/min, tested on the idle blocks of the fixed test sessions.
 
 **Falsifiers.**
-- **F1a, screen reading:** β_screen upper CI > 10%. **F2, circularity:** β_replay upper CI ≥ 25% on trials confirming B.
+- **F1a, screen reading:** β_screen not shown inside ±10% of the margin (two-sided). **F2, circularity:** β_replay upper CI ≥ 25% on trials confirming B.
 - **F1b, no body signal under shift:** β_body not > 0, or lower CI < 50% of the I margin; or P1 increment ≤ 0. Distinct from F1a: the decoder may fail under covariate shift without reading the screen.
 - **F3a:** random-k gain > +0.03 r falsifies our H1 prior *in the PI's favour*. **F3b/F3c:** H2/H3 CI inside ±0.03.
 - **F4, not natural:** blind J < 70% of cued at 30 h. A J-decoder trained on blind-J windows (goal-word labels) is compared with the imagery decoder on the same windows, with EMG and strategy reports: if only the imagery decoder works, "natural" means habitual imagery, and is reported so.
