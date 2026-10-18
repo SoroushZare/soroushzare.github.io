@@ -1,0 +1,290 @@
+"""Purity audit: a clean simulated user passes; an ocular leak, a display leak and feedback circularity
+are each caught by the surrogate built for them; the permutation floor keeps its 5 % size on
+autocorrelated data; label structure that needs no EEG is never credited as skill; auditor streams
+never reach the EEG decoders."""
+import numpy as np
+import pytest
+
+from neural_cursor.acquisition import SimulatedEEG
+from neural_cursor.config import DEFAULT
+from neural_cursor.data_engine import TARGET_BLOCKS
+from neural_cursor.purity import (SPATIAL_BLOCKS, PurityAudit, _PermutationCV, circular_shift_permutations,
+                                  displayed_velocity, slow_binned_means)
+from neural_cursor.signal import CausalFilter, common_average
+
+N_WINDOWS = 300
+N_PERM = DEFAULT.eval.n_permutations   # the production null size; the solves are cheap enough
+
+
+def _unit(rng, n):
+    a = rng.uniform(0, 2 * np.pi, n)
+    return np.stack([np.cos(a), np.sin(a)], axis=1)
+
+
+def _eeg(intents, seed, eye_gain_uv=0.0):
+    """One filtered, CAR'd window per intent, generated back to back (time order = list order)."""
+    hw = DEFAULT.hardware
+    sim = SimulatedEEG(hw, seed=seed, eye_gain_uv=eye_gain_uv)
+    filt = CausalFilter(hw, DEFAULT.pre)
+    filt(sim.generate(hw.fs * 2))                                # settle the filter
+    n_win = int(DEFAULT.decoder.window_s * hw.fs)
+    out = []
+    for v in intents:
+        sim.set_intent(*v)
+        out.append(common_average(filt(sim.generate(n_win))))
+    return out
+
+
+def _prov(n, blocks, step_s, goals=None):
+    """Provenance in time order; target-drawing blocks get a displayed goal (default: unrelated to the
+    labels, i.e. a screen that carries no label information)."""
+    goals = np.random.default_rng(99).uniform(-0.8, 0.8, (n, 2)) if goals is None else goals
+    out = []
+    for i in range(n):
+        b = blocks[i % len(blocks)]
+        out.append({"block": b, "feedback_visible": b == "closed_loop", "session": "s0", "t": (i + 1) * step_s,
+                    "display_goal": goals[i].tolist() if b in TARGET_BLOCKS else None})
+    return out
+
+
+def _wandering_log(rng, n, step_s):
+    """A displayed cursor that wanders independently of the labels."""
+    t = np.arange(0, n * step_s + 1, 0.1)
+    return np.column_stack([t, np.cumsum(rng.normal(0, 0.02, (len(t), 2)), axis=0)])
+
+
+def test_clean_user_passes():
+    rng = np.random.default_rng(0)
+    labels = _unit(rng, N_WINDOWS)
+    windows = _eeg(labels, seed=1, eye_gain_uv=0.0)
+    # a synthetic null for the screen: the displayed goal and cursor carry no label information
+    prov = _prov(N_WINDOWS, ["closed_loop", "blank_feedback"], DEFAULT.decoder.window_s)
+    log = _wandering_log(rng, N_WINDOWS, DEFAULT.decoder.window_s)
+    res = PurityAudit(DEFAULT, n_permutations=N_PERM).run(windows, labels, prov, cursor_logs=log)
+    r = res["reports"]
+    assert res["metric"] == "cosine" and res["n"] == N_WINDOWS
+    assert r["full"]["beats_floor"] and r["full"]["score"] > 0.2, r["full"]
+    assert abs(r["intercept"]["score"]) < 0.1                     # centred labels: no EEG, no skill
+    assert set(res["by_block"]) == {"closed_loop", "blank_feedback"}
+    assert "score" in r["display"] and not r["display"]["beats_floor"], r["display"]
+    assert "ci95" in res["feedback"]
+    assert res["untested"]                                        # visual leakage stated as untested
+    assert res["flags"] == ["PASS"], res
+
+
+def test_ocular_leak_flagged_with_slow_features_and_auditors_stay_out_of_eeg():
+    rng = np.random.default_rng(2)
+    labels = _unit(rng, N_WINDOWS)
+    windows = _eeg(labels, seed=3, eye_gain_uv=1.0)
+    prov = _prov(N_WINDOWS, ["cued_blank"], DEFAULT.decoder.window_s)
+    gaze = labels + rng.normal(0, 0.5, labels.shape)              # an eye tracker that follows intent
+    audit = PurityAudit(DEFAULT, feature_set="bandpower+slow", n_permutations=N_PERM)
+    res = audit.run(windows, labels, prov, auditors={"eye_tracker": gaze})
+    assert "OCULAR_LEAK" in res["flags"], res
+    assert res["reports"]["slow"]["beats_floor"]
+    assert res["reports"]["auditor:eye_tracker"]["beats_floor"]
+    assert "skipped" in res["reports"]["display"] and "skipped" in res["feedback"]
+    assert not res["untested"]                                    # cued_blank: nothing spatial displayed
+    # pure-EEG rule: adding an auditor changes no EEG decoder's score
+    bare = audit.run(windows, labels, prov)
+    for name in ("intercept", "full", "frontal", "slow", "occipital"):
+        assert bare["reports"][name] == res["reports"][name]
+
+
+def test_display_leak_flagged_when_labels_follow_displayed_velocity():
+    rng = np.random.default_rng(4)
+    step = 1.0                                                     # one window per displayed second
+    labels = _unit(rng, N_WINDOWS)
+    windows = _eeg(np.zeros((N_WINDOWS, 2)), seed=5)               # EEG carries no intent at all
+    prov = _prov(N_WINDOWS, ["closed_loop"], step)
+    # the cursor moved along the label direction during the second before each window end
+    speed = 0.3
+    pos = np.vstack([[0.0, 0.0], np.cumsum(labels * speed * step, axis=0)])
+    log = np.column_stack([np.arange(N_WINDOWS + 1) * step, pos])
+    res = PurityAudit(DEFAULT, n_permutations=N_PERM).run(windows, labels, prov, cursor_logs={"s0": log})
+    assert res["flags"] == ["DISPLAY_LEAK"], res
+    assert res["reports"]["display"]["score"] > 0.9
+    assert not res["reports"]["full"]["beats_floor"]
+
+
+def test_feedback_circularity_flagged_when_only_visible_windows_decode():
+    n = 2 * N_WINDOWS                     # a between-condition difference needs more windows than a floor
+    rng = np.random.default_rng(6)
+    labels = _unit(rng, n)
+    prov = _prov(n, ["closed_loop", "blank_feedback"], DEFAULT.decoder.window_s)
+    # with the cursor hidden the brain carries no intent: the 'decoding' needed the feedback
+    intents = np.where(np.array([p["feedback_visible"] for p in prov])[:, None], labels, 0.0)
+    res = PurityAudit(DEFAULT, n_permutations=N_PERM).run(
+        _eeg(intents, seed=7), labels, prov, cursor_logs=_wandering_log(rng, n, DEFAULT.decoder.window_s))
+    fb = res["feedback"]
+    assert fb["ci95"][0] > 0 and fb["visible"] > fb["blank"], fb
+    assert "FEEDBACK_CIRCULAR" in res["flags"]
+
+
+def test_binary_labels_use_auc():
+    rng = np.random.default_rng(8)
+    labels = _unit(rng, N_WINDOWS)
+    windows = _eeg(labels, seed=9)
+    res = PurityAudit(DEFAULT, n_permutations=200).run(
+        windows, (labels[:, 0] > 0).astype(int), _prov(N_WINDOWS, ["cued_blank"], 0.5))
+    assert res["metric"] == "auc"
+    assert 0.0 <= res["reports"]["full"]["score"] <= 1.0 and res["reports"]["full"]["beats_floor"]
+
+
+def test_helpers_and_input_validation():
+    fs = DEFAULT.hardware.fs
+    t = np.arange(fs // 2) / fs
+    alpha = np.tile(np.sin(2 * np.pi * 10 * t)[:, None], (1, 32))
+    assert np.allclose(slow_binned_means(alpha, fs), 0, atol=1e-9)   # 0.1 s bins null 10 Hz alpha
+    log = np.array([[0.0, 0.0, 0.0], [2.0, 0.6, -0.2]])
+    v = displayed_velocity(2.0, log)
+    assert np.allclose(v[:5], 0.3) and np.allclose(v[5:], -0.1)
+    with pytest.raises(ValueError):
+        PurityAudit(DEFAULT, n_permutations=100)
+    w = [np.zeros((250, 32))] * 20
+    with pytest.raises(ValueError):
+        PurityAudit(DEFAULT, n_permutations=200).run(w, np.zeros(20), _prov(20, ["cued_blank"], 0.5))
+
+
+def test_ocular_flag_is_corrected_for_its_two_surrogates():
+    """frontal and slow both test OCULAR_LEAK, so each needs p ≤ α / 2: a lone p = 0.04 that beats
+    its p95 floor (a 1-in-10 fluke for two surrogates) is not a leak; p = 0.01 is."""
+    audit = PurityAudit(DEFAULT, n_permutations=200)
+
+    def rep(score, p):
+        return {"score": score, "floor": 0.05, "p_value": p, "beats_floor": score > 0.05, "n": 300}
+
+    base = {"full": rep(0.0, 0.5), "frontal": rep(0.0, 0.6), "display": {"skipped": "x"}}
+    fluke = audit._flags(dict(base, slow=rep(0.1, 0.04)), {}, chance=0.0)
+    leak = audit._flags(dict(base, slow=rep(0.1, 0.01)), {}, chance=0.0)
+    assert fluke == ["PASS"] and leak == ["OCULAR_LEAK"]
+
+
+def test_ocular_share_is_measured_above_the_no_eeg_baseline():
+    """With non-centred labels an uninformative frontal surrogate scores ≈ the intercept-only model
+    (0.3 here), which is ≥ 50 % of a full score of 0.4: measured above 0 the share test is met
+    automatically; measured above the intercept-only score it is not (0.03 of 0.10 skill)."""
+    audit = PurityAudit(DEFAULT, n_permutations=200)
+
+    def rep(score, p):
+        return {"score": score, "floor": score - 0.01, "p_value": p, "beats_floor": True, "n": 300}
+
+    reps = {"full": rep(0.40, 0.001), "frontal": rep(0.33, 0.01), "slow": rep(0.0, 0.9),
+            "display": {"skipped": "x"}}
+    assert audit._flags(reps, {}, chance=0.0) == ["OCULAR_LEAK"]
+    assert audit._flags(reps, {}, chance=0.30) == ["PASS"]
+
+
+def _ar_features(rng, n, d, rho):
+    x = np.zeros((n, d))
+    e = rng.standard_normal((n, d))
+    for i in range(1, n):
+        x[i] = rho * x[i - 1] + e[i]
+    return x
+
+
+def test_permutation_floor_keeps_its_size_on_autocorrelated_nulls():
+    """Features drifting slowly (AR(1), ρ = 0.98 per window) and labels that are constant within a
+    trial or wander within it toward a per-trial goal, all independent of each other.  A window-level
+    shuffle's null is too narrow and 'beats its floor' far above the nominal 5 %; the within-session
+    circular shift stays at or below ~7 %."""
+    n, per_trial, d, n_seeds, n_perm = 300, 15, 20, 150, 200
+    prov = [{"session": f"s{i // 150}", "t": float(i), "trial": i // per_trial} for i in range(n)]
+    rates = {}
+    for kind in ("trial_constant", "closed_loop_like"):
+        hits = {"shuffle": 0, "circular": 0}
+        for seed in range(n_seeds):
+            rng = np.random.default_rng(seed)
+            goal = rng.uniform(0, 2 * np.pi, n // per_trial)
+            ang = np.repeat(goal, per_trial)
+            if kind == "closed_loop_like":                          # direction drifts within a trial
+                ang = ang + rng.normal(0, 0.1, (n // per_trial, per_trial)).cumsum(axis=1).ravel()
+            y = np.stack([np.cos(ang), np.sin(ang)], axis=1)
+            X = _ar_features(rng, n, d, 0.98)
+            nulls = {"shuffle": np.stack([rng.permutation(n) for _ in range(n_perm)]),
+                     "circular": circular_shift_permutations(prov, n_perm, rng)}
+            for name, perms in nulls.items():
+                rep, _ = _PermutationCV(y, False, perms, DEFAULT.decoder.ridge_alpha, 5, 95.0).evaluate(X)
+                hits[name] += rep["beats_floor"]
+        rates[kind] = {k: v / n_seeds for k, v in hits.items()}
+    for kind, r in rates.items():
+        assert r["circular"] <= 0.07, rates
+    assert max(r["shuffle"] for r in rates.values()) > 0.1, rates   # the old null fails this test
+
+
+def test_circular_shifts_stay_within_sessions_and_away_from_identity():
+    prov = [{"session": "a" if i < 40 else "b", "t": float(i % 40 if i < 40 else 100 - i)} for i in range(70)]
+    perms = circular_shift_permutations(prov, 500, np.random.default_rng(0))
+    a, b = np.arange(40), np.arange(40, 70)
+    assert np.all(np.isin(perms[:, a], a)) and np.all(np.isin(perms[:, b], b))
+    assert np.all(np.sort(perms, axis=1) == np.arange(70))          # each draw is a permutation
+    order_b = b[np.argsort([prov[i]["t"] for i in b])]               # session b is in reverse t order
+    pos = {int(w): k for k, w in enumerate(order_b)}
+    shifts = np.array([pos[int(perms[r, order_b[0]])] for r in range(500)])
+    assert shifts.min() >= 3 and shifts.max() <= 27                 # ⌈0.1 · 30⌉ = 3 away from identity
+
+
+def test_display_surrogate_sees_the_goal_when_the_cursor_is_hidden():
+    """blank_feedback draws the targets: the label (start → goal) is exactly the displayed goal's
+    direction.  The display surrogate must see it (DISPLAY_LEAK), never treat 'cursor hidden' as
+    'nothing displayed'; and a target block without a displayed goal cannot be audited."""
+    assert set(SPATIAL_BLOCKS) == set(TARGET_BLOCKS)                 # renderer contract == labeler's
+    rng = np.random.default_rng(10)
+    n = 200
+    goals = 0.6 * _unit(rng, n)
+    labels = goals / np.linalg.norm(goals, axis=1, keepdims=True)
+    prov = _prov(n, ["blank_feedback"], DEFAULT.decoder.window_s, goals=goals)
+    audit = PurityAudit(DEFAULT, n_permutations=200)
+    windows = _eeg(np.zeros((n, 2)), seed=11)                       # EEG carries nothing
+    res = audit.run(windows, labels, prov)                           # no cursor log needed: hidden cursor
+    assert res["reports"]["display"]["score"] > 0.9 and "DISPLAY_LEAK" in res["flags"], res["flags"]
+    assert not res["reports"]["full"]["beats_floor"]
+    assert np.abs(audit._display_features(prov, None)).sum(axis=1).min() > 0
+    with pytest.raises(ValueError, match="display_goal"):
+        audit.run(windows, labels, [dict(p, display_goal=None) for p in prov])
+    with pytest.raises(ValueError, match="cursor log"):            # a visible cursor needs its log
+        audit.run(windows, labels, _prov(n, ["closed_loop"], DEFAULT.decoder.window_s, goals=goals))
+
+
+def test_feedback_contrast_is_not_fooled_by_the_label_mean():
+    """No EEG intent anywhere.  closed_loop labels point against a display-driven bias (non-zero
+    mean), blank_feedback labels are centred: raw accuracy is higher on visible windows through the
+    intercept alone, which the old contrast read as circularity.  Skill above the intercept-only
+    model shows no difference.  Free-use windows are not part of the contrast."""
+    rng = np.random.default_rng(13)
+    n = 2 * N_WINDOWS
+    blocks = ["closed_loop", "blank_feedback", "free"]
+    prov = _prov(n, blocks, DEFAULT.decoder.window_s)
+    vis = np.array([p["block"] == "closed_loop" for p in prov])
+    raw = _unit(rng, n) + np.where(vis[:, None], np.array([0.15, -0.6]) * 2.5, 0.0)
+    labels = raw / np.linalg.norm(raw, axis=1, keepdims=True)
+    res = PurityAudit(DEFAULT, n_permutations=200).run(
+        _eeg(np.zeros((n, 2)), seed=14), labels, prov, cursor_logs=_wandering_log(rng, n, DEFAULT.decoder.window_s))
+    fb = res["feedback"]
+    assert fb["visible_raw"] - fb["blank_raw"] > 0.2                 # the intercept effect is real
+    assert fb["ci95"][0] <= 0 and "FEEDBACK_CIRCULAR" not in res["flags"], fb
+    assert fb["n_visible"] == vis.sum()                              # free use left out
+    bb = res["by_block"]["closed_loop"]
+    assert bb["intercept"] > 0.3 and bb["intercept"] >= bb["full"] - 0.05   # no-EEG baseline reported
+
+
+def test_feedback_bootstrap_resamples_trials_not_windows():
+    """Windows of one trial share its goal: with 12 trials of 25 identical-scoring windows per group
+    and no true difference, a per-window bootstrap claims ~300 independent observations and calls a
+    chance gap between trials circular; the trial-level bootstrap's CI covers zero."""
+    rng = np.random.default_rng(12)
+    n_trials, per_trial = 12, 25
+    groups = []
+    for block, visible in (("closed_loop", True), ("blank_feedback", False)):
+        trial_scores = rng.normal(0.3, 0.15, n_trials)
+        groups += [(block, visible, k, s) for k, s in enumerate(trial_scores) for _ in range(per_trial)]
+    scores = np.array([g[3] for g in groups])
+    with_trials = [{"block": b, "feedback_visible": v, "session": "s0", "trial": k} for b, v, k, _ in groups]
+    no_trials = [{key: val for key, val in p.items() if key != "trial"} for p in with_trials]
+    audit = PurityAudit(DEFAULT, n_permutations=200)
+    clustered = audit._feedback_test(scores, with_trials, np.random.default_rng(0))
+    naive = audit._feedback_test(scores, no_trials, np.random.default_rng(0))
+    width = lambda fb: fb["ci95"][1] - fb["ci95"][0]
+    assert clustered["n_visible_trials"] == clustered["n_blank_trials"] == n_trials
+    assert width(clustered) > 3 * width(naive)
+    assert clustered["ci95"][0] < 0 < clustered["ci95"][1]

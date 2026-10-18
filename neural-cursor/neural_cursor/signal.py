@@ -16,10 +16,21 @@ from .config import Hardware, Preprocessing
 
 @dataclass
 class CausalFilter:
+    """Stateful causal band-pass (+ notch) cascade, bit-identical online and offline.
+
+    Initial state: the cascade starts in the steady state it would have reached had the *first
+    sample* been applied forever (``sosfilt_zi`` scaled per channel by the steady input of each
+    stage).  A DC-coupled dry-electrode amplifier delivers offsets of several mV; starting from the
+    unit-input state ``sosfilt_zi`` alone (i.e. assuming a 1 µV input) turns that offset into a
+    high-pass onset transient of thousands of µV that rings for ~6 s, far past any warm-up.  Scaling
+    by the first sample removes the offset's transient exactly (a constant input is then already in
+    steady state) and leaves only the first sample's noise, a few µV, to decay.  The state is set on
+    the first call, so chunking still cannot change the output.
+    """
     hw: Hardware
     pre: Preprocessing
     _sos: list = field(default_factory=list)
-    _zi: list = field(default_factory=list)
+    _zi: Optional[list] = None
 
     def __post_init__(self):
         fs = self.hw.fs
@@ -30,11 +41,23 @@ class CausalFilter:
         if self.pre.notch_hz:
             b, a = sps.iirnotch(self.pre.notch_hz, 30.0, fs=fs)
             self._sos.append(sps.tf2sos(b, a))
-        self._zi = [np.repeat(sps.sosfilt_zi(s)[:, None, :], self.hw.n_channels, axis=1) for s in self._sos]
+
+    def _steady_state(self, x0: np.ndarray) -> list:
+        """Per-stage zi for a constant input x0 (n_channels,): each stage's unit-step state times the
+        DC level reaching it (the product of the DC gains of the stages before it)."""
+        zi, level = [], np.asarray(x0, dtype=np.float64)
+        for sos in self._sos:
+            zi.append(sps.sosfilt_zi(sos)[:, None, :] * level[None, :, None])
+            level = level * float(np.real(sps.sosfreqz(sos, worN=[0.0])[1][0]))
+        return zi
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """x: (n_samples, n_channels) → filtered, same shape, state carried across calls."""
         y = x.T.astype(np.float64)
+        if y.shape[1] == 0:
+            return y.T
+        if self._zi is None:
+            self._zi = self._steady_state(y[:, 0])
         for k, sos in enumerate(self._sos):
             y, self._zi[k] = sps.sosfilt(sos, y, axis=-1, zi=self._zi[k])
         return y.T

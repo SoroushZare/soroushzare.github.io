@@ -41,6 +41,20 @@ def test_causal_filter_is_stateful_and_chunk_invariant():
     assert np.allclose(whole, chunks, atol=1e-6)
 
 
+def test_causal_filter_has_no_onset_transient_from_dc_offset():
+    """Dry-electrode DC offsets of ±20 mV: started from the unit-input state they rang through the
+    high-pass for ~6 s (1.9 mV residual at 1 s).  Starting in the first sample's steady state, the
+    offset leaves no trace."""
+    cfg = DEFAULT
+    x = SimulatedEEG(cfg.hardware, seed=4).generate(cfg.hardware.fs * 3).astype(np.float64)
+    dc = np.random.default_rng(0).uniform(-2e4, 2e4, cfg.hardware.n_channels)
+    with_dc = CausalFilter(cfg.hardware, cfg.pre)(x + dc)
+    without = CausalFilter(cfg.hardware, cfg.pre)(x)
+    assert np.abs(with_dc - without).max() < 1e-3
+    f = CausalFilter(cfg.hardware, cfg.pre)                     # still chunk-invariant
+    assert np.allclose(np.concatenate([f(x[:7] + dc), f(x[7:] + dc)]), with_dc, atol=1e-6)
+
+
 def test_amplitude_gate_flags_railed_channel_but_not_fp():
     cfg = DEFAULT
     gate = AmplitudeGate(cfg.hardware, cfg.pre)
@@ -112,3 +126,18 @@ def test_trial_runner_reaches_goal_with_oracle_and_times_out_with_noise():
     o3 = tr.run(tg, cfg.task.target_radius, goal, oracle)
     assert fitts_throughput([o, o3]) > 0
     assert 0.9 < wolpaw_itr_bits_per_trial(8, 0.95) < 3.0
+
+
+def test_reported_decoder_r_and_its_floor_are_the_same_statistic():
+    """simulate.py reports decoder_r_mean (mean over x and y of Pearson r) next to its floor; the floor
+    must be the null of that statistic, not of the x-axis r alone.  Here x is decoded perfectly and y
+    is anti-decoded: the reported r is 0, the x-only r would be 1."""
+    from neural_cursor.simulate import decoder_r_with_floor, mean_axis_r
+    rng = np.random.default_rng(0)
+    ys = rng.standard_normal((60, 2))
+    pred = np.column_stack([ys[:, 0], -ys[:, 1]])
+    fl = decoder_r_with_floor(pred, ys, 300, rng)
+    assert fl.observed == mean_axis_r(pred, ys) and abs(fl.observed) < 1e-12
+    assert fl.floor_p95 < 0.3                                      # the null of the mean-axis r is near 0
+    good = decoder_r_with_floor(ys + 0.5 * rng.standard_normal(ys.shape), ys, 300, rng)
+    assert good.observed > good.floor_p95

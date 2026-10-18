@@ -1,0 +1,55 @@
+{
+ "experiment": "E6 sequential predict-then-learn replay, imag_LR, 25 held-out subjects, blocks of 9 trials",
+ "test_subjects": [
+  1,
+  2,
+  3,
+  16,
+  33,
+  42,
+  46,
+  49,
+  51,
+  57,
+  62,
+  64,
+  66,
+  71,
+  72,
+  73,
+  77,
+  79,
+  84,
+  91,
+  95,
+  96,
+  101,
+  105,
+  106
+ ],
+ "block_accuracy": {
+  "population_frozen": [
+   0.6444444444444445,
+   0.6177777777777778,
+   0.6222222222222222,
+   0.7155555555555555,
+   0.7022222222222222
+  ],
+  "own_from_scratch": [
+   0.48444444444444446,
+   0.48,
+   0.6088888888888889,
+   0.6133333333333333,
+   0.6977777777777778
+  ],
+  "population_then_adapt": [
+   0.6444444444444445,
+   0.6311111111111111,
+   0.64,
+   0.72,
+   0.6977777777777778
+  ]
+ },
+ "note": "own_from_scratch guesses at random until it has 6 trials of both classes",
+ "generated_utc": "2026-10-18T07:34:12Z"
+}

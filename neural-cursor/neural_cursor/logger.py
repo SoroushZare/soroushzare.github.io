@@ -9,14 +9,20 @@ Layout of a run directory::
     run_<utc>/cursor.csv           t, x, y, ux, uy, p_goal_max, inside, dwell   — every control step
 
 Raw samples are written *before* filtering so any pipeline can be replayed bit-exactly, and every
-writer is opened in append mode so a crash loses at most one chunk (a truncating write once lost a
-registry in the previous project).
+writer is opened in append mode (a truncating write once lost a registry in the previous project).
+
+Crash safety: every ``eeg`` call flushes the sample and timestamp files together, and every
+``event`` / ``cursor`` row is flushed as it is written, so a crash (a liblsl segfault, an OOM kill)
+loses at most the chunk being written.  Python's buffering would otherwise hold back kilobytes per
+file, by different amounts for ``eeg.f32`` and ``eeg_ts.f64``, and the run would become unreadable.
+``load_eeg`` truncates a crashed run's two files to their common length instead of rejecting it.
 """
 from __future__ import annotations
 
 import json
 import os
 import time
+import warnings
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -48,6 +54,8 @@ class RunLogger:
             return
         self._eeg.write(np.ascontiguousarray(x, dtype=np.float32).tobytes())
         self._ts.write(np.ascontiguousarray(ts, dtype=np.float64).tobytes())
+        self._eeg.flush()
+        self._ts.flush()
         self.n_samples += len(x)
 
     def event(self, kind: str, payload: Optional[Any] = None, t: Optional[float] = None) -> None:
@@ -58,6 +66,7 @@ class RunLogger:
     def cursor(self, t, pos, u, p_goal_max, inside, dwell) -> None:
         self._cur.write(f"{t:.4f},{pos[0]:.5f},{pos[1]:.5f},{u[0]:.5f},{u[1]:.5f},"
                         f"{p_goal_max:.4f},{-1 if inside is None else inside},{dwell:.3f}\n")
+        self._cur.flush()
 
     def close(self) -> None:
         for f in (self._eeg, self._ts, self._ev, self._cur):
@@ -66,10 +75,18 @@ class RunLogger:
 
     @staticmethod
     def load_eeg(run_dir: str, n_channels: int):
-        x = np.fromfile(os.path.join(run_dir, "eeg.f32"), dtype=np.float32).reshape(-1, n_channels)
+        """(samples (n, n_channels) float32, timestamps (n,)).  A run cut off by a crash can end in a
+        partial sample row and with one file a chunk ahead of the other; both are truncated to the
+        last complete sample they share (with a warning), so a crashed run stays usable."""
+        raw = np.fromfile(os.path.join(run_dir, "eeg.f32"), dtype=np.float32)
         ts = np.fromfile(os.path.join(run_dir, "eeg_ts.f64"), dtype=np.float64)
-        assert len(x) == len(ts), "sample/timestamp count mismatch — a chunk was lost"
-        return x, ts
+        n_rows = len(raw) // n_channels
+        n = min(n_rows, len(ts))
+        if len(raw) != n_rows * n_channels or n_rows != len(ts):
+            warnings.warn(f"{run_dir}: {n_rows} sample rows ({len(raw) - n_rows * n_channels} stray values) vs "
+                          f"{len(ts)} timestamps — the run was cut off; keeping the first {n} samples",
+                          RuntimeWarning, stacklevel=2)
+        return raw[:n * n_channels].reshape(n, n_channels), ts[:n]
 
 
 def _np(o):

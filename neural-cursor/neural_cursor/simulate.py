@@ -65,6 +65,18 @@ def calibration(user: SimUser, n_windows: int, rng: np.random.Generator):
     return ws, np.array(ys)
 
 
+def mean_axis_r(pred: np.ndarray, labels: np.ndarray) -> float:
+    """The reported decoder statistic: Pearson r per command axis, averaged over the axes."""
+    return float(np.mean([pearson_r(pred[:, k], labels[:, k]) for k in range(labels.shape[1])]))
+
+
+def decoder_r_with_floor(pred: np.ndarray, labels: np.ndarray, n_draws: int, rng: np.random.Generator):
+    """``mean_axis_r`` and its label-permutation floor, computed on the SAME statistic: whole label
+    rows (both axes together) are permuted and the mean-over-axes r is recomputed, so the floor is
+    the null of the number it is reported next to (a floor of the x-axis r alone is not)."""
+    return permutation_floor(lambda lab: mean_axis_r(pred, lab), labels, n_draws, rng)
+
+
 def run_condition(name: str, user: SimUser, dec, cfg: Config, blocks, rng: np.random.Generator):
     task_cfg = dataclasses.replace(cfg.task, assist_gain=0.5 if "assist" in name or name == "no_neural" else 0.0)
     runner = TrialRunner(task_cfg, rng)
@@ -102,12 +114,11 @@ def simulate(cfg: Config, users: int, trials: int, gain: float, eye: float, seed
         mask = np.array([c in cfg.hardware.eog_proxy for c in cfg.hardware.channels])
         eog = VelocityDecoder(cfg.decoder, cfg.hardware.fs, channels=mask, feature_set=feature_set).fit(ws[:240], ys[:240])
         pred = dec.predict_many(ws[240:])
-        r = np.mean([pearson_r(pred[:, k], ys[240:, k]) for k in range(2)])
-        fl = permutation_floor(lambda lab: pearson_r(pred[:, 0], lab), ys[240:, 0], 300, rng)
-        decoder_r.append(r)
+        fl = decoder_r_with_floor(pred, ys[240:], 300, rng)
+        decoder_r.append(fl.observed)
         floors.append(fl.floor_p95)
         pe = eog.predict_many(ws[240:])
-        surrogate_r.append(np.mean([pearson_r(pe[:, k], ys[240:, k]) for k in range(2)]))
+        surrogate_r.append(mean_axis_r(pe, ys[240:]))
         # identical Fitts blocks for every condition of this user
         blocks = []
         for D, W in ((0.5, 0.08), (0.8, 0.08), (0.8, 0.05)):
