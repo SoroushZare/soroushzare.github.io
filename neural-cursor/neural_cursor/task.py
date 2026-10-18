@@ -19,6 +19,9 @@ import numpy as np
 
 from .config import Task
 
+SMOOTHING_STEP_S = 0.1
+"""The step ``Task.velocity_smoothing`` is defined for (the original 10-Hz loop's period)."""
+
 
 @dataclass
 class CursorState:
@@ -50,8 +53,10 @@ class Cursor:
         self._v_smooth = np.zeros(2)
 
     def step(self, command: np.ndarray, dt: float) -> CursorState:
-        """command: decoder output in [−1, 1]² (unit = full speed in that axis)."""
-        a = self.cfg.velocity_smoothing
+        """command: decoder output in [−1, 1]² (unit = full speed in that axis).  The smoothing constant
+        is defined per ``SMOOTHING_STEP_S`` and rescaled to ``dt``, so the cursor's time constant is the
+        same at the original 10-Hz loop and the champion's 16-Hz one."""
+        a = self.cfg.velocity_smoothing ** (dt / SMOOTHING_STEP_S)
         self._v_smooth = a * self._v_smooth + (1 - a) * np.clip(command, -1, 1)
         v = self._v_smooth * self.cfg.max_speed
         p = np.clip(self.state.pos + v * dt, -1, 1)

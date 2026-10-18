@@ -1,7 +1,14 @@
 """E8: people × trials-per-person scaling surface on ds004362 (INTERFACES_CHAMPION item L).
 
 Question.  For a population prior on the champion's central montage, does the next labelled trial buy
-more when it comes from a NEW person or from one MORE trial of a person already in the pool?  E2 varied
+more when it comes from a NEW person or from one MORE trial of a person already in the pool?
+
+Role of public data (ds004362).  Its labels are display-cued and display-identifiable (E3), so under the
+champion's label rule a public-data model can only ever be a never-deployed SHADOW / reference, never
+the deployed decoder's prior (``BodyTrainer`` refuses any window whose source is not L1/L2b; the
+simulation's deployable prior is other people's L1 fixation probes).  This surface therefore measures
+the people × trials trade-off of a related central-montage pipeline on gel data; it informs how many
+people and own trials an L1-labelled prior needs, not the deployed decoder's accuracy.  E2 varied
 only the number of people (all ~45 trials each) and E2b/E6 only the own-trial count of the test person;
 neither separates breadth from depth of the training pool.  The proposal (§3c) leaves the people axis to
 existing data, and the skeptic corrections (C4) say the trials-per-person axis is untested beyond 45
@@ -11,7 +18,12 @@ Design (all pre-declared here, nothing tuned on the result)
 - Features: the champion's central-11 montage (FC5 FC1 FC2 FC6 C3 Cz C4 CP5 CP1 CP2 CP6), 8–30 Hz,
   0.5–3.5 s after target onset, OAS covariance, re-centred on the Riemannian mean of the person's own
   REST (T0) covariances, Riemannian tangent space at the training mean, L2 logistic regression (C = 1).
-  Exactly the deployed BodyCoordinateDecoder's per-axis pipeline, so the surface speaks to that decoder.
+  A RELATED pipeline, not the deployed ``BodyCoordinateDecoder``'s: that one uses 1-s windows (this
+  uses one 3-s window, so these accuracies are higher than any 1-s decoder's), a zero-phase band-pass
+  inside each window (here over the whole epoch), the tangent space at the identity after re-centring
+  (here at the training mean, ``tsupdate=False``), a StandardScaler, and C = 0.1 (here C = 1, E2's
+  value, kept so the k = 45 column reproduces E2).  The surface's shape (gain per doubling of people vs
+  of trials) is what transfers, not its absolute accuracy.
 - Training pool: N people in {2, 4, 8, 16, 32, 64, 81} drawn from the 81 non-test subjects, each giving
   their FIRST k trials in recording order, k in {10, 20, 30, 45} (a person with fewer trials gives all).
   First-k, not random-k, because that is how a calibration session accrues data.
@@ -54,7 +66,7 @@ TASKS = ("imag_FF", "imag_LR")
 NS = (2, 4, 8, 16, 32, 64, 81)
 KS = (10, 20, 30, 45)
 DRAWS = 4                  # people-draws per N below the full pool (the full pool has exactly one)
-LR_C = 1.0                 # same L2 strength as E2 and the deployed decoder
+LR_C = 1.0                 # E2's L2 strength (the deployed decoder uses C = 0.1 with a scaler; see docstring)
 LR_MAX_ITER = 3000
 N_BOOT = 2000
 ROBUST_MIN_N = 4           # post hoc robustness fit drops the N = 2 row (largest residuals in the first run)

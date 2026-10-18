@@ -14,9 +14,11 @@ import pytest
 
 from neural_cursor.acquisition import LSLEEG, SimulatedEEG
 from neural_cursor.config import DEFAULT
+from neural_cursor.data_engine import SessionStore
 from neural_cursor.decoder import VelocityDecoder
 from neural_cursor.effectors import Effector, NullEffector, ScreenCursor
 from neural_cursor.logger import RunLogger
+from neural_cursor.mapping import Mapping
 from neural_cursor.realtime import RealTimeLoop, SimLSLStreamer
 from neural_cursor.simulate import SimUser, calibration
 from neural_cursor.task import GoalPosterior
@@ -174,6 +176,26 @@ class FaultySource:
 
 def _loop(decoder, source, effector, **kw):
     return RealTimeLoop(source, decoder, effector, DEFAULT, warmup_s=0.6, sample_clock=time.time, **kw)
+
+
+def test_heldout_mapping_runs_live_with_body_frame_outputs(decoder, tmp_path):
+    """The champion's held-out-mapping blocks (C2c) need the screen mapping inside the live loop: the
+    effector gets M · v_body (here rot+90: body +y → cursor left), the assist sees the screen command,
+    ``decoded`` stays in body coordinates (what certification regresses), and the mapping is logged."""
+    sim = SimulatedEEG(DEFAULT.hardware, seed=STREAM_SEED)
+    sim.set_intent(0.0, 1.0)
+    sim.start()
+    lg = RunLogger(str(tmp_path), DEFAULT, tag="rot90")
+    M = Mapping("rot+90")
+    loop = RealTimeLoop(sim, decoder, NullEffector(), DEFAULT, logger=lg, warmup_s=0.6, mapping=M)
+    stats = loop.run(1.0)
+    lg.close()
+    assert stats["n_updates"] >= 9
+    np.testing.assert_allclose(loop.sent, M.body_to_screen(loop.decoded))
+    events = SessionStore(str(tmp_path)).load(lg.dir).events
+    assert [p["mapping"] for _, kind, p in events if kind == "realtime_start"] == ["rot+90"]
+    default = RealTimeLoop(sim, decoder, NullEffector(), DEFAULT, warmup_s=0.6)
+    assert default.mapping.name == "identity"
 
 
 def test_stale_input_sends_zero_then_aborts_and_leaves_the_effector_stopped(decoder):

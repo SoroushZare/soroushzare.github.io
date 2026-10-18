@@ -21,7 +21,10 @@ Pipeline
                   puts the lower 95 % bound of (challenger − champion) mean cosine above a margin, on
                   held-out cued_blank trials neither model was trained on: the FROZEN set from the
                   last promotion plus the newest cued trials recorded after the champion was trained.
-``DataEngine``    glues them: ``ingest(run_dir)`` and ``maybe_retrain()``.
+                  A ``BodyCoordinateDecoder`` is judged by the body metric instead: per-axis AUC on
+                  held-out L1 fixation probes (the selection probes), same rule.
+``DataEngine``    glues them: ``ingest(run_dir)`` and ``maybe_retrain()``; with a ``BodyTrainer`` it
+                  runs the champion's deployed decoder end to end (L1/L2b training, body metric).
 
 Event schema (``events.csv``, written by ``RunLogger.event(kind, payload, t)``)
 -----------------------------------------------------------------------------
@@ -88,7 +91,8 @@ For all the other sources it is required at trial start: no hindsight reveal.  F
 
 ``cue``           an L1, L2b or blind-J ``trial_start`` must have a ``cue`` since the previous
                   ``trial_start``, its ``cue_offset`` before the start, and the start at least
-                  ``CUE_LOCKOUT_S`` (1.0 s) after cue onset.  Otherwise ``ValueError``: the
+                  ``CUE_LOCKOUT_S`` (1.0 s) after cue onset and ``CUE_OFFSET_LOCKOUT_S`` (0.5 s)
+                  after cue offset.  Otherwise ``ValueError``: the
                   class-specific cue-evoked response would sit inside the labelled windows.  A ``cue``
                   payload that carries ``"body"`` must equal the trial's ``body_cue``.
 ``fixation_break``  (gaze left the 1° window; logged by the presentation layer from the eye tracker)
@@ -96,23 +100,27 @@ For all the other sources it is required at trial start: no hindsight reveal.  F
                   only selects trials here and never reaches a decoder: this module reads no auditor file.
 ``outcome_flash`` while a blind_closed_loop trial is open → ``ValueError``.  The flash must follow
                   ``trial_end``, so windows end before it.
-``body_report``   ``{"trial", "class"}``, the C2b keyed report, must come after that trial's
-                  ``trial_end`` (a keypress inside the window is a movement → ``ValueError``).  It is
-                  attached to the held-out trial as ``body_report``.
+``body_report``   ``{"trial", "class"}``, the C2b keyed report or the post-replay report of the held
+                  intent, must come after that trial's ``trial_end`` (a keypress inside the window is a
+                  movement → ``ValueError``).  It is attached to the held-out or replay trial as
+                  ``body_report``.
 ``trial_end``     with ``"aborted": true`` discards a champion trial.
 
 Labels and provenance of champion windows.  ``labels`` stay unit vectors.  For L1 / L2b they are the
 normalised cued body vector (body = screen under the identity, and nothing is drawn).  For blind J they
 are start_pos → goal.  For the visible kinds they follow the screen rule above (goal − displayed
-cursor).  L1 windows also end at most ``L1_LABEL_END_S`` (4.0 s) after cue onset.  Provenance adds
+cursor).  Cue-locked windows (L1, L2b, blind J) end at most ``CUE_LABEL_END_S`` (4.0 s) after cue onset,
+and an L2b window ends no later than the first logged (hidden) cursor row inside the dwell radius
+(``min_goal_dist``) of its goal (DESIGN_PURE_EEG §4's L2b window rule).  Provenance adds
 ``source``, ``mapping`` and ``instructed``; ``body_label`` ([bx, by], ints; the deployed decoder's
-label), ``cue_class`` and ``cue_mode`` for L1 / L2b; ``cursor_pos`` (the displayed cursor at the window
-end) for visible trials; ``variant`` and ``body_report`` for H; ``replay_goal`` for R.  ``display_goal``
+label), ``cue_class`` and ``cue_mode`` for L1 / L2b; ``cursor_pos`` / ``cursor_pos_start`` (the displayed cursor at the
+window end / start) for visible trials; ``variant`` and ``body_report`` for H; ``replay_goal`` and
+``body_report`` for R.  ``display_goal``
 is the goal for the drawn-target kinds (``CHAMPION_TARGET_BLOCKS``) and None for L1 / L2b / blind J.
 Windows of the original blocks keep exactly their original provenance keys.
 
 Champion trainers: ``BodyTrainer`` fits the deployed ``BodyCoordinateDecoder`` and refuses any window
-whose source is not L1 / L2b.  ``ShadowTrainer`` fits the never-deployed leak positive control on S
+whose source is not L1 / L2b or whose ``display_goal`` is set.  ``ShadowTrainer`` fits the never-deployed leak positive control on S
 windows only, with ReFIT labels mapped to body coordinates (``refit_body_labels``).  The original
 ``Trainer`` never selects champion blocks: they are not in ``BLOCK_KINDS``.
 
@@ -141,6 +149,7 @@ identity everywhere in this module.
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import math
@@ -153,8 +162,10 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import joblib
 import numpy as np
+from scipy.stats import rankdata
 
-from .body_decoder import AXES, TRAINABLE_SOURCES, BodyCoordinateDecoder
+from .body_decoder import AXES as BODY_AXES
+from .body_decoder import TRAINABLE_SOURCES, BodyCoordinateDecoder
 from .config import Config
 from .decoder import VelocityDecoder
 from .logger import RunLogger
@@ -189,9 +200,21 @@ FIXATION_BLOCKS: Tuple[str, ...] = ("fixation_probe", "blind_closed_loop")
 """Blocks with gaze-contingent fixation; a ``fixation_break`` discards their open trial."""
 CUE_LOCKOUT_S = 1.0
 """Cued champion windows start ≥ this long after cue onset (``protocol.CUE_LOCKOUT_S``)."""
+CUE_OFFSET_LOCKOUT_S = 0.5
+"""…and ≥ this long after cue offset (``protocol.CUE_OFFSET_LOCKOUT_S``): the offset response of a glyph
+or word that identifies its class within a session must not fall inside a labelled window."""
 L1_LABEL_END_S = 4.0
 """Fixation-probe windows end ≤ this long after cue onset (``protocol.L1_LABEL_END_S``)."""
+CUE_LABEL_END_S = 4.0
+"""Every cue-locked window (L1, L2b, blind J) ends ≤ this long after its cue's onset (DESIGN_PURE_EEG §4:
+"windows ending 1.0–4.0 s after each cue").  The ERD peaks at 1–2 s and decays (ds004362: feet/fists
+d′ 0.667 → 0.610 by 3–4 s), so a blind trial running to its 10-s timeout would otherwise fill the
+deployed decoder's training set with decayed windows (79 % of L2b windows ended after 4 s, and L2b
+was ~73 % of a person's own training windows).  Re-cues, once the protocol has them, restart it."""
 HELDOUT_VARIANTS: Tuple[str, ...] = ("C2b", "C2c")
+REPORTED_BLOCKS: Tuple[str, ...] = ("heldout_mapping", "pixel_replay")
+"""Trials a keyed ``body_report`` attaches to: the C2b report and the post-replay report of the held
+intent; certification keeps only trials whose report confirms the intent (``certify.confirmed_by_report``)."""
 RUN_FILES: Tuple[str, ...] = ("eeg.f32", "eeg_ts.f64", "events.csv", "cursor.csv")
 """The only files ``SessionStore`` ever opens in a run directory (pure-EEG rule: auditor streams that
 share the directory are invisible to the decoder path by construction, not by convention)."""
@@ -298,14 +321,15 @@ def parse_trials(session: str, events: Sequence[Tuple[float, str, object]]) -> L
     counter = 0
     cue_on = False                                          # a cue was presented and has not ended
     cue_t: Optional[float] = None                           # onset of the last cue since the last trial_start
+    cue_off_t: Optional[float] = None                       # offset of that cue
     cue_body: Optional[list] = None                         # that cue's body vector, when it logged one
     reports: Dict[int, Tuple[int, int]] = {}                # C2b keyed reports by trial id
     for t, kind, payload in events:
         if kind == EVENT_CUE:
-            cue_on, cue_t = True, t
+            cue_on, cue_t, cue_off_t = True, t, None
             cue_body = payload.get("body") if isinstance(payload, dict) else None
         elif kind == EVENT_CUE_OFFSET:
-            cue_on = False
+            cue_on, cue_off_t = False, t
         elif kind == EVENT_FIXATION_BREAK:
             if open_ is not None and open_[1].get("block") in FIXATION_BLOCKS:
                 open_ = None                                # aborted: fixation (the label's premise) failed
@@ -334,8 +358,9 @@ def parse_trials(session: str, events: Sequence[Tuple[float, str, object]]) -> L
                                  f"labelled intent")
             if "feedback_visible" not in p:
                 raise ValueError(f"{session}: trial_start at t={t} lacks 'feedback_visible'")
-            info = _champion_info(session, t, p, cue_on, cue_t, cue_body) if block in CHAMPION_BLOCKS else None
-            cue_t, cue_body = None, None                    # a cue belongs to the one trial it precedes
+            info = (_champion_info(session, t, p, cue_on, cue_t, cue_body, cue_off_t)
+                    if block in CHAMPION_BLOCKS else None)
+            cue_t, cue_off_t, cue_body = None, None, None   # a cue belongs to the one trial it precedes
             tid = int(p["trial"]) if p.get("trial") is not None else counter
             counter += 1
             open_ = (t, p, tid, info)
@@ -355,7 +380,7 @@ def parse_trials(session: str, events: Sequence[Tuple[float, str, object]]) -> L
                 start_pos=np.asarray(p.get("start_pos", (0.0, 0.0)), float),
                 source=None if info is None else info["source"], info=info or {}))
     return [replace(tr, info=dict(tr.info, body_report=reports.get(tr.trial)))
-            if tr.block == "heldout_mapping" else tr for tr in trials]
+            if tr.block in REPORTED_BLOCKS else tr for tr in trials]
 
 
 def _body_cue(session: str, t: float, value) -> Tuple[int, int]:
@@ -368,7 +393,7 @@ def _body_cue(session: str, t: float, value) -> Tuple[int, int]:
 
 
 def _champion_info(session: str, t: float, p: dict, cue_on: bool, cue_t: Optional[float],
-                   cue_body: Optional[list]) -> dict:
+                   cue_body: Optional[list], cue_off_t: Optional[float] = None) -> dict:
     """Validate a champion ``trial_start`` (module docstring) and return the fields labelling needs."""
     block, src = p["block"], p.get("source")
     where = f"{session}: {block} trial_start at t={t}"
@@ -394,6 +419,10 @@ def _champion_info(session: str, t: float, p: dict, cue_on: bool, cue_t: Optiona
         if t - cue_t < CUE_LOCKOUT_S - 1e-9:
             raise ValueError(f"{where} is {t - cue_t:.3f} s after cue onset; labelled windows must start "
                              f">= {CUE_LOCKOUT_S} s after it (cue-evoked responses differ by class)")
+        if cue_off_t is None or t - cue_off_t < CUE_OFFSET_LOCKOUT_S - 1e-9:
+            gap = "no cue_offset" if cue_off_t is None else f"{t - cue_off_t:.3f} s after cue offset"
+            raise ValueError(f"{where} is {gap}; labelled windows must start >= {CUE_OFFSET_LOCKOUT_S} s "
+                             f"after the cue ends (its offset response identifies the class)")
         info["cue_t"] = cue_t
     if src in DEPLOYED_SOURCES:
         body = _body_cue(session, t, p.get("body_cue"))
@@ -496,7 +525,8 @@ class Labeler:
 
     def signature(self) -> str:
         """Hash of everything that changes the produced windows; used to invalidate label caches."""
-        d = dict(label_rule="hidden_cursor_from_start_pos+display_goal+champion_sources_v1", hop_s=self.hop_s,
+        d = dict(label_rule="hidden_cursor_from_start_pos+display_goal+champion_sources_v2_cue_end_4s_dwell",
+                 hop_s=self.hop_s,
                  settle_s=self.settle_s,
                  min_goal_dist=self.min_goal_dist,
                  window_s=self.cfg.decoder.window_s, fs=self.fs, pre=repr(self.cfg.pre),
@@ -521,6 +551,16 @@ class Labeler:
         if k >= 0 and cursor[k, 0] >= trial.t_start:
             return cursor[k, 1:3]
         return trial.start_pos
+
+    def _first_inside(self, cursor: np.ndarray, trial: Trial) -> float:
+        """Time of the trial's first logged cursor row within ``min_goal_dist`` of its (hidden) goal, or
+        +inf.  An L2b window ending after it is not labelled (DESIGN_PURE_EEG §4): the person is dwelling
+        on a goal they cannot see and the cue's imagery has done its job."""
+        rows = cursor[(cursor[:, 0] >= trial.t_start) & (cursor[:, 0] <= trial.t_end)] if len(cursor) else cursor
+        if not len(rows):
+            return float("inf")
+        inside = np.linalg.norm(rows[:, 1:3] - trial.goal[None], axis=1) < self.min_goal_dist
+        return float(rows[np.argmax(inside), 0]) if inside.any() else float("inf")
 
     @staticmethod
     def check_cursor_source(session: Session) -> None:
@@ -547,8 +587,10 @@ class Labeler:
             if tr.goal is None and not cue_labelled:
                 continue
             t_last = tr.t_end
-            if tr.source == "L1":
-                t_last = min(t_last, float(tr.info["cue_t"]) + L1_LABEL_END_S)
+            if tr.info.get("cue_t") is not None:                # L1, L2b, blind J: cue-locked windows
+                t_last = min(t_last, float(tr.info["cue_t"]) + CUE_LABEL_END_S)
+            if cue_labelled and tr.goal is not None:            # L2b: stop once the hidden cursor dwells
+                t_last = min(t_last, self._first_inside(session.cursor, tr))
             n_ends = int(math.floor((t_last - tr.t_start - self.cfg.decoder.window_s) / self.hop_s + 1e-9)) + 1
             for k in range(max(0, n_ends)):
                 te = tr.t_start + self.cfg.decoder.window_s + k * self.hop_s
@@ -560,6 +602,8 @@ class Labeler:
                     continue
                 t_end = float(ts[e - 1])
                 ref = None if cue_labelled else self._reference_pos(session.cursor, tr, t_end)
+                ref0 = (self._reference_pos(session.cursor, tr, float(ts[s]))
+                        if tr.feedback_visible and tr.source is not None else None)
                 d = np.asarray(tr.info["body_cue"], float) if cue_labelled else tr.goal - ref
                 dist = float(np.linalg.norm(d))
                 if not cue_labelled and dist < self.min_goal_dist:
@@ -573,14 +617,16 @@ class Labeler:
                      "display_goal": (tr.goal.tolist() if tr.block in TARGET_BLOCKS + CHAMPION_TARGET_BLOCKS
                                       else None)}
                 if tr.source is not None:
-                    p.update(self._champion_provenance(tr, ref))
+                    p.update(self._champion_provenance(tr, ref, ref0))
                 prov.append(p)
         return LabelledSet(windows, np.asarray(labels, float).reshape(-1, 2), prov)
 
     @staticmethod
-    def _champion_provenance(tr: Trial, ref: Optional[np.ndarray]) -> dict:
-        """The champion provenance fields of one window (module docstring); ``ref`` is the cursor as
-        the person knows it at the window end (None for cue-labelled windows)."""
+    def _champion_provenance(tr: Trial, ref: Optional[np.ndarray], ref_start: Optional[np.ndarray]) -> dict:
+        """The champion provenance fields of one window (module docstring); ``ref`` / ``ref_start`` are
+        the cursor as the person knows it at the window end / start (None for cue-labelled windows).
+        The start position is what certification regresses on in closed loop: the cursor at the window
+        end has already been moved by this window's own decoded output (endogenous)."""
         out: Dict[str, object] = {"source": tr.source, "mapping": tr.info["mapping"],
                                   "instructed": tr.info["instructed"]}
         if tr.source in DEPLOYED_SOURCES:
@@ -588,11 +634,13 @@ class Labeler:
                        cue_mode=tr.info["cue_mode"])
         if tr.feedback_visible:
             out["cursor_pos"] = [float(v) for v in ref]
+            out["cursor_pos_start"] = [float(v) for v in ref_start]
         if tr.source == "H":
             report = tr.info.get("body_report")
             out.update(variant=tr.info["variant"], body_report=None if report is None else list(report))
         if tr.source == "R":
-            out["replay_goal"] = list(tr.info["replay_goal"])
+            report = tr.info.get("body_report")
+            out.update(replay_goal=list(tr.info["replay_goal"]), body_report=None if report is None else list(report))
         return out
 
 
@@ -782,7 +830,11 @@ class BodyTrainer:
     """Fits the deployed ``BodyCoordinateDecoder`` on fixation probes (L1) and blind closed loop (L2b).
 
     Those are the only labels nothing on the screen can identify.  ``fit`` raises on any other window
-    (``require_sources``), and so does the decoder itself.  Sighted data reach the deployed decoder
+    (``require_sources``) and on any window whose provenance records a drawn goal (``display_goal`` not
+    None: a mislabelled source must not slip a screen label in), and so does the decoder itself.  It
+    reads ``source``, ``display_goal``, ``body_label`` and ``session`` to train, and ``block``,
+    ``feedback_visible`` and ``t`` for its provenance summary and data hash; never a gaze field (a
+    fixation break only ever removes a trial in ``parse_trials``).  Sighted data reach the deployed decoder
     only through unsupervised re-centring (``session_references``, rest covariances per session),
     never as labels.  Pass windows of the decoder's length: label with ``Labeler(decoder.loop_config(
     cfg))`` (1.0-s windows by default).
@@ -802,13 +854,23 @@ class BodyTrainer:
         """The L1 / L2b windows of ``data``."""
         return data.mask(_source_mask(data, DEPLOYED_SOURCES))
 
-    def fit(self, data: LabelledSet,
-            session_references: Optional[Dict[str, np.ndarray]] = None) -> BodyCoordinateDecoder:
+    def fit(self, data: LabelledSet, session_references: Optional[Dict[str, np.ndarray]] = None, *,
+            x_mask: Optional[np.ndarray] = None, neutral_one_hand: bool = False) -> BodyCoordinateDecoder:
+        """The deployed decoder on ``data`` (L1 / L2b only).  ``x_mask`` (one bool per window) restricts
+        the x model to the windows ``earn_x`` tests (the person's own L1 probes), and ``neutral_one_hand``
+        teaches an x earner's y model to output 0 on one-hand imagery (``BodyCoordinateDecoder.fit``)."""
         require_sources(data, DEPLOYED_SOURCES, "the deployed body decoder")
+        drawn = sum(p.get("display_goal") is not None for p in data.provenance)
+        if drawn:
+            raise ValueError(f"the deployed body decoder refuses {drawn} windows with a drawn goal "
+                             f"('display_goal' set): its labels must not be identifiable from the screen")
         check_eeg_windows(data.windows, self.cfg.hardware.n_channels, "deployed body decoder")
         dec = BodyCoordinateDecoder(self.cfg, self.cfg.hardware.fs, window_s=self.window_s, **self.decoder_options)
-        dec.fit(list(data.windows), body_labels(data), data.provenance, session_references)
+        dec.fit(list(data.windows), body_labels(data), data.provenance, session_references, x_mask=x_mask,
+                neutral_one_hand=neutral_one_hand)
         self.last_fit_info = {"role": "deployed", "n": len(data), "sources": list(DEPLOYED_SOURCES),
+                              "n_x": None if x_mask is None else int(np.sum(x_mask)),
+                              "neutral_one_hand": bool(neutral_one_hand),
                               "train_mix": data.mix(), "data_hash": data.data_hash()}
         return dec
 
@@ -826,7 +888,9 @@ class ShadowBodyDecoder(BodyCoordinateDecoder):
 
     The S label (goal − displayed cursor) is exactly the display-identifiable label the design keeps
     away from the deployed decoder.  If the certification test cannot see this decoder follow the
-    screen under held-out mappings and replays, the test is insensitive (``certify.certify``).
+    screen under held-out mappings and replays (beyond its no-display null), the test is insensitive
+    (``certify.certify``).  It is NOT a matched-n twin of the deployed decoder: it trains on S windows
+    only — about a third of the person's own L1/L2b window count — and without the population prior.
     ``x_enabled`` is copied from the deployed decoder by ``ShadowTrainer``, so both are scored on the
     same axes.  ``earn_x`` refuses S windows, as it should: x is earned on L1 / L2b only."""
 
@@ -839,10 +903,7 @@ class ShadowBodyDecoder(BodyCoordinateDecoder):
         y = self._labels(body_labels, len(windows))
         if not (np.any(y[:, 1] > 0) and np.any(y[:, 1] < 0)):
             raise ValueError("the shadow's y axis needs windows with goals both above and below the cursor")
-        X = self._feature_matrix(windows, provenance, session_references)
-        for k, axis in enumerate(AXES):
-            m = y[:, k] != 0
-            self._models[axis] = self._classifier().fit(X[m], y[m, k] > 0) if len(np.unique(y[m, k])) == 2 else None
+        self._fit_axes(self._feature_matrix(windows, provenance, session_references), y)
         return self
 
 
@@ -851,8 +912,10 @@ class ShadowTrainer:
 
     The labels are ReFIT, ``u = (goal − displayed cursor)/‖·‖``, mapped to body coordinates through the
     block's ``M⁻¹`` (``refit_body_labels``; S always runs under the identity) and given a sign per axis
-    beyond ``axis_min``.  Same person, same windows as the deployed decoder's sighted blocks, same
-    model.  Only the label source differs, which is the whole point of the control.
+    beyond ``axis_min``.  Same person and same model as the deployed decoder; the label source differs,
+    which is the point of the control, and so do the training windows: S only (≈ 1/3 of the deployed
+    decoder's own window count at the default allocation) and no population prior.  Its sensitivity is
+    therefore that of this smaller, prior-free fit, not of a matched-n twin.
 
     window_s, decoder_options  as ``BodyTrainer`` (the shadow must match the deployed model).
     axis_min                   ``SHADOW_AXIS_MIN``.
@@ -1016,45 +1079,178 @@ def trial_clusters(provenance: Sequence[dict]) -> np.ndarray:
     return np.array([ids.setdefault((p["session"], p["trial"]), len(ids)) for p in provenance], int)
 
 
+# ----------------------------------------------------------------------------------------------
+# Body metric: per-axis AUC of a body-coordinate decoder on held-out L1 selection probes
+# ----------------------------------------------------------------------------------------------
+BODY_METRIC = "body_auc"
+SELECTION_SOURCE = "L1"
+"""The body metric scores fixation probes only: one cued class per trial, nothing on screen, and a
+fixed task, so the score does not depend on how much L2b closed loop a day happened to hold."""
+
+
+def body_outputs(model: Optional[BodyCoordinateDecoder], data: LabelledSet,
+                 session_references: Optional[Dict[str, np.ndarray]] = None) -> np.ndarray:
+    """(n, 2) body-coordinate outputs (x, y), each window re-centred on its own session's rest reference
+    when ``session_references`` has one (as the online decoder saw it), else on the model's current
+    reference.  A shallow copy carries the reference, so the model itself is untouched.  A non-finite
+    row (an invalid window) becomes 0, the zero command the real-time loop sends for it; ``None`` (no
+    champion yet) is the null decoder, 0 everywhere."""
+    out = np.zeros((len(data), 2))
+    if model is None or len(data) == 0:
+        return out
+    refs = session_references or {}
+    groups: Dict[str, List[int]] = {}
+    for i, p in enumerate(data.provenance):
+        groups.setdefault(p["session"], []).append(i)
+    for session, idx in groups.items():
+        dec = copy.copy(model).set_reference(reference=refs[session]) if session in refs else model
+        out[idx] = dec.predict_many([data.windows[i] for i in idx])
+    return np.where(np.all(np.isfinite(out), axis=1, keepdims=True), out, 0.0)
+
+
+@dataclass(frozen=True)
+class _AxisTrials:
+    """One axis of a held-out probe set at the trial level, the unit every body statistic resamples.
+
+    ``cl`` maps the axis's windows to trials 0…T−1, ``pos`` says which trials cue the + class
+    (FEET on y, RIGHT on x), ``n`` holds windows per trial.  A probe cues one class, so every trial
+    is wholly + or − on the axis it tests and absent from the other."""
+    rows: np.ndarray
+    cl: np.ndarray
+    pos: np.ndarray
+    n: np.ndarray
+
+    @staticmethod
+    def of(provenance: Sequence[dict], labels: np.ndarray, k: int) -> "_AxisTrials":
+        rows = np.flatnonzero(labels[:, k] != 0)
+        cl = trial_clusters([provenance[i] for i in rows])
+        n_tr = int(cl.max()) + 1 if len(cl) else 0
+        pos = np.zeros(n_tr, bool)
+        pos[cl] = labels[rows, k] > 0
+        return _AxisTrials(rows, cl, pos, np.bincount(cl, minlength=n_tr).astype(float))
+
+    def n_trials(self, positive: bool) -> int:
+        return int(np.sum(self.pos == positive))
+
+    def pair_counts(self, scores: np.ndarray) -> np.ndarray:
+        """(T+, T−) sums over window pairs of 1[s+ > s−] + ½·1[s+ = s−] between each + trial and each
+        − trial: the window-level Mann–Whitney numerator, kept per trial pair so a trial bootstrap is
+        a weighted sum instead of a re-ranking."""
+        s = scores[self.rows]
+        pw = self.pos[self.cl]
+        g = (s[pw, None] > s[None, ~pw]) + 0.5 * (s[pw, None] == s[None, ~pw])
+        tp, tn = np.flatnonzero(self.pos), np.flatnonzero(~self.pos)
+        a = (self.cl[pw, None] == tp[None]).astype(float)
+        b = (self.cl[~pw, None] == tn[None]).astype(float)
+        return a.T @ g @ b
+
+    def auc(self, counts: np.ndarray, m_pos: np.ndarray, m_neg: np.ndarray) -> np.ndarray:
+        """AUC per row of trial multiplicities (R, T+) and (R, T−); all ones is the observed AUC."""
+        n_pos, n_neg = self.n[self.pos], self.n[~self.pos]
+        num = np.einsum("rp,pq,rq->r", m_pos, counts, m_neg)
+        return num / ((m_pos @ n_pos) * (m_neg @ n_neg))
+
+    def permutation_aucs(self, scores: np.ndarray, n_draws: int, rng: np.random.Generator) -> np.ndarray:
+        """AUC under ``n_draws`` permutations of the trials' class labels (whole trials, class counts
+        kept): probe cues are scheduled independently of the EEG, so this is an exact null."""
+        ranks = rankdata(scores[self.rows])
+        rank_sum = np.bincount(self.cl, weights=ranks, minlength=len(self.n))
+        perm = np.argsort(rng.random((n_draws, len(self.pos))), axis=1)
+        lab = self.pos[perm].astype(float)
+        n1 = lab @ self.n
+        n_all = self.n.sum()
+        return (lab @ rank_sum - n1 * (n1 + 1) / 2) / (n1 * (n_all - n1))
+
+
+def _stratified_multiplicities(n_trials: int, n_draws: int, rng: np.random.Generator) -> np.ndarray:
+    """(n_draws, n_trials) bootstrap multiplicities of one class's trials (resampled with replacement)."""
+    m = np.zeros((n_draws, n_trials))
+    np.add.at(m, (np.arange(n_draws)[:, None], rng.integers(0, n_trials, (n_draws, n_trials))), 1.0)
+    return m
+
+
+def axis_outputs(model: Optional[BodyCoordinateDecoder], data: LabelledSet,
+                 session_references: Optional[Dict[str, np.ndarray]] = None) -> np.ndarray:
+    """``body_outputs`` of the decoder's axis models without its idle gate (``ungated``): what the body
+    metric ranks.  The gate is a separate component with its own pre-declared arming rule
+    (``BodyCoordinateDecoder.fit_idle``); the windows it zeroes would tie in an AUC, so a decoder
+    whose gate happens to be armed would be ranked on its gate instead of on its body axes."""
+    return body_outputs(None if model is None else model.ungated(), data, session_references)
+
+
+def body_auc(model: Optional[BodyCoordinateDecoder], data: LabelledSet,
+             session_references: Optional[Dict[str, np.ndarray]] = None) -> Dict[str, float]:
+    """Per-axis window AUC of ``model``'s body output (``axis_outputs``) against the cued class of L1
+    probes (y: FEET vs HANDS probes; x: RIGHT vs LEFT probes; NaN for an axis without both classes).
+    An axis the model does not drive (x not earned) outputs 0 and scores 0.5."""
+    labels = body_labels(data)
+    out = axis_outputs(model, data, session_references)
+    res = {}
+    for k, axis in enumerate(BODY_AXES):
+        ax = _AxisTrials.of(data.provenance, labels, k)
+        both = ax.n_trials(True) > 0 and ax.n_trials(False) > 0
+        res[axis] = (float(ax.auc(ax.pair_counts(out[:, k]), np.ones((1, ax.n_trials(True))),
+                                  np.ones((1, ax.n_trials(False))))[0]) if both else float("nan"))
+    return res
+
+
 class ChampionChallenger:
-    """Promotion rule with held-out cued_blank trials that no compared model was trained on.
+    """Promotion rule with held-out cue-defined trials that no compared model was trained on.
+
+    Two metrics, chosen by the decoder (``is_body``):
+
+    * screen decoders (``VelocityDecoder`` and kin): mean cosine on held-out cued_blank windows;
+    * the deployed ``BodyCoordinateDecoder``: the BODY metric, per-axis AUC on held-out L1 fixation
+      probes (the selection probes; ``candidate_heldout(data, body=True)``).  A body decoder outputs
+      2p − 1 per axis with x = 0 until earned, so a 2-D cosine against a screen label would score an
+      unearned x as a miss on every LEFT/RIGHT probe and reward a confident y the same as a correct
+      one; per-axis AUC is invariant to the output's scale and to an axis that is switched off.
 
     Protocol for each retrain:
-      1. ``candidate_heldout(data)`` = H′, the most recent ``heldout_frac`` (20 %) of cued_blank windows
-         now, extended back to the start of the trial the cut falls in (overlapping windows of one
-         trial must not straddle train and test).
-      2. The challenger trains on everything EXCEPT the frozen held-out set H and H′.
-      3. Before the first champion: the challenger must beat the null decoder on H′ — its mean cosine
-         must exceed ``margin`` AND a trial-level label-permutation floor (one-sided p ≤ ``alpha``).
-         Mean cosine is not chance-corrected (a constant output scores up to ``constant_ceiling``),
-         and windows of one trial are not independent, so "> margin" alone promotes decoders with no
-         signal; permuting whole trials' labels keeps both the label distribution and the trial
-         structure, so only direction-specific decoding beats it.
-      4. Afterwards: both are scored per window on T = H ∪ F, where F = the windows of H′ from
-         sessions the champion was not trained on (fresh trials under current electrode conditions;
-         H alone goes stale between promotions).  The challenger is promoted iff the lower bound of a
-         95 % trial-cluster paired bootstrap CI of (challenger − champion) mean cosine exceeds
-         ``margin``: the noise of a few dozen correlated trials (SE ≈ 0.04 cosine for 34 trials) is
-         larger than the 0.02 margin, so a fixed margin alone promotes equal decoders a third of the
-         time.
+      1. ``candidate_heldout(data)`` = H′, the most recent ``heldout_frac`` (20 %) of cued_blank
+         windows (L1 windows for a body decoder) now, extended back to the start of the trial the cut
+         falls in (overlapping windows of one trial must not straddle train and test).
+      2. The challenger trains on everything EXCEPT the frozen held-out set H and H′: the selection
+         probes are never in the training set of the candidate they select.
+      3. Before the first champion: the challenger must beat the null decoder on H′ — its score must
+         exceed the margin (mean cosine > ``margin``; mean AUC > 0.5 + ``auc_margin``) AND a
+         trial-level label-permutation floor (one-sided p ≤ ``alpha``).  Mean cosine is not
+         chance-corrected (a constant output scores up to ``constant_ceiling``), and windows of one
+         trial are not independent, so "> margin" alone promotes decoders with no signal; permuting
+         whole trials' labels keeps both the label distribution and the trial structure, so only
+         direction-specific decoding beats it.
+      4. Afterwards: both are scored on T = H ∪ F, where F = the windows of H′ from sessions the
+         champion was not trained on (fresh trials under current electrode conditions; H alone goes
+         stale between promotions).  The challenger is promoted iff the lower bound of a 95 %
+         trial-cluster paired bootstrap CI of (challenger − champion) exceeds the margin: the noise of
+         a few dozen correlated trials (SE ≈ 0.04 cosine for 34 trials) is larger than a 0.02 margin,
+         so a fixed margin alone promotes equal decoders a third of the time.
       5. On promotion H′ is frozen as the new H; by step 2 the new champion has never seen it.
-    cued_blank windows are the test because their labels are cue-defined and nothing on screen
+    cued_blank and L1 windows are the test because their labels are cue-defined and nothing on screen
     reveals them: a decoder that learned the displayed cursor (feedback circularity) cannot win here.
     Selection bias: a champion was promoted partly on H′ (F, or all of H′ for the first), which then
     becomes its H, so its score there is slightly optimistic — that only makes the next promotion
     harder (conservative).
 
-    margin 0.02 mean cosine: the smallest improvement worth the user's re-adaptation to a new decoder.
-    min_heldout 40 windows and min_heldout_trials 8: the cluster bootstrap and the permutation need
-    several independent trials; with fewer the CI is itself unreliable (too narrow).  A small test set
-    does not let noise through — it makes promotion rarer.
-    n_resamples 2000 bootstrap / permutation draws; alpha 0.05; ``seed`` makes every verdict
-    deterministic.
+    Body metric details.  Axes scored: y always; x when the probes hold both RIGHT and LEFT and either
+    compared decoder drives x (an axis both leave at 0 would only halve every difference).  The score
+    is the mean AUC over the scored axes; an axis's AUC is over windows (each probe one class), and
+    every resample is of whole trials, stratified by class (the trial-pair counts of
+    ``_AxisTrials``), so a resample never loses a class.  The first champion's null permutes whole
+    trials' classes within each axis.
+
+    margin 0.02 mean cosine and auc_margin 0.02 AUC: the smallest improvement worth the user's
+    re-adaptation to a new decoder.  min_heldout 40 windows and min_heldout_trials 8: the cluster
+    bootstrap and the permutation need several independent trials; with fewer the CI is itself
+    unreliable (too narrow).  A small test set does not let noise through — it makes promotion rarer.
+    min_class_trials 3: a body held-out set needs at least 3 FEET and 3 HANDS probes, the fewest for
+    which a class-stratified trial bootstrap has any spread.  n_resamples 2000 bootstrap / permutation
+    draws; alpha 0.05; ``seed`` makes every verdict deterministic.
     """
 
     def __init__(self, margin: float = 0.02, heldout_frac: float = 0.2, min_heldout: int = 40,
                  min_heldout_trials: int = 8, n_resamples: int = 2000, alpha: float = 0.05,
-                 seed: int = 20261004):
+                 seed: int = 20261004, auc_margin: float = 0.02, min_class_trials: int = 3):
         self.margin = margin
         self.heldout_frac = heldout_frac
         self.min_heldout = min_heldout
@@ -1062,10 +1258,23 @@ class ChampionChallenger:
         self.n_resamples = n_resamples
         self.alpha = alpha
         self.seed = seed
+        self.auc_margin = auc_margin
+        self.min_class_trials = min_class_trials
         self.heldout: Optional[frozenset] = None
 
-    def candidate_heldout(self, data: LabelledSet) -> Optional[frozenset]:
-        idx = [i for i, p in enumerate(data.provenance) if p["block"] == "cued_blank"]
+    @staticmethod
+    def is_body(model) -> bool:
+        """True for the deployed body-coordinate decoder (and its subclasses): it is judged by the body
+        metric on L1 probes."""
+        return isinstance(model, BodyCoordinateDecoder)
+
+    def candidate_heldout(self, data: LabelledSet, body: bool = False) -> Optional[frozenset]:
+        """H′ (class protocol step 1): cued_blank windows, or with ``body`` L1 fixation probes, which
+        must then hold ≥ ``min_class_trials`` FEET and HANDS probes so the primary axis can be scored."""
+        if body:
+            idx = [i for i, p in enumerate(data.provenance) if p.get("source") == SELECTION_SOURCE]
+        else:
+            idx = [i for i, p in enumerate(data.provenance) if p["block"] == "cued_blank"]
         n_hold = int(math.ceil(self.heldout_frac * len(idx)))
         if n_hold < self.min_heldout:
             return None
@@ -1075,8 +1284,12 @@ class ChampionChallenger:
             cut -= 1
         if len({trial_of(i) for i in idx[cut:]}) < self.min_heldout_trials:
             return None
-        keys = data.keys()
-        return frozenset(keys[i] for i in idx[cut:])
+        held = data.take(idx[cut:])
+        if body:
+            y = _AxisTrials.of(held.provenance, body_labels(held), BODY_AXES.index("y"))
+            if min(y.n_trials(True), y.n_trials(False)) < self.min_class_trials:
+                return None
+        return frozenset(held.keys())
 
     def training_set(self, data: LabelledSet, candidate: Optional[frozenset]) -> LabelledSet:
         excluded = (self.heldout or frozenset()) | (candidate or frozenset())
@@ -1094,8 +1307,17 @@ class ChampionChallenger:
         return cosines(model.predict_many(data.windows), data.labels)
 
     @classmethod
-    def score(cls, model, data: LabelledSet) -> float:
-        return float(cls.window_scores(model, data).mean()) if len(data) else 0.0
+    def score(cls, model, data: LabelledSet,
+              session_references: Optional[Dict[str, np.ndarray]] = None) -> float:
+        """Mean cosine, or for a body decoder the mean AUC over the axes it drives (y, and x once
+        earned) on L1 probes."""
+        if not len(data):
+            return 0.0
+        if cls.is_body(model):
+            auc = body_auc(model, data, session_references)
+            axes = [a for a in BODY_AXES if a == "y" or model.x_enabled]
+            return float(np.nanmean([auc[a] for a in axes]))
+        return float(cls.window_scores(model, data).mean())
 
     def test_keys(self, candidate: Optional[frozenset],
                   champion_sessions: Optional[Iterable[str]]) -> Tuple[Optional[frozenset], int]:
@@ -1144,14 +1366,19 @@ class ChampionChallenger:
 
     def challenge(self, champion, challenger, data: LabelledSet,
                   candidate: Optional[frozenset] = None,
-                  champion_sessions: Optional[Iterable[str]] = None) -> dict:
+                  champion_sessions: Optional[Iterable[str]] = None,
+                  session_references: Optional[Dict[str, np.ndarray]] = None) -> dict:
         """Apply steps 3–4 of the class protocol.  ``champion_sessions`` = the sessions the champion
-        was trained on (needed to add fresh trials to the frozen set)."""
+        was trained on (needed to add fresh trials to the frozen set).  ``session_references``
+        ({session: rest covariance}) re-centres a body decoder's test windows per session."""
         keys, n_fresh = self.test_keys(candidate, champion_sessions)
         if keys is None:
-            return {"promoted": False, "reason": "no held-out set: too few cued_blank windows or trials"}
+            return {"promoted": False, "reason": "no held-out set: too few cued_blank windows or trials "
+                                                 "(L1 probes for a body decoder)"}
         test = self.subset(data, keys)
         rng = np.random.default_rng(self.seed)
+        if self.is_body(challenger):
+            return self._challenge_body(champion, challenger, test, n_fresh, rng, session_references)
         out = {"margin": self.margin, "n_heldout": len(test),
                "n_heldout_trials": int(trial_clusters(test.provenance).max()) + 1 if len(test) else 0,
                "n_fresh": n_fresh, "constant_ceiling": constant_ceiling(test.labels)}
@@ -1164,6 +1391,51 @@ class ChampionChallenger:
         lo, hi = self._paired_bootstrap(s_ch - s_champ, test.provenance, rng)
         return dict(out, promoted=bool(lo > self.margin), challenger_cosine=float(s_ch.mean()),
                     champion_cosine=float(s_champ.mean()), ci95=[lo, hi])
+
+    def _challenge_body(self, champion, challenger: BodyCoordinateDecoder, test: LabelledSet, n_fresh: int,
+                        rng: np.random.Generator, session_references: Optional[Dict[str, np.ndarray]]) -> dict:
+        """Steps 3–4 with the body metric (class docstring)."""
+        bad = Counter(str(p.get("source")) for p in test.provenance if p.get("source") != SELECTION_SOURCE)
+        if bad:
+            raise ValueError(f"the body metric scores held-out {SELECTION_SOURCE} probes only; the test set "
+                             f"holds {dict(bad)} other windows (select H′ with candidate_heldout(data, body=True))")
+        if champion is not None and not self.is_body(champion):
+            raise ValueError("a body decoder can only be compared with a body-decoder champion")
+        labels = body_labels(test)
+        outputs = {"challenger": axis_outputs(challenger, test, session_references),
+                   "champion": axis_outputs(champion, test, session_references)}
+        drives_x = challenger.x_enabled or bool(champion is not None and champion.x_enabled)
+        axes = {}
+        for k, axis in enumerate(BODY_AXES):
+            ax = _AxisTrials.of(test.provenance, labels, k)
+            if min(ax.n_trials(True), ax.n_trials(False)) >= 1 and (axis == "y" or drives_x):
+                axes[axis] = ax
+        out = {"metric": BODY_METRIC, "auc_margin": self.auc_margin, "axes": list(axes),
+               "n_heldout": len(test), "n_heldout_trials": int(trial_clusters(test.provenance).max()) + 1,
+               "n_fresh": n_fresh,
+               "n_class_trials": {a: [ax.n_trials(True), ax.n_trials(False)] for a, ax in axes.items()}}
+        if "y" not in axes:
+            return dict(out, promoted=False, reason="held-out probes lack FEET or HANDS trials")
+        counts = {who: {a: ax.pair_counts(o[:, BODY_AXES.index(a)]) for a, ax in axes.items()}
+                  for who, o in outputs.items()}
+        ones = {a: (np.ones((1, ax.n_trials(True))), np.ones((1, ax.n_trials(False)))) for a, ax in axes.items()}
+        auc = {who: {a: float(ax.auc(counts[who][a], *ones[a])[0]) for a, ax in axes.items()} for who in outputs}
+        mean = {who: float(np.mean(list(auc[who].values()))) for who in outputs}
+        out = dict(out, auc=auc, challenger_auc=mean["challenger"], champion_auc=mean["champion"])
+        if self.heldout is None:
+            null = np.mean([ax.permutation_aucs(outputs["challenger"][:, BODY_AXES.index(a)], self.n_resamples, rng)
+                            for a, ax in axes.items()], axis=0)
+            p = float((np.sum(null >= mean["challenger"]) + 1) / (len(null) + 1))
+            return dict(out, promoted=bool(mean["challenger"] > 0.5 + self.auc_margin and p <= self.alpha),
+                        floor=float(np.percentile(null, 100 * (1 - self.alpha))), p_value=p)
+        diff = np.zeros(self.n_resamples)
+        for a, ax in axes.items():
+            m_pos = _stratified_multiplicities(ax.n_trials(True), self.n_resamples, rng)
+            m_neg = _stratified_multiplicities(ax.n_trials(False), self.n_resamples, rng)
+            diff += (ax.auc(counts["challenger"][a], m_pos, m_neg) - ax.auc(counts["champion"][a], m_pos, m_neg))
+        diff /= len(axes)
+        lo, hi = np.percentile(diff, [100 * self.alpha / 2, 100 * (1 - self.alpha / 2)])
+        return dict(out, promoted=bool(lo > self.auc_margin), ci95=[float(lo), float(hi)])
 
     def freeze(self, keys: frozenset) -> None:
         self.heldout = frozenset(keys)
@@ -1183,15 +1455,29 @@ class DataEngine:
     challenger is registered (append-only audit trail), promoted or not.  On construction the engine
     restores the champion, its frozen held-out set and the sessions it was trained on (registry
     metadata; needed for the fresh part of the champion test) from the registry.
+
+    With a ``BodyTrainer`` the engine runs the champion's deployed decoder: H′ is the newest L1 probes
+    (``candidate_heldout(data, body=True)``), the challenger trains on the L1 / L2b windows of the rest
+    (``BodyTrainer.select``: S, H, R, J and original-protocol windows never reach it) plus the
+    ``population`` prior, which must then be a ``LabelledSet`` of other people's L1 probes, and the
+    judge applies the body metric.  ``session_references`` ({session: rest covariance}, the setup rest
+    of each session) re-centres training and test windows per session; the caller adds each session's
+    reference as it ingests the session's runs (keys are run directory names).  Label with
+    ``Labeler(decoder.loop_config(cfg))`` so windows have the decoder's 1-s length.
     """
 
-    def __init__(self, store: SessionStore, labeler: Labeler, trainer: Trainer, registry: ModelRegistry,
-                 judge: Optional[ChampionChallenger] = None,
-                 population: Optional[Sequence[Tuple[Sequence[np.ndarray], np.ndarray]]] = None,
-                 min_new_windows: int = 200, cache_dir: Optional[str] = None):
+    def __init__(self, store: SessionStore, labeler: Labeler, trainer: "Trainer | BodyTrainer",
+                 registry: ModelRegistry,
+                 judge: Optional[ChampionChallenger] = None, population=None,
+                 min_new_windows: int = 200, cache_dir: Optional[str] = None,
+                 session_references: Optional[Dict[str, np.ndarray]] = None):
         self.store, self.labeler, self.trainer, self.registry = store, labeler, trainer, registry
         self.judge = judge or ChampionChallenger()
+        self.body = isinstance(trainer, BodyTrainer)
+        if self.body and population is not None and not isinstance(population, LabelledSet):
+            raise ValueError("a body decoder's prior is a LabelledSet of other people's L1 probes")
         self.population = population
+        self.session_references = {} if session_references is None else session_references
         self.min_new_windows = min_new_windows
         self.cache_dir = cache_dir or os.path.join(registry.root, "labelled", labeler.signature())
         self._sets: Dict[str, LabelledSet] = {}
@@ -1256,16 +1542,24 @@ class DataEngine:
         if not force and self._n_new < self.min_new_windows:
             return {"promoted": False, "reason": f"{self._n_new} new windows < {self.min_new_windows}"}
         data = self.data
-        candidate = self.judge.candidate_heldout(data)
+        candidate = self.judge.candidate_heldout(data, body=self.body)
         if self.judge.heldout is None and candidate is None:
-            return {"promoted": False, "reason": "too few cued_blank windows for a held-out set"}
+            return {"promoted": False, "reason": "too few held-out windows: cued_blank, or L1 probes with "
+                                                 "both y classes for a body decoder"}
         train = self.judge.training_set(data, candidate)
         t0 = time.perf_counter()
-        challenger = self.trainer.fit(train, self.population)
+        if self.body:
+            train = BodyTrainer.select(train)
+            challenger = self.trainer.fit(LabelledSet.concat([train, self.population or LabelledSet()]),
+                                          session_references=self.session_references)
+        else:
+            challenger = self.trainer.fit(train, self.population)
         fit_s = time.perf_counter() - t0
-        verdict = self.judge.challenge(self.champion, challenger, data, candidate, self.champion_sessions)
+        verdict = self.judge.challenge(self.champion, challenger, data, candidate, self.champion_sessions,
+                                       session_references=self.session_references)
         promoted = verdict["promoted"] and candidate is not None
-        bar = self.judge.score(challenger, self.judge.subset(data, candidate)) if promoted else None
+        bar = (self.judge.score(challenger, self.judge.subset(data, candidate), self.session_references)
+               if promoted else None)
         meta = dict(self.trainer.last_fit_info, n_windows=len(train), provenance_mix=train.mix(),
                     metrics=dict(verdict, fit_s=fit_s, new_heldout_cosine=bar),
                     champion_at_training=self.champion_version, promoted=promoted)

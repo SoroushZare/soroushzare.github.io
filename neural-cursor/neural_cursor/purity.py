@@ -28,18 +28,28 @@ autocorrelation and per-session distribution and only breaks its alignment with 
 
 Scope: visual-cortex responses to the display are NOT separately tested.  The occipital surrogate is
 reported, but occipital channels also carry alpha-lateralised spatial attention — intent — so its
-share of the full score cannot tell a visual leak from intent.  Only cued_blank windows, during which
-nothing spatial is drawn, can certify decoding; the result's ``untested`` list says so whenever an
-audit contains target-display windows.
+share of the full score cannot tell a visual leak from intent.  Only blank-cue windows (cued_blank,
+and the champion's fixation probes L1 and blind closed loop L2b), during which nothing spatial is
+drawn, can certify decoding; the result's ``untested`` list says so whenever an audit contains
+target-display windows.
+
+The deployed decoder.  "full" and every EEG surrogate are a ridge on 32-channel band power: the same
+model for every input subset, so surrogate-vs-full differences are differences of inputs.  That model is
+not the one that ships (the champion deploys a central-11 Riemannian decoder), so ``run`` also takes the
+deployed decoder's own out-of-sample predictions and reports them as a "deployed" row, scored against the
+same permuted labels.  Gaze auditors given as raw segments with their sampling rate gain microsaccade
+rate and direction (``microsaccades``): under gaze-contingent fixation the mean gaze position is pinned,
+and microsaccades are the gaze signal that can still follow a covertly attended direction.
 
 Pure-EEG rule: auditor streams (eye tracker, EMG) passed to :meth:`PurityAudit.run` are used *only* by
 the auditor-only surrogate in this module.  They are never mixed into the EEG decoders' features, and
-nothing here returns a model that could be deployed.
+nothing here returns a model that could be deployed.  The deployed predictions are outputs of a decoder
+that saw EEG only; this module never runs a decoder on anything but the EEG windows it was given.
 """
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
@@ -51,7 +61,7 @@ from threadpoolctl import threadpool_limits
 from .config import Config
 from .decoder import VelocityDecoder
 from .features import slow_shift
-from .protocol import ALL_BLOCK_KINDS, Block
+from .protocol import ALL_BLOCK_KINDS, BLANK_CUE_KINDS, DEPLOYED_TRAINING_SOURCES, Block
 
 FRONTAL = ("FP1", "FP2", "AF3", "AF4", "F7", "F8")   # where gaze-position EOG is largest
 OCCIPITAL = ("PO7", "PO3", "PO4", "PO8", "Oz")       # where screen-driven visual responses are largest
@@ -65,12 +75,33 @@ DISPLAY_HISTORY_S = 1.0     # how much displayed cursor motion before a window e
 DISPLAY_BINS = 5            # 0.2 s velocity bins: keeps the direction changes within that second
 OCULAR_FRACTION = 0.5       # a frontal/slow surrogate reaching this share of the full decoder is a leak
 OCULAR_SURROGATES = ("frontal", "slow")   # either can carry the ocular leak; one flag covers both
+SHARE_SURROGATES = ("frontal", "slow", "occipital")   # EEG-subset surrogates reported as a share of the deployed decoder
 MIN_GROUP_N = 20            # fewest windows per feedback condition for a bootstrap CI worth reporting
-CERTIFYING_BLOCKS = ("cued_blank",)
-"""Blocks whose windows can certify cortical decoding: the cue is an auditory word or a central symbol,
-nothing is drawn at a trial-dependent position, and the person fixates.  On every other block the label
-(direction from the displayed cursor or start to a drawn target) is a function of the screen by design,
-so those windows train the decoder but are never evidence that it reads the brain."""
+CERTIFYING_BLOCKS: Tuple[str, ...] = tuple(Block(k, 1.0).provenance_block for k in BLANK_CUE_KINDS)
+"""Blocks whose windows can certify cortical decoding: cued_blank, fixation_probe (L1) and
+blind_closed_loop (L2b) — ``protocol.BLANK_CUE_KINDS``, derived from the renderer's contract.  The cue is
+an auditory word, a central symbol or glyph, or a body-part word; nothing is drawn at a trial-dependent
+position, the cursor is hidden and the person fixates.  On every other block the label (direction from
+the displayed cursor or start to a drawn target) is a function of the screen by design, so those windows
+train a decoder but are never evidence that it reads the brain."""
+CERTIFYING_SOURCES: Tuple[str, ...] = DEPLOYED_TRAINING_SOURCES
+"""Champion label sources that certify: L1 and L2b, whose label is the cued body vector.  A blind
+"just intend" window (source J) also runs in blind_closed_loop but is excluded: it is an uninstructed,
+scored-only endpoint whose label is a spoken screen goal, not a cue-defined body label."""
+
+MS_LAMBDA = 6.0
+"""Microsaccade velocity threshold in median-based SD units (Engbert & Kliegl 2003): a sample is part of
+an event when its 2-D velocity lies outside the ellipse with radii λ·σ_x, λ·σ_y, where
+σ = sqrt(median(v²) − median(v)²) per gaze axis and segment.  The median estimator is barely moved by
+the events themselves, so the threshold adapts to each segment's fixational-drift noise."""
+MS_MIN_DURATION_S = 0.006
+"""Shortest event: 6 ms, i.e. ≥ 3 samples at 500 Hz and ≥ 6 at 1000 Hz, so a one-sample tracker spike is
+never a microsaccade."""
+MS_HALF_WINDOW = 2
+"""Velocity from a 5-sample moving window, v_n = (x_{n+2} + x_{n+1} − x_{n−1} − x_{n−2}) · fs / 6
+(Engbert & Kliegl 2003): it suppresses sample-to-sample tracker noise before thresholding."""
+MS_MIN_SD = 1e-9
+"""Floor on σ, so a perfectly still (or quantised-constant) segment yields no events instead of a 0/0."""
 _EPS = 1e-12
 
 SPATIAL_BLOCKS: Tuple[str, ...] = tuple(sorted(
@@ -82,6 +113,8 @@ kinds are included (sighted, heldout_mapping, pixel_replay): an audit of champio
 drawn goals, not treat those windows as having nothing on screen."""
 
 CursorLogs = Union[np.ndarray, Mapping[str, np.ndarray]]
+Deployed = Union[np.ndarray, Callable[[List[np.ndarray]], np.ndarray]]
+"""The deployed decoder's per-window predictions, or a function from EEG windows to them."""
 
 
 def slow_binned_means(window: np.ndarray, fs: int, bin_s: float = SLOW_BIN_S) -> np.ndarray:
@@ -117,21 +150,94 @@ def displayed_velocity(t_end: float, log: np.ndarray, history_s: float = DISPLAY
     return np.concatenate([np.diff(x), np.diff(y)]) / (history_s / n_bins)
 
 
-def auditor_features(stream: np.ndarray, n: int) -> np.ndarray:
+def is_certifying(p: Mapping) -> bool:
+    """Whether a window can certify cortical decoding, keyed on provenance ``block`` or ``source``.
+
+    A window certifies when its block (if recorded) is one of ``CERTIFYING_BLOCKS`` and its source (if
+    recorded) is one of ``CERTIFYING_SOURCES``; at least one of the two must be present.  So an
+    original cued_blank window (no source), a champion L1 / L2b window, and a hand-built record that
+    carries only ``source`` "L1" all certify, while blind just-intend (J) and every drawn-target block
+    do not, and a record whose block and source disagree is refused rather than trusted."""
+    block, source = p.get("block"), p.get("source")
+    if block is not None and block not in CERTIFYING_BLOCKS:
+        return False
+    if source is not None:
+        return source in CERTIFYING_SOURCES
+    return block is not None
+
+
+def microsaccades(gaze: np.ndarray, fs: float, lam: float = MS_LAMBDA,
+                  min_duration_s: float = MS_MIN_DURATION_S) -> np.ndarray:
+    """(m, 2) displacement vectors of the velocity-threshold events in one gaze segment.
+
+    ``gaze`` is (n_samples, ≥ 2) with horizontal and vertical gaze in its first two columns, in any
+    linear unit (degrees of visual angle from a tracker): the threshold is relative to the segment's
+    own velocity spread (``MS_LAMBDA``), so units cancel.  Non-finite samples (track loss, blinks)
+    never pass the threshold.  An event's displacement runs from the first sample entering its onset's
+    velocity window to the last sample of its offset's, i.e. the whole flank the 5-point velocity saw.
+
+    Why microsaccades and not gaze position: under gaze-contingent fixation the mean position is pinned
+    inside a 1° window, so position auditors are (near) constant on L1/L2b windows and cannot test the
+    leak the skeptics name — microsaccade direction biased toward a covertly attended location
+    (Engbert & Kliegl 2003), which carries a cue-locked spike potential into the EEG."""
+    xy = np.asarray(gaze, dtype=np.float64)[:, :2]
+    h = MS_HALF_WINDOW
+    if len(xy) < 2 * h + 1:
+        return np.zeros((0, 2))
+    v = (xy[2 * h:] + xy[2 * h - 1:-1] - xy[1:-(2 * h - 1)] - xy[:-2 * h]) * (fs / 6.0)
+    with np.errstate(invalid="ignore"):
+        sd = np.sqrt(np.maximum(np.nanmedian(v ** 2, axis=0) - np.nanmedian(v, axis=0) ** 2, 0.0))
+    if not np.all(np.isfinite(sd)):
+        return np.zeros((0, 2))                                  # no finite velocity at all
+    radius = lam * np.maximum(sd, MS_MIN_SD)
+    with np.errstate(invalid="ignore"):
+        above = np.sum((v / radius) ** 2, axis=1) > 1.0           # NaN compares False: never an event
+    edges = np.diff(np.concatenate([[0], above.astype(np.int8), [0]]))
+    onsets, offsets = np.flatnonzero(edges == 1), np.flatnonzero(edges == -1) - 1
+    keep = offsets - onsets + 1 >= max(1, int(math.ceil(min_duration_s * fs - 1e-9)))
+    onsets, offsets = onsets[keep], offsets[keep]
+    # velocity index k is centred on sample k + h and spans samples k … k + 2h
+    disp = xy[np.minimum(offsets + 2 * h, len(xy) - 1)] - xy[onsets]
+    return disp[np.all(np.isfinite(disp), axis=1)]
+
+
+def microsaccade_features(gaze: np.ndarray, fs: float) -> np.ndarray:
+    """(3,) per gaze segment: event rate (events/s) and mean event direction (the mean of the events'
+    unit displacement vectors: its angle is the preferred direction, its length how consistent it is;
+    0 with no event).  These are the rate and direction auditors of the design's P1 increment test."""
+    disp = microsaccades(gaze, fs)
+    duration = len(gaze) / float(fs)
+    if len(disp) == 0:
+        return np.array([0.0, 0.0, 0.0])
+    unit = disp / np.maximum(np.linalg.norm(disp, axis=1, keepdims=True), _EPS)
+    return np.concatenate([[len(disp) / duration], unit.mean(axis=0)])
+
+
+def auditor_features(stream: np.ndarray, n: int, gaze_fs: Optional[float] = None) -> np.ndarray:
     """Per-window features of an auditor stream.
 
     (n, d) is taken as already-featurised (e.g. mean gaze per window).  (n, n_samples, d) raw
     segments become mean (gaze position), signed late-minus-early shift (gaze movement) and log SD
-    (EMG power) per auditor channel — the three ways eyes and muscles typically carry intent.
+    (EMG power) per auditor channel — the three ways eyes and muscles typically carry intent.  When
+    ``gaze_fs`` (the stream's sampling rate, Hz) is given the segments are gaze, x and y in the first
+    two columns, and ``microsaccade_features`` (rate and mean direction) are appended: the only gaze
+    features that still vary while fixation holds.
     """
     a = np.asarray(stream, dtype=np.float64)
     if a.shape[0] != n:
         raise ValueError(f"auditor stream has {a.shape[0]} windows, EEG has {n}")
     if a.ndim == 2:
+        if gaze_fs is not None:
+            raise ValueError("microsaccade features need raw gaze segments (n, n_samples, ≥ 2), not (n, d) features")
         return a
     if a.ndim == 3:
         shift = np.stack([slow_shift(seg) for seg in a])
-        return np.concatenate([a.mean(axis=1), shift, np.log(a.std(axis=1) + _EPS)], axis=1)
+        feats = [a.mean(axis=1), shift, np.log(a.std(axis=1) + _EPS)]
+        if gaze_fs is not None:
+            if a.shape[2] < 2:
+                raise ValueError(f"gaze segments need x and y columns, got {a.shape[2]}")
+            feats.append(np.stack([microsaccade_features(seg, gaze_fs) for seg in a]))
+        return np.concatenate(feats, axis=1)
     raise ValueError(f"auditor stream must be (n, d) or (n, n_samples, d), got shape {a.shape}")
 
 
@@ -223,34 +329,48 @@ class _PermutationCV:
         hat = xte @ cho_solve(cho_factor(gram), xtr.T)           # (n_test, n_train), label-free
         return hat @ (Y[tr] - y_mean) + y_mean
 
+    def _scores(self, pred: np.ndarray) -> np.ndarray:
+        """Score of predictions against the true labels (entry 0) and every permuted label set.
+        ``pred`` is (n, P + 1, k), one prediction set per label set (refitted surrogates), or (n, 1, k),
+        one fixed set scored against all of them (a decoder trained elsewhere)."""
+        if self.binary:
+            pos = self.y[:, :, 0] > 0.5
+            n1 = pos.sum(axis=0)
+            n0 = len(pos) - n1
+            ranks = rankdata(pred[:, :, 0], axis=0)
+            return ((ranks * pos).sum(axis=0) - n1 * (n1 + 1) / 2) / np.maximum(n1 * n0, 1)  # Mann–Whitney AUC
+        p = np.clip(pred, -1, 1)                   # the deployed decoders clip; score what ships
+        num = np.sum(p * self.y, axis=2)
+        den = np.linalg.norm(p, axis=2) * np.linalg.norm(self.y, axis=2) + _EPS
+        return (num / den).mean(axis=0)
+
+    def _report(self, scores: np.ndarray) -> Dict:
+        observed, null = float(scores[0]), scores[1:]
+        floor = float(np.percentile(null, self.percentile))
+        return {
+            "score": observed,
+            "floor": floor,
+            "p_value": float((np.sum(null >= observed) + 1) / (len(null) + 1)),
+            "beats_floor": bool(observed > floor),
+            "n": int(len(self.y)),
+        }
+
     def evaluate(self, X: Optional[np.ndarray]) -> Tuple[Dict, np.ndarray]:
         """Returns the report dict and the per-window score of the true labels (for the feedback test
         and the per-block breakdown).  ``X = None`` scores the intercept-only model."""
         pred = self._oof(None if X is None else np.asarray(X, dtype=np.float64))
         if self.binary:
-            p, pos = pred[:, :, 0], self.y[:, :, 0] > 0.5
-            n1 = pos.sum(axis=0)
-            n0 = len(pos) - n1
-            ranks = rankdata(p, axis=0)
-            scores = ((ranks * pos).sum(axis=0) - n1 * (n1 + 1) / 2) / np.maximum(n1 * n0, 1)  # Mann–Whitney AUC
-            per_window = ((p[:, 0] > 0.5) == pos[:, 0]).astype(np.float64)
+            per_window = ((pred[:, 0, 0] > 0.5) == (self.y[:, 0, 0] > 0.5)).astype(np.float64)
         else:
-            p = np.clip(pred, -1, 1)               # the deployed VelocityDecoder clips; score what ships
-            num = np.sum(p * self.y, axis=2)
-            den = np.linalg.norm(p, axis=2) * np.linalg.norm(self.y, axis=2) + _EPS
-            cos = num / den
-            scores = cos.mean(axis=0)
-            per_window = cos[:, 0]
-        observed, null = float(scores[0]), scores[1:]
-        floor = float(np.percentile(null, self.percentile))
-        report = {
-            "score": observed,
-            "floor": floor,
-            "p_value": float((np.sum(null >= observed) + 1) / (len(null) + 1)),
-            "beats_floor": bool(observed > floor),
-            "n": int(len(per_window)),
-        }
-        return report, per_window
+            p, y = np.clip(pred[:, 0], -1, 1), self.y[:, 0]
+            per_window = np.sum(p * y, axis=1) / (np.linalg.norm(p, axis=1) * np.linalg.norm(y, axis=1) + _EPS)
+        return self._report(self._scores(pred)), per_window
+
+    def evaluate_fixed(self, pred: np.ndarray) -> Dict:
+        """Report for fixed out-of-sample predictions (the deployed decoder's), scored against the true
+        and the same permuted label sets as every surrogate.  No refit: a decoder trained elsewhere has
+        nothing to learn from the permuted labels, so their alignment with its fixed output is its null."""
+        return self._report(self._scores(np.asarray(pred, np.float64).reshape(len(self.y), 1, self.k)))
 
 
 class PurityAudit:
@@ -328,17 +448,30 @@ class PurityAudit:
 
     def run(self, windows: List[np.ndarray], labels: np.ndarray, provenance: Sequence[dict],
             auditors: Optional[Dict[str, np.ndarray]] = None,
-            cursor_logs: Optional[CursorLogs] = None) -> dict:
+            cursor_logs: Optional[CursorLogs] = None,
+            deployed: Optional[Deployed] = None,
+            gaze_fs: Optional[Mapping[str, float]] = None) -> dict:
         """Audit one window set.
 
         windows     list of (n_samples, n_channels) EEG windows, in time order, as the decoder sees them
         labels      (n, k) continuous targets (scored by mean cosine) or (n,) binary (scored by AUC)
         provenance  per window {"block", "feedback_visible", "session", "t", "trial", "display_goal"}
-                    (``data_engine.Labeler``).  "trial" is optional and makes the feedback bootstrap
-                    resample whole trials; "display_goal" is required for blocks that draw targets.
+                    (``data_engine.Labeler``), plus "source" on champion windows.  "trial" is optional
+                    and makes the feedback bootstrap resample whole trials; "display_goal" is required
+                    for blocks that draw targets; "block" / "source" select the certifying windows
+                    (``is_certifying``).
         auditors    optional {name: (n, d) features or (n, n_samples, d) segments} — eye tracker, EMG
         cursor_logs (m, ≥3) [t, x, y] or {session: that array}; required when any window had a
                     visible cursor
+        deployed    optional predictions of the DEPLOYED decoder per window: an (n, k) array ((n,) for
+                    binary labels) or a callable ``windows -> predictions`` (e.g. a decoder's
+                    ``predict_many``; it receives the EEG windows only).  Reported as the "deployed"
+                    row beside "full" (``_deployed_report``).  They must be out of sample: a decoder
+                    trained on these windows beats any floor.  A non-finite row (an invalid window)
+                    scores as the zero command the real-time loop sends for it.
+        gaze_fs     optional {auditor name: sampling rate (Hz)} for auditors that are raw gaze segments
+                    (x, y first): their features gain microsaccade rate and direction
+                    (``auditor_features``).
 
         Returns {"metric", "n", "n_permutations", "floor_percentile", "null", "reports", "by_block",
         "feedback", "untested", "flags", "certification", "verdict"}.  ``flags`` describe the whole
@@ -349,6 +482,7 @@ class PurityAudit:
         """
         n = len(windows)
         labels, binary = self._check(windows, labels, provenance)
+        dep = None if deployed is None else self._deployed_predictions(deployed, windows, labels)
         rng = np.random.default_rng(self.seed)
         perms = circular_shift_permutations(provenance, self.n_permutations, rng)
         cv = _PermutationCV(labels, binary, perms, self.cfg.decoder.ridge_alpha, self.n_splits,
@@ -362,6 +496,8 @@ class PurityAudit:
         reports["occipital"], _ = cv.evaluate(self._eeg_features(windows, self.occipital))
         reports["frontal"]["channels"] = list(FRONTAL)
         reports["occipital"]["channels"] = list(OCCIPITAL)
+        if dep is not None:
+            self._deployed_report(cv, dep, reports)
 
         spatial = [self._displays_spatial(p) for p in provenance]
         if not any(spatial):
@@ -369,19 +505,25 @@ class PurityAudit:
         else:
             reports["display"], _ = cv.evaluate(self._display_features(provenance, cursor_logs))
 
-        aud = {name: auditor_features(stream, n) for name, stream in (auditors or {}).items()}
+        gaze_fs = dict(gaze_fs or {})
+        unknown = sorted(set(gaze_fs) - set(auditors or {}))
+        if unknown:
+            raise ValueError(f"gaze_fs names auditors {unknown} that were not given")
+        aud = {name: auditor_features(stream, n, gaze_fs.get(name)) for name, stream in (auditors or {}).items()}
         for name, F in aud.items():
             reports[f"auditor:{name}"], _ = cv.evaluate(F)
+            if name in gaze_fs:
+                reports[f"auditor:{name}"]["microsaccade_rate_hz"] = float(F[:, -3].mean())
 
         untested = []
         if any(spatial):
             untested.append("visual-cortex responses to the display on target-display windows: occipital "
                             "channels also carry alpha-lateralised attention (intent), so the occipital "
-                            "surrogate cannot separate a visual leak from intent; only cued_blank windows "
-                            "certify decoding")
+                            "surrogate cannot separate a visual leak from intent; only blank-cue windows "
+                            f"({', '.join(CERTIFYING_BLOCKS)}) certify decoding")
         feedback = self._feedback_test(per_window, provenance, rng, baseline=per_window_icpt)
         certification = self._certify(windows, labels, binary, provenance, aud, cursor_logs,
-                                      np.random.default_rng(self.seed + 1))
+                                      np.random.default_rng(self.seed + 1), dep)
         verdict = certification.get("verdict", ["UNCERTIFIED"])
         return {
             "metric": "auc" if binary else "cosine",
@@ -399,10 +541,44 @@ class PurityAudit:
             "verdict": verdict,
         }
 
+    @staticmethod
+    def _deployed_predictions(deployed: Deployed, windows: List[np.ndarray], labels: np.ndarray) -> np.ndarray:
+        """The deployed decoder's predictions as an (n, k) array matching ``labels`` (k = 1 for binary),
+        with every row that holds a non-finite value set to 0: the real-time loop sends a zero command
+        for an invalid window, so that is what the person got."""
+        pred = deployed(windows) if callable(deployed) else deployed
+        pred = np.asarray(pred, dtype=np.float64)
+        k = 1 if labels.ndim == 1 else labels.shape[1]
+        if not (pred.shape == (len(labels), k) or (k == 1 and pred.shape == (len(labels),))):
+            raise ValueError(f"deployed predictions have shape {pred.shape}; the labels need ({len(labels)}, {k})")
+        pred = pred.reshape(len(labels), k)
+        return np.where(np.all(np.isfinite(pred), axis=1, keepdims=True), pred, 0.0)
+
+    @staticmethod
+    def _deployed_report(cv: _PermutationCV, pred: np.ndarray, reports: Dict[str, dict]) -> None:
+        """Add the "deployed" row and, to each EEG-subset surrogate, ``share_of_deployed``.
+
+        Why: "full" and the surrogates are a 32-channel bandpower ridge, not the decoder that ships, so
+        a surrogate's share of "full" says nothing directly about the deployed decoder (on the champion
+        it is a central-11 Riemannian model).  The deployed row is scored with the same metric against
+        the same circular-shift label permutations, and ``share_of_deployed`` = (surrogate − intercept)
+        / (deployed − intercept) says how much of what the deployed decoder achieves above the no-EEG
+        baseline a frontal, slow or occipital surrogate alone reaches.  Reported, never flagged: the
+        OCULAR_LEAK rule stays the pre-registered one (share of "full")."""
+        reports["deployed"] = cv.evaluate_fixed(pred)
+        reports["deployed"]["n_zero_rows"] = int(np.sum(~np.any(pred != 0, axis=1)))
+        chance = reports["intercept"]["score"]
+        skill = reports["deployed"]["score"] - chance
+        for name in SHARE_SURROGATES:
+            reports[name]["share_of_deployed"] = (float((reports[name]["score"] - chance) / skill)
+                                                  if skill > 0 else None)
+
     def _certify(self, windows: List[np.ndarray], labels: np.ndarray, binary: bool,
                  provenance: Sequence[dict], auditor_feats: Dict[str, np.ndarray],
-                 cursor_logs: Optional[CursorLogs], rng: np.random.Generator) -> dict:
-        """The audit of record: the same surrogates, refit on ``CERTIFYING_BLOCKS`` windows only.
+                 cursor_logs: Optional[CursorLogs], rng: np.random.Generator,
+                 deployed: Optional[np.ndarray] = None) -> dict:
+        """The audit of record: the same surrogates, refit on certifying windows only (``is_certifying``:
+        cued_blank, fixation_probe / L1 and blind_closed_loop / L2b).
 
         Why a separate audit and not the whole-set flags: on cursor-visible and target-display blocks
         the label is goal − displayed position, so the display surrogate beats its floor there by
@@ -410,18 +586,23 @@ class PurityAudit:
         it says "these windows are display-identifiable", which is true and expected, not "the decoder
         reads the screen".  Restricted to blank-cue windows the display carries no label information,
         so what the full decoder achieves there, minus what eyes and muscles explain, is the cortical
-        claim.
+        claim.  On these windows DISPLAY_LEAK and FEEDBACK_CIRCULAR cannot fire and gaze POSITION is
+        (near) constant under fixation, so the checks that can fail here are OCULAR_LEAK, the
+        microsaccade auditors (``gaze_fs``) and the evidence verdicts.
 
         Verdict: NO_CORTICAL_EVIDENCE if the full decoder does not beat its floor on these windows;
-        OCULAR_LEAK / DISPLAY_LEAK as in ``_flags``; GAZE_TRACKS_LABEL if an auditor (eye tracker)
-        decodes the cued direction although the person should be fixating — then the EEG result must
-        be partialled against gaze before it is quoted; PASS otherwise.
+        DEPLOYED_NO_EVIDENCE if deployed predictions were given and they do not beat theirs (the claim
+        is about the decoder that ships, not the bandpower ridge); OCULAR_LEAK / DISPLAY_LEAK as in
+        ``_flags``; GAZE_TRACKS_LABEL if an auditor (eye tracker) decodes the cued direction although
+        the person should be fixating — then the EEG result must be partialled against gaze before it
+        is quoted; PASS otherwise.
         """
-        mask = np.array([p.get("block") in CERTIFYING_BLOCKS for p in provenance])
+        mask = np.array([is_certifying(p) for p in provenance])
         need = max(2 * self.n_splits, self.min_group_n)
         n = int(mask.sum())
         if n < need:
-            return {"skipped": f"{n} certifying windows ({', '.join(CERTIFYING_BLOCKS)}); need ≥ {need}"}
+            return {"skipped": f"{n} certifying windows ({', '.join(CERTIFYING_BLOCKS)}; sources "
+                               f"{', '.join(CERTIFYING_SOURCES)}); need ≥ {need}"}
         idx = np.flatnonzero(mask)
         prov = [provenance[i] for i in idx]
         y = labels[idx]
@@ -437,6 +618,8 @@ class PurityAudit:
         reports["frontal"], _ = cv.evaluate(self._eeg_features(w, self.frontal))
         reports["slow"], _ = cv.evaluate(np.stack([slow_binned_means(x, self.fs) for x in w]))
         reports["occipital"], _ = cv.evaluate(self._eeg_features(w, self.occipital))
+        if deployed is not None:
+            self._deployed_report(cv, deployed[idx], reports)
         if any(self._displays_spatial(p) for p in prov):
             reports["display"], _ = cv.evaluate(self._display_features(prov, cursor_logs))
         else:
@@ -455,8 +638,11 @@ class PurityAudit:
                for k, r in reports.items() if k.startswith("auditor:") and "skipped" not in r):
             flags.append("GAZE_TRACKS_LABEL")
         decodes = bool(reports["full"].get("beats_floor", False))
-        verdict = ([] if decodes else ["NO_CORTICAL_EVIDENCE"]) + flags
-        return {"n": n, "blocks": list(CERTIFYING_BLOCKS), "reports": reports, "decodes": decodes,
+        deployed_decodes = None if deployed is None else bool(reports["deployed"]["beats_floor"])
+        verdict = (([] if decodes else ["NO_CORTICAL_EVIDENCE"])
+                   + (["DEPLOYED_NO_EVIDENCE"] if deployed_decodes is False else []) + flags)
+        return {"n": n, "blocks": list(CERTIFYING_BLOCKS), "sources": list(CERTIFYING_SOURCES),
+                "reports": reports, "decodes": decodes, "deployed_decodes": deployed_decodes,
                 "flags": flags or ["PASS"], "verdict": verdict or ["PASS"]}
 
     @staticmethod

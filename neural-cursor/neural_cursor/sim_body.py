@@ -34,21 +34,34 @@ correction puts the plausible dry, blind earner rate at 10–25 %, not the propo
 
 The ERD follows a *transient* time course after cue onset (``erd_envelope``): it rises to its peak at
 ``erd_peak_s`` (1.5 s) and decays toward a sustained fraction ``erd_sustain`` with time constant
-``erd_decay_s``.  The defaults reproduce the ds004362 feet/fists time course of 1-s window d′ (AUC
+``erd_decay_s``.  The defaults reproduce the ds004362 FEET/FISTS time course of 1-s window d′ (AUC
 0.554 / 0.667 / 0.629 / 0.610 at 0–1 / 1–2 / 2–3 / 3–4 s): the mean envelope over those windows is
 0.32 : 1 : 0.79 : 0.66 of its 1–2 s value, against d′ ratios of 0.31 : 1 : 0.76 : 0.65.  A
 sustained-control claim therefore has to survive the decay, exactly as the skeptic corrections require.
+By default the x (left/right) pathway shares that time course, which is OPTIMISTIC for x: ds004362's
+L/R d′ ratios are 1.20 : 1 : 0.84 : 0.42 (an early peak and a decay to 42 % by 3–4 s), so the default
+simulated x keeps far more sustained lateralised ERD in long L2b, S and C2c trials than the data the
+proposal concedes is weak.  ``x_time_course = X_ERD_LR`` gives x its own course fitted to that curve
+(a sensitivity case; ``X_DEPTH_RANGE`` was calibrated with the shared one).
 
 Dry penalty
 -----------
-``dry_penalty`` ∈ [0, 1) multiplies the motor ERD depth by ``1 − dry_penalty``.  For shallow depths
-the change in log band power is ≈ −2·depth, so the band-power d′ of every motor contrast scales by
-about the same factor: the parameter is, to first order, the d′ loss the champion's sensitivity sweep
-(0–0.7, as the skeptic corrections ask, instead of a 20–40 % point prediction) varies.  Measured on the
-hand-area-minus-vertex contrast at 1–2 s, d′ falls to ≈ 0.7 and ≈ 0.4 of its gel value at 0.35 and
-0.7 (the log is concave and the background dilutes the change, so slightly less than proportional).
-It acts on the motor pathway only, keeping the leak at full strength while the body signal weakens:
-the conservative case for certification.
+``dry_penalty`` ∈ [0, 1) multiplies the motor ERD depth by ``1 − dry_penalty``.  It is NOT the d′
+loss: the loss is larger than proportional, because the background and the resonators' own
+window-to-window power variance dilute a shallower ERD more.  Measured with the deployed pipeline on
+the windows the champion trains on (6 subjects at y_depth 0.25, heterogeneity 0.5, 40 min of fixation
+probes each through ``record_fixation`` → ``Labeler``: 1-s windows 1.0–4.0 s after the cue, local
+reference, session rest re-centring, 5-fold contiguous CV, d′ = √2·Φ⁻¹(AUC); paired seeds):
+
+    dry_penalty   0      0.1    0.2    0.3    0.4    0.5    0.7
+    y AUC         0.620  0.599  0.577  0.557  0.538  0.521  0.497
+    d′ loss       0 %    19 %   37 %   54 %   69 %   83 %   ≈ 100 %
+
+(An earlier table — 48 % at 0.35, 85 % at 0.7 — was measured before the local reference and on 1–2 s
+windows; it overstated what remains.)  So the proposal's 20–40 % planning prior is dry_penalty ≈
+0.1–0.22, DESIGN_PURE_EEG §8's 20–70 % range is ≈ 0.1–0.4, and 0.7 is a no-signal condition, not
+"85 % loss": sweep 0 / 0.2 / 0.4.  It acts on the motor pathway only, keeping the leak at full strength
+while the body signal weakens: the conservative case for certification.
 
 Screen-leak pathway (screen coordinates, only while a target is drawn)
 ----------------------------------------------------------------------
@@ -78,12 +91,16 @@ count it as body signal: it is the leak those tests *cannot* see, and the simula
 
 With ``screen_leak = 0`` nothing in the EEG depends on the screen direction (tested exactly).
 
-Gain drift
-----------
+Gain drift and day-to-day variability
+-------------------------------------
 Inherited: per-channel log-normal day-to-day gain walk (``day_drift_sd``) and the base model's global
 per-minute ``drift``.  Added: a per-channel within-session log-gain slope (``session_drift_sd`` per
 hour, redrawn every ``set_day``), the dry-electrode settling that makes a frozen decoder degrade
-within a session and motivates re-centring.  All of it is applied per sample on the absolute sample
+within a session and motivates re-centring.  Per-channel gains act on covariances as a congruence,
+which is exactly what rest re-centring removes, so gain-only drift is the BEST case for re-centring
+and for a frozen decoder across days.  ``day_depth_sd`` (default 0, i.e. that best case) adds a
+per-day log-normal factor on the ERD depths (``y_depth``, ``x_depth``), drawn per ``set_day``: the
+day-to-day change in imagery strength that re-centring cannot remove.  All of it is applied per sample on the absolute sample
 axis, so ``generate`` stays chunk-invariant: ``generate(a)`` then ``generate(b)`` equals
 ``generate(a + b)``.
 
@@ -145,7 +162,20 @@ ERD_MAX = 0.9
 """Upper bound on any generator's amplitude reduction, so stacked cues never invert a rhythm."""
 
 ERD_PEAK_S, ERD_DECAY_S, ERD_SUSTAIN = 1.5, 1.2, 0.5
-"""Default ERD time course after a cue (see ``erd_envelope``); fitted to the ds004362 decay."""
+"""Default ERD time course after a cue (see ``erd_envelope``); fitted to the ds004362 feet/fists decay."""
+REBOUND_PEAK_S = 0.6
+"""Post-imagery beta rebound (event-related synchronisation): the beta amplitude of the generators that
+were desynchronised rises above baseline after the imagery ends, peaking this long after the offset
+(Pfurtscheller's post-movement beta synchronisation peaks ~0.5–1 s after the offset and is over by ~2–3 s)."""
+REBOUND_GAIN = 1.0
+"""Peak beta amplitude increase per unit of the ERD amplitude reduction at the offset: a y_depth 0.25
+person ending 4-s imagery at envelope 0.66 gets +16 % amplitude (≈ +35 % beta power) at the peak.
+Without it the ERD vanished at trial end and the rest between probes (the idle gate's L0 windows) was
+artificially clean."""
+X_ERD_LR: Tuple[float, float, float] = (0.3, 2.8, 0.0)
+"""(peak_s, decay_s, sustain) fitted to ds004362's L/R d′ ratios 1.20 : 1 : 0.84 : 0.42 (0–1 … 3–4 s;
+the fit gives 1.17 : 1 : 0.70 : 0.49, least squares on a grid): an x pathway that peaks early and fades.
+For ``BodySubject.x_time_course``, a sensitivity case (module docstring)."""
 
 ALPHA_LAT_DEPTH = 0.5
 """Contralateral posterior alpha amplitude reduction at ``screen_leak`` = 1 for a fully lateral
@@ -172,7 +202,11 @@ Y_DEPTH_RANGE: Tuple[float, float] = (0.1, 0.4)
 amplitude ≈ 20–65 % power).  Calibrated on gel-equivalent (dry_penalty 0) 1-s windows at 1–2 s with
 ``BodyCoordinateDecoder`` features, 160 trials, 5-fold CV, mean of 4 people: AUC ≈ 0.54 at 0.1, 0.72
 at 0.25, 0.87 at 0.4,
-so the population spans ds004362's 1–2 s feet/fists mean of 0.667 with a share of near-floor people."""
+so the population spans ds004362's 1–2 s feet/fists mean of 0.667 with a share of near-floor people.
+Calibrated before the decoder's central-11 local reference, which costs ≈ 0.05–0.14 of these AUCs here
+(``body_decoder`` docstring: this background is spatially independent, so its common mode is signal):
+read the simulated AUCs as a conservative lower range against the real-data anchors.  With the local
+reference, on the 1.0–4.0-s windows the champion trains on, 0.25 gives 0.62 (dry-penalty table)."""
 X_DEPTH_RANGE: Tuple[float, float] = (0.25, 0.5)
 """Per-subject one-hand ERD depth.  For x responders this gives 1-s AUC ≈ 0.65–0.80 under the same
 calibration (0.64 at 0.25, 0.71 at 0.35, 0.79 at 0.5), bracketing the 0.69–0.73 of ds004362's
@@ -183,10 +217,17 @@ X_RESPONDER_PROB = 0.2
 
 # Independent random streams per subject (distinct from sim_population's 1–4), so adding a body
 # feature never reshuffles the inherited background, blinks or day drift.
-_SMR_TOPO_STREAM, _SOURCE_STREAM, _SESSION_DRIFT_STREAM, _BODY_PARAM_STREAM = 11, 12, 13, 14
+_SMR_TOPO_STREAM, _SOURCE_STREAM, _SESSION_DRIFT_STREAM, _BODY_PARAM_STREAM, _DAY_DEPTH_STREAM = 11, 12, 13, 14, 15
 
 _MOTOR = tuple(MOTOR_TOPOGRAPHIES)
 _POSTERIOR = tuple(POSTERIOR_TOPOGRAPHIES)
+
+
+def rebound_envelope(tau_s, peak_s: float = REBOUND_PEAK_S) -> np.ndarray:
+    """Post-imagery beta rebound strength at ``tau_s`` seconds after the imagery offset: an alpha
+    function (τ/peak)·e^{1 − τ/peak}, 0 at the offset, 1 at ``peak_s``, < 0.02 after ~6 peaks."""
+    tau = np.maximum(np.asarray(tau_s, dtype=float), 0.0) / peak_s
+    return tau * np.exp(1.0 - tau)
 
 
 def erd_envelope(tau_s, peak_s: float = ERD_PEAK_S, decay_s: float = ERD_DECAY_S,
@@ -240,11 +281,17 @@ class BodySubject(SubjectEEG):
     y_depth, x_depth    ERD depth of feet/hands and of one-hand imagery at the time-course peak;
                         the defaults are a mid-range x responder (1-s AUC ≈ 0.72 on y, 0.71 on x).
     x_responder         False → LEFT/RIGHT ERD is bilateral (same total, no asymmetry).
-    dry_penalty         d′ loss of the motor pathway, in [0, 1).
+    dry_penalty         dry-cap scaling of the motor ERD depth, in [0, 1): depth × (1 − dry_penalty).  NOT
+                        the d′ loss, which is larger (module docstring table: 0.2 → 37 %, 0.4 → 69 %).
     screen_leak         gain of the overt screen pathway (posterior alpha + frontal gaze), ≥ 0.
     covert_leak         gain of body-locked covert attention (posterior alpha only), ≥ 0.
     session_drift_sd    SD of the per-channel within-session log-gain slope per hour.
     erd_peak_s, erd_decay_s, erd_sustain   the ERD time course (``erd_envelope``).
+    x_time_course       None (x shares the time course above) or (peak_s, decay_s, sustain) for the
+                        one-hand (x) part of the ERD, e.g. ``X_ERD_LR``.
+    day_depth_sd        SD of the per-day log-normal factor on both ERD depths (0: identical every day).
+    rebound_gain        post-imagery beta rebound per unit of the ERD at the offset (``REBOUND_GAIN``;
+                        0 switches it off).
     heterogeneity       (inherited) mixes each generator's canonical projection with an individual one
                         on the same sites, so people differ in where on the strip their ERD peaks.
     user_learning_rate  (inherited) motor depth grows by this fraction per practice hour.
@@ -262,17 +309,27 @@ class BodySubject(SubjectEEG):
     erd_peak_s: float = ERD_PEAK_S
     erd_decay_s: float = ERD_DECAY_S
     erd_sustain: float = ERD_SUSTAIN
+    x_time_course: Optional[Tuple[float, float, float]] = None
+    day_depth_sd: float = 0.0
+    rebound_gain: float = REBOUND_GAIN
     projections: np.ndarray = field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if not 0.0 <= self.dry_penalty < 1.0:
             raise ValueError(f"dry_penalty must be in [0, 1), got {self.dry_penalty}")
-        for name in ("y_depth", "x_depth", "screen_leak", "covert_leak", "session_drift_sd"):
+        for name in ("y_depth", "x_depth", "screen_leak", "covert_leak", "session_drift_sd", "day_depth_sd",
+                     "rebound_gain"):
             if getattr(self, name) < 0:
                 raise ValueError(f"{name} must be >= 0, got {getattr(self, name)}")
-        if not (self.erd_peak_s > 0 and self.erd_decay_s > 0 and 0.0 <= self.erd_sustain <= 1.0):
+        courses = [(self.erd_peak_s, self.erd_decay_s, self.erd_sustain)]
+        if self.x_time_course is not None:
+            courses.append(tuple(self.x_time_course))
+        if not all(len(c) == 3 and c[0] > 0 and c[1] > 0 and 0.0 <= c[2] <= 1.0 for c in courses):
             raise ValueError("ERD time course needs peak_s > 0, decay_s > 0 and sustain in [0, 1]")
+        self._day_depth = 1.0
         self._cue_onset: Optional[int] = None
+        self._rebound_onset: Optional[int] = None             # sample of the last imagery offset
+        self._rebound_depth = np.zeros(len(_MOTOR))           # ERD amplitude reduction at that offset
         self.screen_dir: Optional[np.ndarray] = None
         self._day_origin = 0
         self._session_slope = np.zeros(self.hw.n_channels)
@@ -342,6 +399,8 @@ class BodySubject(SubjectEEG):
         rng = np.random.default_rng([self.seed, _SESSION_DRIFT_STREAM, int(day)])
         self._session_slope = rng.normal(0.0, self.session_drift_sd, self.hw.n_channels)
         self._day_origin = self.n_sent
+        depth_rng = np.random.default_rng([self.seed, _DAY_DEPTH_STREAM, int(day)])
+        self._day_depth = float(np.exp(depth_rng.normal(0.0, self.day_depth_sd)))
 
     def begin_block(self, day: int, block: int) -> None:
         """Inherited restart (noise, blinks, AR state, evoked) plus the rhythm generators; the person
@@ -350,6 +409,7 @@ class BodySubject(SubjectEEG):
         self._reset_sources(np.random.default_rng([self.seed, _SOURCE_STREAM, int(day), int(block)]))
         self.intent = np.zeros(2)
         self._cue_onset = None
+        self._rebound_onset = None
         self.screen_dir = None
 
     def start(self) -> None:
@@ -359,15 +419,37 @@ class BodySubject(SubjectEEG):
         self._day_origin -= shift
         if self._cue_onset is not None:
             self._cue_onset -= shift
+        if self._rebound_onset is not None:
+            self._rebound_onset -= shift
+
+    def _end_episode(self) -> None:
+        """Imagery stops now: start the post-imagery beta rebound from the ERD it had at this moment."""
+        if self._cue_onset is None or not np.any(self.intent):
+            return
+        env = self.envelope(1)[0]
+        env_x = env if self.x_time_course is None else self.envelope(1, tuple(self.x_time_course))[0]
+        y_part, x_part = self._motor_depth()
+        self._rebound_depth = np.clip(env * y_part + env_x * x_part, 0.0, ERD_MAX)
+        self._rebound_onset = self.n_sent
 
     def cue(self, vx: float, vy: float) -> None:
-        """Start an imagery episode for body vector (vx, vy) now (zero vector = rest)."""
+        """Start an imagery episode for body vector (vx, vy) now (zero vector = rest, which ends the
+        current episode and starts its beta rebound; a new episode cancels any rebound)."""
+        if np.any((vx, vy)):
+            self._rebound_onset = None
+        else:
+            self._end_episode()
         super().set_intent(vx, vy)
         self._cue_onset = self.n_sent if np.any(self.intent) else None
 
     def set_intent(self, vx: float, vy: float) -> None:
-        """Update the body intent; a move from rest starts an episode, rest ends it."""
+        """Update the body intent; a move from rest starts an episode, rest ends it (and starts its
+        beta rebound)."""
         was_rest = not np.any(self.intent)
+        if not np.any((vx, vy)):
+            self._end_episode()
+        elif was_rest:
+            self._rebound_onset = None
         super().set_intent(vx, vy)
         if not np.any(self.intent):
             self._cue_onset = None
@@ -385,21 +467,33 @@ class BodySubject(SubjectEEG):
         self.screen_dir = d / norm if norm > 1.0 else d
 
     # -- signal --------------------------------------------------------------------------------------
-    def envelope(self, n: int) -> np.ndarray:
-        """ERD time course for the next n samples (0 at rest)."""
+    def envelope(self, n: int, course: Optional[Tuple[float, float, float]] = None) -> np.ndarray:
+        """ERD time course for the next n samples (0 at rest); ``course`` overrides (peak, decay,
+        sustain), as the x pathway's ``x_time_course`` does."""
         if self._cue_onset is None:
             return np.zeros(n)
         tau = (self.n_sent + np.arange(n) - self._cue_onset) / self.hw.fs
-        return erd_envelope(tau, self.erd_peak_s, self.erd_decay_s, self.erd_sustain)
+        peak, decay, sustain = course or (self.erd_peak_s, self.erd_decay_s, self.erd_sustain)
+        return erd_envelope(tau, peak, decay, sustain)
 
-    def _motor_depth(self) -> np.ndarray:
-        """Peak ERD depth on each motor generator for the current intent, after dry penalty and
-        practice: class activations are the positive and negative parts of the body vector."""
+    def _rebound(self, n: int) -> np.ndarray:
+        """Beta rebound strength (× ``rebound_gain``) for the next n samples; 0 without a recent offset."""
+        if self._rebound_onset is None or self.rebound_gain == 0:
+            return np.zeros(n)
+        tau = (self.n_sent + np.arange(n) - self._rebound_onset) / self.hw.fs
+        return self.rebound_gain * rebound_envelope(tau)
+
+    def _motor_depth(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Peak ERD depth on each motor generator for the current intent, after dry penalty, practice
+        and the day's depth factor, split into its y (feet/hands) and x (one-hand) parts so each can
+        follow its own time course: class activations are the positive and negative parts of the body
+        vector."""
         vx, vy = self.intent
         w = self._class_weights
-        depth = (max(vy, 0.0) * w["FEET"] + max(-vy, 0.0) * w["HANDS"]
-                 + max(vx, 0.0) * w["RIGHT"] + max(-vx, 0.0) * w["LEFT"])
-        return depth * (1.0 - self.dry_penalty) * (1.0 + self.user_learning_rate * self.practice_h)
+        gain = (1.0 - self.dry_penalty) * (1.0 + self.user_learning_rate * self.practice_h) * self._day_depth
+        y_part = (max(vy, 0.0) * w["FEET"] + max(-vy, 0.0) * w["HANDS"]) * gain
+        x_part = (max(vx, 0.0) * w["RIGHT"] + max(-vx, 0.0) * w["LEFT"]) * gain
+        return y_part, x_part
 
     def attention(self) -> np.ndarray:
         """Spatial attention vector driving posterior alpha: overt (screen target, only when drawn)
@@ -431,10 +525,13 @@ class BodySubject(SubjectEEG):
         x, self._ar_zi = lfilter([AR_GAIN], [1.0, -AR_COEF], w, axis=0, zi=self._ar_zi)
         sources = self._resonate(self._source_rng.standard_normal((n, self.projections.shape[0])))
         env = self.envelope(n)[:, None]
-        motor = self._motor_depth()
-        reduction = np.hstack([env * motor[None], env * motor[None],
-                               np.broadcast_to(self._alpha_depth(), (n, len(_POSTERIOR)))])
-        x += (sources * (1.0 - np.clip(reduction, 0.0, ERD_MAX))) @ self.projections
+        env_x = env if self.x_time_course is None else self.envelope(n, tuple(self.x_time_course))[:, None]
+        y_part, x_part = self._motor_depth()
+        motor = env * y_part[None] + env_x * x_part[None]
+        beta = motor - self._rebound(n)[:, None] * self._rebound_depth[None]   # rebound: negative reduction
+        reduction = np.hstack([np.clip(motor, 0.0, ERD_MAX), np.clip(beta, -ERD_MAX, ERD_MAX),
+                               np.clip(np.broadcast_to(self._alpha_depth(), (n, len(_POSTERIOR))), 0.0, ERD_MAX)])
+        x += (sources * (1.0 - reduction)) @ self.projections
         if self.screen_dir is not None and self.screen_leak > 0:
             g = self.screen_leak * SCREEN_GAZE_UV * self.screen_dir
             x += g[0] * self._h_eog[None] + g[1] * self._fp[None]
@@ -469,8 +566,8 @@ class BodyPopulation(PopulationSim):
     The inherited draws (seed, heterogeneity, ocular leak, drift, learning) are kept unchanged; the
     body draws (``y_depth``, ``x_depth``, ``x_responder``) come from their own stream
     ``default_rng([seed, i, 14])``, so subject ``i`` is the same person whatever the population size
-    and whatever the body knobs.  ``dry_penalty``, ``screen_leak``, ``covert_leak`` and
-    ``session_drift_sd`` are condition-level settings, identical for every subject, so a sweep over
+    and whatever the body knobs.  ``dry_penalty``, ``screen_leak``, ``covert_leak``, ``session_drift_sd``,
+    ``x_time_course`` and ``day_depth_sd`` are condition-level settings, identical for every subject, so a sweep over
     them runs on the very same people.
     """
 
@@ -480,6 +577,7 @@ class BodyPopulation(PopulationSim):
                  x_depth_range: Tuple[float, float] = X_DEPTH_RANGE,
                  dry_penalty: float = 0.0, screen_leak: float = 0.0, covert_leak: float = 0.0,
                  session_drift_sd: float = SESSION_DRIFT_SD, day_drift_sd: float = DAY_DRIFT_SD,
+                 x_time_course: Optional[Tuple[float, float, float]] = None, day_depth_sd: float = 0.0,
                  **population_kw):
         if not 0.0 <= x_responder_prob <= 1.0:
             raise ValueError(f"x_responder_prob must be in [0, 1], got {x_responder_prob}")
@@ -491,6 +589,8 @@ class BodyPopulation(PopulationSim):
         self.screen_leak = float(screen_leak)
         self.covert_leak = float(covert_leak)
         self.session_drift_sd = float(session_drift_sd)
+        self.x_time_course = None if x_time_course is None else tuple(float(v) for v in x_time_course)
+        self.day_depth_sd = float(day_depth_sd)
         self.body: List[BodyParams] = []
         for i in range(n_subjects):
             rng = np.random.default_rng([self.seed, i, _BODY_PARAM_STREAM])
@@ -506,7 +606,8 @@ class BodyPopulation(PopulationSim):
                            day_drift_sd=p.day_drift_sd, user_learning_rate=p.user_learning_rate,
                            y_depth=b.y_depth, x_depth=b.x_depth, x_responder=b.x_responder,
                            dry_penalty=self.dry_penalty, screen_leak=self.screen_leak,
-                           covert_leak=self.covert_leak, session_drift_sd=self.session_drift_sd)
+                           covert_leak=self.covert_leak, session_drift_sd=self.session_drift_sd,
+                           x_time_course=self.x_time_course, day_depth_sd=self.day_depth_sd)
 
     def describe(self, indices: Optional[Sequence[int]] = None) -> List[dict]:
         idx = range(len(self)) if indices is None else indices

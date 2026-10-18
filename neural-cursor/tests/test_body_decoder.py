@@ -13,11 +13,13 @@ import pytest
 from scipy import signal as sps
 from sklearn.metrics import roc_auc_score
 
-from neural_cursor.acquisition import SimulatedEEG
-from neural_cursor.body_decoder import CENTRAL11, BodyCoordinateDecoder
+from neural_cursor.body_decoder import CENTRAL11, IDLE_SOURCE, BodyCoordinateDecoder
 from neural_cursor.config import DEFAULT
 from neural_cursor.effectors import NullEffector
 from neural_cursor.realtime import RealTimeLoop
+from neural_cursor.signal import common_average
+from neural_cursor.sim_body import BodySubject
+from neural_cursor.simulate_engine import OnlinePreprocessor
 
 FS = DEFAULT.hardware.fs
 N_WIN = FS                      # 1-s windows
@@ -142,6 +144,8 @@ def test_predict_returns_two_bounded_values_and_x_is_zero_until_earned(fitted, l
 
 
 def test_predict_validates_the_window():
+    with pytest.raises(ValueError, match="fs"):
+        BodyCoordinateDecoder(DEFAULT, FS // 2)                # window and band built for the wrong rate
     dec = make_decoder()
     with pytest.raises(ValueError, match="shape"):
         dec.predict(np.zeros((N_WIN, len(CENTRAL11))))        # central channels only: not a raw window
@@ -166,6 +170,32 @@ def test_fit_and_earn_x_refuse_display_identifiable_or_test_provenance(lateral, 
     assert dec._models["y"] is None and not dec.x_enabled
 
 
+def test_invalid_windows_give_nan_not_a_saturated_command(fitted, lateral):
+    """A flat-lined amplifier, a near-zero window, a dead last 0.25 s, a non-finite or gated central channel:
+    each would push the tangent features to extremes (or crash sklearn) and the output to ±1; the decoder
+    returns NaN instead, which the real-time loop turns into a counted zero command."""
+    _, (ws, _, _) = lateral
+    good = ws[0]
+    dead_end = good.copy()
+    dead_end[-N_WIN // 4:] = 0.0                                  # the amplifier flat-lined 0.25 s ago
+    nan_cz = good.copy()
+    nan_cz[10, CH.index("Cz")] = np.nan
+    nan_other = good.copy()
+    nan_other[10, CH.index("PO8")] = np.nan                       # outside the montage: irrelevant
+    for bad in (np.zeros((N_WIN, 32)), good * 1e-6, good * 1e4, dead_end, nan_cz):
+        assert np.isnan(fitted.predict(bad)).all()
+    assert np.isfinite(fitted.predict(nan_other)).all()
+    gated = np.ones(32, bool)
+    gated[CH.index("C3")] = False
+    assert np.isnan(fitted.predict(good, good=gated)).all()
+    gated = np.ones(32, bool)
+    gated[CH.index("Oz")] = False
+    assert np.isfinite(fitted.predict(good, good=gated)).all()
+    out = fitted.predict_many([good, nan_cz, good])                # one bad window does not abort the call
+    assert np.isfinite(out[[0, 2]]).all() and np.isnan(out[1]).all()
+    assert np.isfinite(fitted.predict_many(ws[:50])).all()        # real windows are never refused
+
+
 def test_fit_accepts_blind_closed_loop_windows():
     ws, ys, prov = session(3, 0, True, source="L2b")
     assert make_decoder().fit(ws, ys, prov).predict(ws[0]).shape == (2,)
@@ -185,17 +215,107 @@ def test_x_stays_disabled_without_a_lateralised_signal():
     assert np.all(dec.predict_many(ws[:20])[:, 0] == 0.0)
 
 
+ALPHA_SITES = {"left": {"P3": 1.0, "PO7": 1.0, "CP5": 0.6, "CP1": 0.4},
+               "right": {"P4": 1.0, "PO8": 1.0, "CP6": 0.6, "CP2": 0.4}}
+ALPHA_UV = 10.0                 # posterior alpha amplitude
+ATTENTION_DEPTH = 0.3           # covert attention to one side lowers contralateral alpha by 30 %
+_ALPHA_SOS = sps.butter(4, (8.0, 12.0), "bandpass", fs=FS, output="sos")
+_ALPHA_MIX = np.zeros((2, len(CH)))
+for _k, _side in enumerate(("left", "right")):
+    for _c, _w in ALPHA_SITES[_side].items():
+        _ALPHA_MIX[_k, CH.index(_c)] = _w
+
+
+def attention_session(seed, session_id):
+    """An x NON-responder (bilateral hand ERD) who covertly attends toward the cued side: posterior
+    alpha lateralises and spreads onto CP5/CP1 and CP6/CP2, so the central-11 x model can decode it."""
+    rng = np.random.default_rng(seed)
+    order = rng.permutation(np.repeat(tuple(CLASSES), TRIALS_PER_CLASS))
+    ws, ys, prov = [], [], []
+    for trial, cls in enumerate(order):
+        for k in range(WINDOWS_PER_TRIAL):
+            f = np.ones(2)
+            if cls in ("RIGHT", "LEFT"):
+                f[0 if cls == "RIGHT" else 1] = 1.0 - ATTENTION_DEPTH        # attend right: LEFT alpha falls
+            z = sps.sosfilt(_ALPHA_SOS, rng.standard_normal((2 * N_WIN, 2)), axis=0)[N_WIN:]
+            alpha = (z / z.std(axis=0)) * ALPHA_UV * f * np.exp(0.2 * rng.standard_normal(2))
+            ws.append(window(rng, _erd(cls, False)) + alpha @ _ALPHA_MIX)
+            ys.append(CLASSES[cls])
+            prov.append({"source": "L1", "session": session_id, "trial": trial, "t": 6.0 * trial + 1.0 + k})
+    return ws, np.array(ys), prov
+
+
+def test_x_carried_by_posterior_attention_is_not_earned():
+    """earn_x was a decodability gate only: a non-responder whose x labels drive covert attention would
+    earn an attention axis through the label-pure path.  The purity rule (x skill must survive
+    regressing out posterior alpha lateralisation) refuses it, and a motor x keeps all of its skill."""
+    a, b = attention_session(70, 0), attention_session(71, 1)
+    ws, ys, prov = a[0] + b[0], np.concatenate([a[1], b[1]]), a[2] + b[2]
+    dec = make_decoder(n_permutations=50).fit(ws, ys, prov)
+    rep = dec.earn_x(ws, ys, prov)
+    assert rep["auc"] > max(rep["floor"], 0.60)                    # the old gate would have granted it
+    assert not rep["enabled"] and "posterior" in rep["reason"] and rep["purity_retained"] < 0.70
+
+
+def _weak_lateraliser(erd):
+    """Two sessions of a person whose one-hand ERD keeps ``erd`` of the contralateral amplitude."""
+    ws, ys, prov = [], [], []
+    for sid, seed in ((0, 60), (1, 61)):
+        rng = np.random.default_rng(seed)
+        order = rng.permutation(np.repeat(tuple(CLASSES), TRIALS_PER_CLASS))
+        for trial, cls in enumerate(order):
+            f = _erd(cls, True) if cls in ("FEET", "HANDS") else np.where(_erd(cls, True) < 1, erd, 1.0)
+            for k in range(WINDOWS_PER_TRIAL):
+                ws.append(window(rng, f))
+                ys.append(CLASSES[cls])
+                prov.append({"source": "L1", "session": sid, "trial": trial, "t": 6.0 * trial + 1.0 + k})
+    return ws, np.array(ys), prov
+
+
+def test_earned_x_is_kept_unless_a_separate_test_rejects_it():
+    """Once earned, x stays while it is above its chance floor (and motor), even below the grant
+    threshold, so sampling noise around the threshold does not toggle the control scheme daily; it is
+    revoked when it falls to the floor."""
+    ws, ys, prov = _weak_lateraliser(0.85)
+    dec = make_decoder(n_permutations=50, x_auc_min=0.65).fit(ws, ys, prov)
+    grant = dec.earn_x(ws, ys, prov)
+    keep = dec.earn_x(ws, ys, prov, previously_enabled=True)
+    assert grant["floor"] < grant["auc"] < 0.65 and not grant["enabled"]
+    assert keep["enabled"] and keep["rule"] == "keep" and dec.x_enabled
+    ws, ys, prov = _weak_lateraliser(0.9)
+    revoked = make_decoder(n_permutations=50).fit(ws, ys, prov).earn_x(ws, ys, prov, previously_enabled=True)
+    assert revoked["auc"] <= revoked["floor"] and not revoked["enabled"]
+
+
+def test_x_is_judged_on_a_fixed_window_population():
+    """Only the fixation probes (L1) enter the x statistic by default: adding many blind closed-loop
+    windows in which the lateralised ERD has decayed must not change it (it did: x flipped daily)."""
+    ws, ys, prov = _two_sessions(True, 20)
+    l2b_w, l2b_y, l2b_p = session(80, 2, False, source="L2b", classes=("LEFT", "RIGHT"))
+    dec = make_decoder(n_permutations=50).fit(ws, ys, prov)
+    only_l1 = dec.earn_x(ws, ys, prov)
+    mixed = dec.earn_x(ws + l2b_w, np.concatenate([ys, l2b_y]), prov + l2b_p)
+    assert mixed["auc"] == only_l1["auc"] and mixed["n_windows"] == only_l1["n_windows"]
+    widened = dec.earn_x(ws + l2b_w, np.concatenate([ys, l2b_y]), prov + l2b_p, sources=("L1", "L2b"))
+    assert widened["n_windows"] > only_l1["n_windows"] and widened["auc"] < only_l1["auc"]
+
+
 def test_x_is_earned_with_a_lateralised_signal_and_then_decodes_right_vs_left():
+    """A grant needs two consecutive passing grant tests (the test is repeated after every retrain, so a
+    single 5 % pass is not enough): the first pass is pending, the confirming one grants."""
     ws, ys, prov = _two_sessions(True, 20)
     dec = make_decoder(n_permutations=N_PERM_TEST).fit(ws, ys, prov)
-    rep = dec.earn_x(ws, ys, prov)
-    assert rep["enabled"] and dec.x_enabled and dec.x_report is rep
+    first = dec.earn_x(ws, ys, prov)
+    assert first["passed"] and first["grant_pending"] and not first["enabled"] and not dec.x_enabled
+    rep = dec.earn_x(ws, ys, prov, previous_grant_passed=first["passed"])
+    assert rep["enabled"] and dec.x_enabled and dec.x_report is rep and not rep["grant_pending"]
     assert rep["auc"] > rep["floor"] and rep["auc"] > 0.60 and rep["n_windows"] == 2 * 2 * 16 * 3
+    assert rep["purity_retained"] > 0.9                            # motor x: posterior alpha explains none
     tw, ty, _ = session(30, 2, True, classes=("LEFT", "RIGHT"))
     out = dec.predict_many(tw)
     assert roc_auc_score(ty[:, 0] > 0, out[:, 0]) > 0.65
     # earning is deterministic (fixed permutation seed)
-    assert make_decoder(n_permutations=N_PERM_TEST).earn_x(ws, ys, prov) == rep
+    assert make_decoder(n_permutations=N_PERM_TEST).earn_x(ws, ys, prov, previous_grant_passed=True) == rep
 
 
 def test_rest_recentring_with_the_identity_reference_changes_nothing(lateral):
@@ -234,21 +354,286 @@ def test_set_reference_validates_its_input():
         dec.set_reference(rest(0, n=2), reference=np.eye(len(CENTRAL11)))
 
 
-def test_runs_in_the_real_time_loop_on_32_channel_windows(fitted):
-    """The loop's chain (filter → gate → CAR → predict) hands the decoder (n_win, 32) windows; with
-    ``loop_config`` the window is the decoder's 1 s and every output is a bounded (2,) command."""
+# ---------------------------------------------------------------- local reference
+def test_local_reference_cancels_what_the_global_car_carries_into_the_montage(fitted, lateral):
+    """The real-time chain re-references to the mean of ALL good channels, so a blink, a saccadic spike
+    or frontal EMG on FP1/FP2/F7/F8 enters every central channel at 1/32 of its size.  The decoder's
+    central-11 re-reference cancels that term exactly: features and output are unchanged, whereas a
+    decoder without it decodes a different window."""
+    _, (ws, _, _) = lateral
+    rng = np.random.default_rng(11)
+    frontal = np.zeros((N_WIN, 32))
+    frontal[:, [CH.index(c) for c in ("FP1", "FP2")]] = 150.0 * np.cumsum(rng.standard_normal((N_WIN, 1)), 0) / 20
+    frontal[:, [CH.index(c) for c in ("F7", "F8")]] = 40.0 * rng.standard_normal((N_WIN, 2))     # broadband EMG
+    good = np.ones(32, bool)
+    clean, leaky = common_average(ws[0], good), common_average(ws[0] + frontal, good)
+    central = [CH.index(c) for c in CENTRAL11]
+    assert np.abs(leaky[:, central] - clean[:, central]).max() > 5.0          # CAR carried it in
+    np.testing.assert_allclose(fitted.features(leaky), fitted.features(clean), atol=1e-8)
+    np.testing.assert_array_equal(fitted.covariance(leaky).shape, (len(CENTRAL11) - 1,) * 2)
+    np.testing.assert_allclose(fitted.predict(leaky), fitted.predict(clean), atol=1e-10)
+    plain = make_decoder(local_reference=False)
+    assert np.abs(plain.features(leaky) - plain.features(clean)).max() > 1e-2
+
+
+def test_a_reference_in_channel_coordinates_is_mapped_into_the_local_basis(lateral):
+    """``set_reference`` takes the rest covariance either as ``reference_from`` returns it or in channel
+    coordinates (k × k), which the local reference maps by its basis: the same re-centring either way."""
+    (ws, _, _), _ = lateral
+    dec = make_decoder()
+    rest_windows = rest(43)
+    reduced = dec.reference_from(rest_windows)
+    channel = np.mean([np.cov(w[:, [CH.index(c) for c in CENTRAL11]], rowvar=False) for w in rest_windows], 0)
+    assert reduced.shape == (len(CENTRAL11) - 1,) * 2
+    a = make_decoder().set_reference(reference=dec._basis.T @ channel @ dec._basis).features(ws[0])
+    b = make_decoder().set_reference(reference=channel).features(ws[0])
+    np.testing.assert_allclose(a, b, atol=1e-10)
+
+
+# ---------------------------------------------------------------- idle gate
+def _idle_prov(n, session=0):
+    """Rest windows interleaved in time with the session's probes (the ITI after each trial), as the
+    protocol records them: the gate's contiguous folds then each hold both classes."""
+    return [{"source": IDLE_SOURCE, "session": session, "t": 6.0 * (i % (len(CLASSES) * TRIALS_PER_CLASS)) + 4.5}
+            for i in range(n)]
+
+
+def test_fit_refuses_rest_windows_and_the_gate_refuses_display_or_test_windows(lateral):
+    (ws, ys, prov), _ = lateral
+    rest_windows = rest(44, n=10)
+    with pytest.raises(ValueError, match="trains only on"):
+        make_decoder().fit(ws[:10] + rest_windows, np.vstack([ys[:10], np.zeros((10, 2), int)]),
+                           prov[:10] + _idle_prov(10))
+    dec = make_decoder().fit(ws, ys, prov)
+    for source in ("S", "H", "R", "J", None):
+        bad = _idle_prov(10)
+        bad[3] = dict(bad[3], source=source)
+        with pytest.raises(ValueError, match="idle gate trains only on"):
+            dec.fit_idle(rest_windows, bad)
+    with pytest.raises(ValueError, match="call fit first"):
+        make_decoder().fit_idle(rest_windows, _idle_prov(10))
+
+
+def _strong_responder(seed, session_id, erd=0.35):
+    """Feet/hands probes of a person whose imagery keeps only ``erd`` of the source amplitude (power
+    ÷ 8): rest and intent then differ clearly in absolute power, which a 1-s window can place."""
+    rng = np.random.default_rng(seed)
+    order = rng.permutation(np.repeat(("FEET", "HANDS"), TRIALS_PER_CLASS))
+    ws, ys, prov = [], [], []
+    for trial, cls in enumerate(order):
+        f = np.where(_erd(cls, False) < 1, erd, 1.0)
+        for k in range(WINDOWS_PER_TRIAL):
+            ws.append(window(rng, f))
+            ys.append(CLASSES[cls])
+            prov.append({"source": "L1", "session": session_id, "trial": trial, "t": 6.0 * trial + 1.0 + k})
+    return ws, np.array(ys), prov
+
+
+def test_an_armed_gate_zeroes_rest_exactly_and_passes_imagery():
+    """Rest (no ERD) against the decoder's own training windows: the gate is armed when its out-of-fold
+    AUC reaches 0.70, and then a rest window's output is exactly (0, 0) whenever p(idle) > 0.7; every
+    window it lets through keeps the axis models' output unchanged."""
+    ws, ys, prov = _strong_responder(48, 0)
+    tw, _, _ = _strong_responder(49, 1)
+    dec = make_decoder().fit(ws, ys, prov)
+    ungated = dec.predict_many(tw)
+    rep = dec.fit_idle(rest(45, n=64), _idle_prov(64))
+    assert rep["armed"] and rep["cv_auc"] >= 0.70 and rep["n_intent"] == len(ws), rep
+    test_rest = rest(46, n=60)
+    rest_out, intent_out = dec.predict_many(test_rest), dec.predict_many(tw)
+    zero = np.all(rest_out == 0.0, axis=1)
+    np.testing.assert_array_equal(zero, dec.idle_probability(test_rest) > dec.idle_threshold)
+    assert zero.mean() > 0.6 and np.all(intent_out[:, 0] == 0.0)
+    passed = ~np.all(intent_out == 0.0, axis=1)
+    assert passed.mean() > 0.8
+    np.testing.assert_array_equal(intent_out[passed], ungated[passed])           # the gate only zeroes
+    np.testing.assert_array_equal(dec.ungated().predict_many(tw), ungated)
+
+
+def test_an_unplaceable_gate_is_not_armed_and_changes_nothing(lateral):
+    """'Rest' windows drawn from the same imagery mixture as the training windows cannot be told apart:
+    out-of-fold AUC ≈ 0.5, the gate stays unarmed, and the output is exactly the ungated one."""
+    (ws, ys, prov), (tw, _, _) = lateral
+    dec = make_decoder().fit(ws, ys, prov)
+    before = dec.predict_many(tw[:40])
+    lookalike, _, _ = session(47, 9, True)
+    rep = dec.fit_idle(lookalike[:96], _idle_prov(96))
+    assert not rep["armed"] and rep["cv_auc"] < 0.70, rep
+    np.testing.assert_array_equal(dec.predict_many(tw[:40]), before)
+    assert np.all(dec.idle_probability(tw[:5]) == 0.0)
+
+
+# ---------------------------------------------------------------- in the real-time loop
+@pytest.fixture(scope="module")
+def loop_setup():
+    """A decoder trained on windows from the loop's own preprocessing chain (``OnlinePreprocessor``:
+    causal filter → gate → CAR) of a simulated SMR person (``sim_body.BodySubject``, strong feet/hands
+    ERD), and that person as the live source."""
+    dec = make_decoder()
+    cfg = dec.loop_config(DEFAULT)
+    person = BodySubject(cfg.hardware, seed=3, y_depth=0.4, x_depth=0.35, x_responder=False)
+    person.set_day(1)
+    person.begin_block(1, 0)
+    pre = OnlinePreprocessor(cfg)
+    pre.push(person.generate(2 * FS))
+    ws, ys, prov = [], [], []
+    for trial in range(40):
+        vy = 1 if trial % 2 else -1
+        person.cue(0, vy)
+        for k in range(8):                                          # 0.5-s hops, windows 1.5–4 s after the cue
+            pre.push(person.generate(FS // 2))
+            if k >= 3:
+                ws.append(pre.window())
+                ys.append((0, vy))
+                prov.append({"source": "L1", "session": "cal", "trial": trial, "t": 6.0 * trial + 0.5 * k})
+        person.cue(0, 0)
+        pre.push(person.generate(2 * FS))
+    return dec.fit(ws, np.array(ys), prov), cfg, person
+
+
+def _live(cfg, decoder, person, block, vy, source=None, seconds=3.0):
+    person.begin_block(1, block)
+    person.start()
+    person.cue(0, vy)
+    loop = RealTimeLoop(source or person, decoder, NullEffector(), cfg, warmup_s=1.0, sample_clock=time.time)
+    return loop, loop.run(seconds)
+
+
+def test_runs_in_the_real_time_loop_and_follows_the_imagined_body_part(loop_setup):
+    """The loop hands the decoder (n_win, 32) windows of the length it was trained on, and its output
+    follows the imagery: feet push y up, both hands down, x stays 0 (not earned), within the latency
+    budget."""
+    dec, cfg, person = loop_setup
     seen = set()
 
     class Spy:
-        def predict(self, w):
+        def predict(self, w, good=None):
             seen.add(w.shape)
-            return fitted.predict(w)
+            return dec.predict(w, good=good)
 
-    cfg = fitted.loop_config(DEFAULT)
-    sim = SimulatedEEG(cfg.hardware, seed=5)
-    sim.start()
-    loop = RealTimeLoop(sim, Spy(), NullEffector(), cfg, warmup_s=1.2, sample_clock=time.time)
-    stats = loop.run(1.0)
-    assert seen == {(N_WIN, 32)}
-    assert stats["n_updates"] > 0 and loop.decoded.shape == (stats["n_updates"], 2)
-    assert np.all(np.abs(loop.decoded) <= 1) and np.all(loop.decoded[:, 0] == 0.0)
+    feet, st = _live(cfg, Spy(), person, 1, +1)
+    hands, _ = _live(cfg, dec, person, 2, -1)
+    assert seen == {(N_WIN, 32)} and st["n_updates"] > 20 and st["n_invalid"] == 0
+    assert feet.decoded[:, 1].mean() > hands.decoded[:, 1].mean() + 0.2
+    assert np.all(feet.decoded[:, 0] == 0.0)
+    assert st["latency_ms"]["p95"] < 50.0, st["latency_ms"]
+
+
+class _Fault:
+    """A source that turns faulty ``after_s`` seconds after it is created: a flat line at 250 µV on
+    every channel (headbox unplugged), NaN on Cz (one electrode dropped, driver marks it), or C3 held at
+    a constant 12.3 µV (one dead electrode, driver does NOT mark it)."""
+
+    def __init__(self, inner, kind, after_s=1.5):
+        self.inner, self.kind, self.after = inner, kind, after_s
+        self.t0 = time.time()
+
+    def pull(self):
+        x, ts = self.inner.pull()
+        if len(ts) and ts[-1] - self.t0 > self.after:
+            x = np.full_like(x, 250.0) if self.kind == "flat" else x.copy()
+            if self.kind == "nan_cz":
+                x[:, CH.index("Cz")] = np.nan
+            if self.kind == "dead_c3":
+                x[:, CH.index("C3")] = 12.3
+        return x, ts
+
+
+@pytest.mark.parametrize("kind", ["flat", "nan_cz"])
+def test_a_flat_or_dropped_central_channel_stops_the_cursor(loop_setup, kind):
+    """Samples keep arriving, so the stale guard never fires.  Without a validity check a flat line drove
+    y to −1.000 on every update and a dropped Cz (held at its last value) read as FEET; now the
+    decoder refuses those windows and the loop sends counted zero commands."""
+    dec, cfg, person = loop_setup
+    person.begin_block(1, 9)
+    person.start()
+    person.cue(0, 0)
+    loop = RealTimeLoop(_Fault(person, kind), dec, NullEffector(), cfg, warmup_s=1.0, sample_clock=time.time)
+    st = loop.run(3.0)                                          # the fault starts ~0.5 s into the run
+    assert st["n_invalid"] >= 0.6 * (st["n_invalid"] + st["n_updates"]), st
+    assert np.all(np.abs(loop.decoded[:, 1]) < 0.999)           # no saturated command was ever sent
+
+
+def test_a_dead_central_electrode_is_gated_and_stops_the_cursor(loop_setup):
+    """Review: a constant-valued C3 passed every validity check (the decoder's dead-segment and power
+    checks pool all montage dimensions) and drove y to −0.55 at rest.  The amplitude gate's low-RMS rule
+    flags it, the decoder refuses windows with a bad central channel, and the loop sends counted zeros."""
+    dec, cfg, person = loop_setup
+    person.begin_block(1, 10)
+    person.start()
+    person.cue(0, 0)
+    loop = RealTimeLoop(_Fault(person, "dead_c3", after_s=1.2), dec, NullEffector(), cfg, warmup_s=1.0,
+                        sample_clock=time.time)
+    st = loop.run(4.0)
+    n = st["n_invalid"] + st["n_updates"]
+    assert st["n_invalid"] >= 0.5 * n, st
+    tail = int(1.0 * cfg.task.control_hz)                       # the last second: the fault long established
+    assert np.all(loop.decoded[-tail:] == 0.0) or st["n_invalid"] >= 0.6 * n
+
+
+def test_the_gate_flags_a_dead_channel_but_not_an_all_flat_window():
+    from neural_cursor.signal import AmplitudeGate
+    gate = AmplitudeGate(DEFAULT.hardware, DEFAULT.pre)
+    rng = np.random.default_rng(0)
+    w = rng.normal(0, 15.0, (N_WIN, len(CH)))
+    assert gate.update(w).all()
+    w[:, CH.index("C3")] = 0.0
+    good = gate.update(w)
+    assert not good[CH.index("C3")] and good.sum() == len(CH) - 1
+    assert AmplitudeGate(DEFAULT.hardware, DEFAULT.pre).update(np.zeros((N_WIN, len(CH)))).all()
+
+
+# ---------------------------------------------------------------- review round 3
+def test_set_reference_without_arguments_returns_to_the_identity(lateral):
+    """``set_reference()`` is the documented way back to no re-centring; it used to install a k × k
+    identity (11) where the local-reference features are k − 1 (10), so every later predict crashed."""
+    (ws, ys, prov), (tw, _, _) = lateral
+    fresh = make_decoder().fit(ws, ys, prov)
+    dec = make_decoder().fit(ws, ys, prov)
+    dec.set_reference(rest_windows=rest(5))
+    assert not np.allclose(dec.predict_many(tw[:10]), fresh.predict_many(tw[:10]))
+    dec.set_reference()
+    np.testing.assert_allclose(dec.predict_many(tw[:10]), fresh.predict_many(tw[:10]), atol=1e-12)
+
+
+def test_ungated_copy_never_replaces_the_deployed_models(lateral):
+    """``ungated`` used to share the model table, so fitting the copy rewrote the deployed decoder."""
+    (ws, ys, prov), (tw, _, _) = lateral
+    dec = make_decoder().fit(ws, ys, prov)
+    before = dec.predict_many(tw[:10])
+    copy_ = dec.ungated()
+    assert copy_._models is not dec._models
+    other = session(77, 5, False)
+    copy_.fit(*other)
+    np.testing.assert_array_equal(dec.predict_many(tw[:10]), before)
+
+
+def test_x_model_trains_only_on_the_windows_x_was_earned_on(lateral):
+    """``x_mask``: the x model that drives the cursor is the recipe ``earn_x`` certified (own L1), not
+    one diluted by other windows (the review found 'earned' x below its own pool floor)."""
+    (ws, ys, prov), (tw, ty, _) = lateral
+    noise_w, noise_y, noise_p = session(90, 3, False)                       # a non-lateralised "prior"
+    allw, ally, allp = ws + noise_w, np.concatenate([ys, noise_y]), prov + noise_p
+    mask = np.r_[np.ones(len(ws), bool), np.zeros(len(noise_w), bool)]
+    masked = make_decoder().fit(allw, ally, allp, x_mask=mask)
+    alone = make_decoder().fit(ws, ys, prov)
+    masked.x_enabled = alone.x_enabled = True
+    xs = lambda d: d.ungated()._models["x"].decision_function(np.stack([d.features(w) for w in tw[:20]]))
+    np.testing.assert_allclose(xs(masked), xs(alone), rtol=1e-6, atol=1e-8)
+    with pytest.raises(ValueError, match="x_mask"):
+        make_decoder().fit(ws, ys, prov, x_mask=np.ones(3, bool))
+
+
+def test_neutral_one_hand_windows_keep_y_still_during_lateral_imagery(lateral):
+    """Trained only on feet/hands, y reads one-hand ERD (on a hand generator) as HANDS, so an x earner
+    imagining LEFT drives the cursor down.  ``neutral_one_hand`` enters one-hand windows as y = 0
+    (both classes at half weight): their mean y output moves to ≈ 0 while feet/hands stay separated."""
+    (ws, ys, prov), (tw, ty, _) = lateral
+    plain = make_decoder().fit(ws, ys, prov)
+    neutral = make_decoder().fit(ws, ys, prov, neutral_one_hand=True)
+    one_hand = ty[:, 1] == 0
+    y_one = lambda d: float(np.mean(d.predict_many([w for w, k in zip(tw, one_hand) if k])[:, 1]))
+    assert y_one(plain) < -0.15 and abs(y_one(neutral)) < 0.5 * abs(y_one(plain))
+    fh = ~one_hand
+    auc = lambda d: roc_auc_score(ty[fh, 1] > 0, d.predict_many([w for w, k in zip(tw, fh) if k])[:, 1])
+    assert auc(neutral) > 0.85 and neutral.neutral_one_hand and not plain.neutral_one_hand

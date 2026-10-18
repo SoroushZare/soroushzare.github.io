@@ -203,6 +203,7 @@ def test_champion_kinds_sources_and_validation():
            dict(kind="blind_closed_loop", replay_fraction=0.1), dict(kind="heldout_mapping", variant="C2b",
                                                                      replay_fraction=0.1),
            dict(kind="sighted", just_intend=True, replay_fraction=0.1), dict(kind="sighted", replay_fraction=0.5),
+           dict(kind="sighted", replay_fraction=0.02),         # round(0.02 · 20) = 0 replays per period
            dict(kind="fixation_probe", instructed=False), dict(kind="blind_closed_loop", instructed=False),
            dict(kind="blind_closed_loop", just_intend=True, cue="body_word"),
            dict(kind="heldout_mapping", variant="C3"), dict(kind="pixel_replay", just_intend=True),
@@ -248,6 +249,27 @@ def test_fixation_and_blind_blocks_draw_nothing_at_a_trial_dependent_position():
             assert [g for g, _ in pres["glyph_sequence"]] == [gm[p] for p in cue.parts]
 
 
+def test_blank_cue_kinds_are_exactly_the_labelled_kinds_with_nothing_spatial_drawn():
+    """``BLANK_CUE_KINDS`` (the purity audit's certifying blocks) is derived from the renderer: the
+    labelled kinds whose screen holds nothing at a trial-dependent position in any phase, with the
+    cursor hidden.  It is cued_blank plus the champion's L1 and L2b kinds; every other labelled kind
+    draws a target or shows a cursor, and setup / rest are never labelled."""
+    from neural_cursor.purity import CERTIFYING_BLOCKS
+    assert P.BLANK_CUE_KINDS == ("cued_blank", "fixation_probe", "blind_closed_loop")
+    assert CERTIFYING_BLOCKS == P.BLANK_CUE_KINDS                        # one definition, two modules
+    for kind in P.ALL_BLOCK_KINDS:
+        b = Block(kind, 60)
+        if kind in P.BLANK_CUE_KINDS:
+            assert b.provenance_block == kind and not b.feedback_visible
+            assert not any(it.spatial for it in _all_phase_items(b))
+        elif b.provenance_block is not None:
+            assert b.feedback_visible or any(it.spatial for it in _all_phase_items(b)), kind
+    for cue in ("auditory", "central_symbol"):                           # either cued_blank cue mode
+        assert not any(it.spatial for it in _all_phase_items(Block("cued_blank", 60, cue=cue)))
+    assert P.BLANK_CUE_KINDS[1:] == tuple(k for k in P.CHAMPION_BLOCK_KINDS
+                                          if set(P.SOURCES_BY_KIND[k]) & set(P.DEPLOYED_TRAINING_SOURCES))
+
+
 @pytest.mark.parametrize("cohort", ("deep", "broad"))
 def test_champion_session_plan_structure(cohort):
     """Deterministic 85-min sessions in the proposal's order.  Every session keeps fixation probes,
@@ -264,8 +286,7 @@ def test_champion_session_plan_structure(cohort):
             assert s["source_s"]["L1"] == 15 * 60 and s["source_s"]["L2b"] == 20 * 60
             assert abs(s["l1_share"] - 0.43) < 0.01
             assert s["source_s"]["H"] > 0 and s["min_replay_trials"] >= 1
-            assert all(m in HELDOUT_MAPPINGS for m in s["heldout_mappings"])
-            assert any(m.startswith("rot") for m in s["heldout_mappings"])   # the primary test every session
+            assert sorted(s["heldout_mappings"]) == ["rot+90", "rot-90"]   # both rotations, every session
             assert s["localiser"] == (day % 10 == 1)
             assert plan[0].kind == "setup"
             seen = [b.kind for b in plan if not b.just_intend]
@@ -278,8 +299,9 @@ def test_champion_session_plan_structure(cohort):
                     assert b.replay_fraction == P.REPLAY_FRACTION
                 if b.source == "J":
                     assert not b.instructed and b.mapping == "identity"
-            variants = s["heldout_variants"]
-            assert set(variants) == ({"C2b"} if day < P.CLOSED_LOOP_HELDOUT_FROM_DAY else {"C2b", "C2c"})
+            variants = s["heldout_variants"]                             # one variant per session
+            assert variants == ["C2b", "C2b"] if day < P.CLOSED_LOOP_HELDOUT_FROM_DAY or day % 2 == 0 \
+                else variants == ["C2c", "C2c"]
             ji = [b for b in plan if b.just_intend]
             assert {b.kind for b in ji} == {"blind_closed_loop", "sighted"}
             if day == 1:                                                    # hint-free: before any instruction
@@ -296,14 +318,19 @@ def test_champion_session_plan_structure(cohort):
         P.session_plan_champion(1, 0, cohort="other")
 
 
-def test_mirror_x_only_for_x_earners():
-    """A mirror separates body from screen only on the axis it flips, so mirror_x is scheduled only for
-    a person whose x axis is on."""
+def test_heldout_schedule_is_rotation_balanced_and_independent_of_x():
+    """Every session runs rot+90 and rot−90 (cross-axis coupling is antisymmetric between them, screen
+    reading symmetric), never a mirror (it identifies nothing per axis: mirror_y is fully collinear on
+    a y-only person's only axis), and the schedule does not depend on x status, which the pre-S
+    retrain may revoke after the plan is drawn."""
     for day in CHAMPION_DAYS:
-        assert "mirror_x" not in P.champion_plan_summary(P.session_plan_champion(day, 0))["heldout_mappings"]
-    used = {m for d in CHAMPION_DAYS
-            for m in P.champion_plan_summary(P.session_plan_champion(d, 0, x_earned=True))["heldout_mappings"]}
-    assert used == set(HELDOUT_MAPPINGS)
+        for seed in SEEDS:
+            plain = P.session_plan_champion(day, seed)
+            assert plain == P.session_plan_champion(day, seed, x_earned=True)
+            assert sorted(b.mapping for b in plain if b.kind == "heldout_mapping") == ["rot+90", "rot-90"]
+    firsts = {[b.mapping for b in P.session_plan_champion(d, 0) if b.kind == "heldout_mapping"][0]
+              for d in CHAMPION_DAYS}
+    assert firsts == {"rot+90", "rot-90"}                                   # order is randomised
 
 
 def test_glyph_map_is_redrawn_every_session_and_non_directional():
@@ -394,6 +421,7 @@ def test_champion_payloads_parse_in_the_data_engine():
     """Payloads built by the protocol are accepted by ``data_engine.parse_trials``, with the right
     source, body cue and mapping.  The shared constants (lockout, label end, event names) agree."""
     assert P.CUE_LOCKOUT_S == data_engine.CUE_LOCKOUT_S and P.L1_LABEL_END_S == data_engine.L1_LABEL_END_S
+    assert P.CUE_OFFSET_LOCKOUT_S == data_engine.CUE_OFFSET_LOCKOUT_S
     assert (P.EVENT_FIXATION_BREAK, P.EVENT_OUTCOME_FLASH, P.EVENT_BODY_REPORT) == (
         data_engine.EVENT_FIXATION_BREAK, data_engine.EVENT_OUTCOME_FLASH, data_engine.EVENT_BODY_REPORT)
     assert P.HELDOUT_VARIANTS == data_engine.HELDOUT_VARIANTS
@@ -438,3 +466,35 @@ def test_champion_payloads_parse_in_the_data_engine():
     for block in (Block("fixation_probe", 60), Block("blind_closed_loop", 60), Block("sighted", 60),
                   Block("heldout_mapping", 60, variant="C2b")):
         assert P.trial_timing(block).n_trials(block) >= 1
+
+
+def test_cue_timings_leave_a_gap_after_cue_offset_and_accepted_replay_fractions_schedule():
+    """The glyph / word must be off ``CUE_OFFSET_LOCKOUT_S`` before the first labelled window (its offset
+    response identifies the class within a session), and every replay fraction a Block accepts must
+    give its ``ReplayScheduler`` at least one replay per period."""
+    for timing in (P.FixationProbeTiming(), P.ClosedLoopTiming()):
+        assert timing.label_start_s - timing.cue_s >= P.CUE_OFFSET_LOCKOUT_S
+        assert timing.label_start_s >= P.CUE_LOCKOUT_S
+    with pytest.raises(ValueError, match="cue offset"):
+        P.ClosedLoopTiming(label_start_s=1.0)                    # the old L2b timing: gap 0 s
+    with pytest.raises(ValueError, match="cue offset"):
+        P.FixationProbeTiming(cue_s=0.75)                        # the old L1 timing: gap 0.25 s
+    with pytest.raises(ValueError, match="no replay"):
+        Block("sighted", 600, replay_fraction=0.025)             # round(0.5) = 0
+    for f in (0.03, 0.1, P.REPLAY_FRACTION, P.MAX_REPLAY_FRACTION):
+        b = Block("sighted", 600, replay_fraction=f)
+        assert sum(P.ReplayScheduler(b).schedule(P.REPLAY_PERIOD)) >= 1
+        assert P.champion_plan_summary([b])["min_replay_trials"] >= 1
+
+
+def test_replay_fraction_refusal_names_the_real_threshold():
+    """Review: the message said 'use 0 or at least 0.075' while 0.03 and 0.05 are accepted; the rule is
+    round-half-to-even of fraction × REPLAY_PERIOD, so any fraction above 0.5 / period schedules one."""
+    with pytest.raises(ValueError, match=r"more than 0\.025"):
+        Block("sighted", 600, replay_fraction=0.025)
+    for ok in (0.03, 0.05):
+        assert P.replays_per_period(Block("sighted", 600, replay_fraction=ok).replay_fraction) >= 1
+
+
+def test_presentation_docstring_states_the_l1_cue_length():
+    assert "0.5 s for L1" in P.BodyCue.presentation.__doc__ and P.FixationProbeTiming().cue_s == 0.5

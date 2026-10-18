@@ -38,20 +38,25 @@ identify.  It decodes body-part intent (y = feet + / both hands −, x = right +
 ``fixation_probe``     source "L1".  A central, non-directional glyph cues one of four body classes;
                        the glyph→class map is redrawn every session (``glyph_map``), gaze must stay in
                        a 1° fixation window (a break aborts and repeats the trial) and the labelled
-                       span is 1.0–4.0 s after the cue.  LABEL = the cued body vector.
+                       span is 1.0–4.0 s after the cue onset and ≥ 0.5 s after its offset (the glyph
+                       is shown for 0.5 s).  LABEL = the cued body vector.
 ``blind_closed_loop``  source "L2b".  The cue is a central glyph or a duration- and loudness-matched
                        body-part word, never a location; the decoder drives a HIDDEN cursor toward a
                        HIDDEN goal; the only feedback is a label-symmetric progress tone
                        (``ProgressTone``: pitch is a function of distance decrease alone, the same for
                        every direction) and a central outcome flash after the trial.  LABEL = the cued
-                       body vector, windows ≥ 1.0 s after the cue and before the flash.
+                       body vector, windows ≥ 1.0 s after the cue onset, ≥ 0.5 s after its offset
+                       (``CUE_OFFSET_LOCKOUT_S``) and before the flash.
 ``sighted``            source "S".  Cursor and target visible, identity mapping: user practice and the
                        performance endpoint.  No label for the deployed decoder (re-centring only); the
                        never-deployed SHADOW decoder trains here on ReFIT labels as a leak positive
                        control.  15 % of trials silently replay a past trajectory (``ReplayScheduler``).
 ``heldout_mapping``    source "H", test only.  The cursor moves by ``M · v_body`` with a mapping no
-                       decoder was trained under (rot ±90 primary, mirrors); C2c is closed loop with a
-                       visible cursor, C2b is open loop (frozen cursor, then a keyed body-part report).
+                       decoder was trained under: rot+90 AND rot−90 in every session, so cross-axis
+                       body coupling (antisymmetric between the two) is separable from screen reading
+                       (symmetric); mirrors are valid mappings but identify nothing per axis and are not
+                       scheduled.  C2c is closed loop with a visible cursor, C2b is open loop (frozen
+                       cursor, then a keyed body-part report).
 ``pixel_replay``       source "R", test only.  Trial-level kind inside S and C2c blocks: the screen
                        replays a past trajectory toward goal A while the person holds goal B.
 
@@ -59,8 +64,9 @@ The "just intend" endpoint (no imagery instruction, identity mapping, frozen dec
 as ``blind_closed_loop`` / ``sighted`` blocks with ``just_intend=True``; its windows carry source "J"
 and are test only.  On day 1 its blind half opens the session before any instruction (the hint-free
 block).  Fixation probes and blind closed loop draw nothing at a trial-dependent position
-(``Block.screen_items``), and every champion session keeps L1, L2b, at least one held-out-mapping block
-and replay trials.
+(``Block.screen_items``); with cued_blank they form ``BLANK_CUE_KINDS``, the only blocks whose windows the
+purity audit accepts as certifying.  Every champion session keeps L1, L2b, at least one held-out-mapping
+block and replay trials.
 
 Coordinates are normalised screen units in [-1, 1] with +x right and +y up, as in ``task.py``.
 """
@@ -159,6 +165,13 @@ PHASES: Tuple[Optional[str], ...] = (None, "cue", "intent", "outcome")
 
 REPLAY_FRACTION = 0.15            # share of S and C2c trials that silently replay a past trajectory (P3)
 MAX_REPLAY_FRACTION = 0.25        # more frequent replays get noticed, and a noticed replay is a different test
+REPLAY_PERIOD = 20                # ``ReplayScheduler`` places an exact replay count in every 20 consecutive trials
+
+
+def replays_per_period(fraction: float, period: int = REPLAY_PERIOD) -> int:
+    """Replays per scheduler period for a replay fraction: the one rule ``Block`` validates against and
+    ``ReplayScheduler`` schedules with, so a block that validates can always be scheduled."""
+    return int(round(fraction * period))
 _REPLAY_HOSTS = ("sighted", "heldout_mapping")
 _CHAMPION_DEFAULT_MAPPING = {"fixation_probe": TRAINING_MAPPING, "blind_closed_loop": TRAINING_MAPPING,
                              "sighted": TRAINING_MAPPING, "heldout_mapping": "rot+90",
@@ -281,6 +294,10 @@ class Block:
         replay = (REPLAY_FRACTION if can_host else 0.0) if self.replay_fraction is None else float(self.replay_fraction)
         if not 0.0 <= replay <= MAX_REPLAY_FRACTION:
             raise ValueError(f"{k}: replay_fraction must be in [0, {MAX_REPLAY_FRACTION}], got {replay}")
+        if replay > 0 and replays_per_period(replay) < 1:
+            raise ValueError(f"{k}: replay_fraction {replay} gives no replay per {REPLAY_PERIOD}-trial scheduler "
+                             f"period; use 0 or more than {0.5 / REPLAY_PERIOD:g} (replays_per_period rounds "
+                             f"fraction × {REPLAY_PERIOD} half to even)")
         if replay > 0 and not can_host:
             raise ValueError(f"{k}: only sighted (not just intend) and C2c held-out blocks host replay trials")
 
@@ -361,6 +378,21 @@ class Block:
             # The cursor is absent during the trial; its end position is drawn only after trial_end.
             return (ScreenItem("targets", None, True),)
         return (FIXATION,)                                  # setup baseline and rest: eyes on centre
+
+
+def _is_blank_cue(kind: str) -> bool:
+    """A labelled kind whose screen holds nothing at a trial-dependent position in any phase, with the
+    cursor hidden (its default block and, for blind_closed_loop, its just-intend variant alike)."""
+    variants = [Block(kind, 1.0)] + ([Block(kind, 1.0, just_intend=True)] if kind == "blind_closed_loop" else [])
+    return all(b.provenance_block is not None and not b.feedback_visible
+               and not any(item.spatial for item in b.screen_items()) for b in variants)
+
+
+BLANK_CUE_KINDS: Tuple[str, ...] = tuple(k for k in ALL_BLOCK_KINDS if _is_blank_cue(k))
+"""Labelled kinds that draw nothing at a trial-dependent position and hide the cursor: cued_blank,
+fixation_probe and blind_closed_loop.  Derived from ``Block.screen_items`` (the renderer's contract) so
+the purity audit's certifying blocks cannot drift from what is actually drawn: on these blocks a label
+cannot be read off the display, so only their windows can certify that a decoder reads the brain."""
 
 
 # ----------------------------------------------------------------------------------------------
@@ -739,6 +771,11 @@ BODY_CUE_MODES: Tuple[str, ...] = ("central_glyph", "body_word")
 CUE_LOCKOUT_S = 1.0
 """Labelled windows start at least this long after cue onset (L1, L2b, blind J).  This keeps out the
 sensory response evoked by the glyph or word, which differs between classes."""
+CUE_OFFSET_LOCKOUT_S = 0.5
+"""Labelled windows also start at least this long after cue OFFSET (L1, L2b, blind J).  A glyph or word
+that is still on when the first window starts puts its offset response (100–300 ms) inside the training
+windows, and within a session a glyph identifies its class; 0.5 s clears the offset response.  Both
+lockouts are enforced by ``data_engine.parse_trials``."""
 L1_LABEL_END_S = 4.0
 """Fixation-probe windows end at most this long after cue onset.  Untrained imagery fades after its
 1–2 s peak, so later windows add label noise rather than signal."""
@@ -795,7 +832,7 @@ class BodyCue:
 
     def presentation(self, cue_s: float) -> Dict[str, object]:
         """What the stimulus layer presents for ``cue_s`` seconds (the block's ``trial_timing(b).cue_s``:
-        0.75 s for L1, 1.0 s for L2b).  Everything is at fixation or in
+        0.5 s for L1 (``FixationProbeTiming``), 1.0 s for L2b).  Everything is at fixation or in
         the speaker: a two-part glyph cue shows its glyphs one after the other at the centre, each
         for ``cue_s / len(parts)``.  It never shows them side by side, because there the side would
         carry the x part."""
@@ -940,15 +977,27 @@ def distances_to_goal(positions: Sequence[Sequence[float]], goal: Sequence[float
     return np.linalg.norm(np.asarray(positions, float) - np.asarray(goal, float), axis=1)
 
 
+def _check_lockout(cue_s: float, label_start_s: float) -> None:
+    """A labelled span must start ``CUE_LOCKOUT_S`` after cue onset and ``CUE_OFFSET_LOCKOUT_S`` after
+    cue offset; a timing that breaks either would be refused by ``parse_trials`` at labelling time."""
+    if not (cue_s > 0 and label_start_s >= max(CUE_LOCKOUT_S, cue_s + CUE_OFFSET_LOCKOUT_S) - 1e-9):
+        raise ValueError(f"label_start_s {label_start_s} must be >= {CUE_LOCKOUT_S} s after cue onset and "
+                         f">= {CUE_OFFSET_LOCKOUT_S} s after cue offset (cue_s {cue_s})")
+
+
 @dataclass(frozen=True)
 class FixationProbeTiming:
     """L1 trial timing (s, from cue onset).  The glyph is shown for ``cue_s``.  ``trial_start`` is
     logged at ``label_start_s`` and ``trial_end`` at ``label_end_s``.  ``iti_s`` includes time to
-    re-acquire fixation.  7.5 s trials give 120 probes in the proposal's 15 minutes."""
-    cue_s: float = 0.75
+    re-acquire fixation.  7.5 s trials give 120 probes in the proposal's 15 minutes.  The glyph lasts
+    0.5 s, so the 1.0-s onset lockout also leaves ``CUE_OFFSET_LOCKOUT_S`` after its offset."""
+    cue_s: float = 0.5
     label_start_s: float = CUE_LOCKOUT_S
     label_end_s: float = L1_LABEL_END_S
     iti_s: float = 3.5
+
+    def __post_init__(self) -> None:
+        _check_lockout(self.cue_s, self.label_start_s)
 
     @property
     def trial_s(self) -> float:
@@ -964,12 +1013,17 @@ class ClosedLoopTiming:
     ``trial_start`` is logged at ``label_start_s``, when control begins.  The trial ends on a hit or at
     ``timeout_s`` of control.  Then the ``outcome_s`` flash is shown (after ``trial_end``) and the
     ``iti_s`` pause follows.  ``n_trials`` assumes every trial times out, so it is a lower bound on
-    the number of trials a block holds."""
+    the number of trials a block holds.  A spoken body word needs ~1 s, so control (and the first
+    labelled window) starts ``CUE_OFFSET_LOCKOUT_S`` after it, 1.5 s after onset; in target blocks the
+    same 1.5 s is the target preview."""
     cue_s: float = 1.0
-    label_start_s: float = CUE_LOCKOUT_S
+    label_start_s: float = 1.0 + CUE_OFFSET_LOCKOUT_S
     timeout_s: float = 10.0
     outcome_s: float = 0.5
     iti_s: float = 1.5
+
+    def __post_init__(self) -> None:
+        _check_lockout(self.cue_s, self.label_start_s)
 
     @property
     def trial_s(self) -> float:
@@ -1019,13 +1073,13 @@ class ReplayScheduler:
     Deterministic from the block's seed.
     """
     block: Block
-    period: int = 20
+    period: int = REPLAY_PERIOD
     max_redraws: int = 10_000
 
     def __post_init__(self) -> None:
         if not self.block.replay_fraction:
             raise ValueError(f"{self.block.kind} block hosts no replay trials")
-        self.n_per_period = int(round(self.block.replay_fraction * self.period))
+        self.n_per_period = replays_per_period(self.block.replay_fraction, self.period)
         if not 1 <= self.n_per_period <= (self.period - 1) // 2:
             raise ValueError(f"period {self.period} cannot hold {self.n_per_period} non-adjacent replays")
         self._rng = np.random.default_rng([int(self.block.seed), _REPLAY_STREAM])
@@ -1144,11 +1198,18 @@ def session_plan_champion(day: int, seed: int, cohort: str = "deep", x_earned: b
     intend" (12, alternating blind / sighted, uninstructed, test only).  Every session keeps L1, L2b,
     at least one held-out-mapping block and replay trials.  Seed-dependent choices:
 
-    * held-out mappings.  The first block is a rotation (rot+90 or rot−90, the primary test that
-      decorrelates body and screen on both axes).  The second cycles over the other rotation and the
-      mirrors, by day.  mirror_x is omitted unless ``x_earned``: a mirror separates body from screen
-      only on the axis it flips, and x is 0 for a person who has not earned it.
-    * C2b / C2c order (alternating by day from ``CLOSED_LOOP_HELDOUT_FROM_DAY``).
+    * held-out mappings: the two 4-min blocks are rot+90 and rot−90, in random order, in EVERY
+      session.  Under one rotation the screen regressor on an axis equals ± the other axis's body
+      intent, so cross-axis body coupling (an x model reacting to feet/hands imagery) is
+      indistinguishable from screen reading; with both rotations in each certification unit it is
+      the antisymmetric part and β_screen the symmetric part (``certify``).  Mirrors are not scheduled:
+      on the axis they flip body = −screen and on the other body = screen, so they identify nothing
+      per axis, and a y-only person would spend half the held-out minutes on mirror_y for nothing.
+      ``x_earned`` is therefore no longer used by the plan (kept so callers need not change: the
+      held-out schedule must not depend on an x status that the pre-S retrain may still revoke).
+    * C2b / C2c: both held-out blocks of a session share one variant, C2b before
+      ``CLOSED_LOOP_HELDOUT_FROM_DAY`` and then alternating by session (C2c on odd days), so each
+      variant's units hold both rotations.
     * whether the just-intend slot starts blind or sighted, and every block's seed.
 
     Day 1 opens with the blind just-intend blocks right after setup, before any imagery instruction:
@@ -1161,13 +1222,13 @@ def session_plan_champion(day: int, seed: int, cohort: str = "deep", x_earned: b
     rng = np.random.default_rng([int(seed), int(day), _CHAMPION_PLAN_STREAM])
     split = {k: _split(m, CHAMPION_BLOCK_MIN[k]) for k, m in CHAMPION_SLOT_MIN.items()}
 
-    rot = HELDOUT_MAPPINGS[int(rng.integers(2))]                    # "rot+90" or "rot-90"
-    other = (("rot-90" if rot == "rot+90" else "rot+90"),) + (("mirror_x",) if x_earned else ()) + ("mirror_y",)
-    mappings = (rot, other[(day - 1) % len(other)])
-    if day < CLOSED_LOOP_HELDOUT_FROM_DAY:
-        variants = ("C2b", "C2b")
-    else:
-        variants = ("C2b", "C2c") if day % 2 else ("C2c", "C2b")
+    rot = HELDOUT_MAPPINGS[int(rng.integers(2))]                    # "rot+90" or "rot-90" first
+    mappings = (rot, "rot-90" if rot == "rot+90" else "rot+90")      # both rotations, every session
+    # C2b and C2c alternate between sessions, not within one: a session's two blocks are the two
+    # rotations, and a variant that held only one of them could not separate screen reading from
+    # cross-axis coupling in a per-variant analysis.
+    variant = "C2b" if day < CLOSED_LOOP_HELDOUT_FROM_DAY or day % 2 == 0 else "C2c"
+    variants = (variant, variant)
     blind_first = bool(rng.integers(2))
     ji_kinds = [("blind_closed_loop", "sighted")[(i + (not blind_first)) % 2] for i in range(len(split["just_intend"]))]
     ji = list(zip(ji_kinds, split["just_intend"]))

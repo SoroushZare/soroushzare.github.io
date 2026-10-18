@@ -8,12 +8,16 @@ import pytest
 from neural_cursor.acquisition import SimulatedEEG
 from neural_cursor.config import DEFAULT
 from neural_cursor.data_engine import CHAMPION_TARGET_BLOCKS, TARGET_BLOCKS
-from neural_cursor.purity import (SPATIAL_BLOCKS, PurityAudit, _PermutationCV, circular_shift_permutations,
-                                  displayed_velocity, slow_binned_means)
+from neural_cursor.purity import (CERTIFYING_BLOCKS, CERTIFYING_SOURCES, MS_LAMBDA, MS_MIN_DURATION_S,
+                                  SPATIAL_BLOCKS, PurityAudit, _PermutationCV, auditor_features,
+                                  circular_shift_permutations, displayed_velocity, is_certifying,
+                                  microsaccade_features, microsaccades, slow_binned_means)
 from neural_cursor.signal import CausalFilter, common_average
+from sklearn.metrics import roc_auc_score
 
 N_WINDOWS = 300
 N_PERM = DEFAULT.eval.n_permutations   # the production null size; the solves are cheap enough
+GAZE_FS = 500                          # eye-tracker rate of the simulated gaze segments (Hz)
 
 
 def _unit(rng, n):
@@ -352,3 +356,176 @@ def test_certification_reports_no_cortical_evidence_and_gaze_tracking():
     res = PurityAudit(cfg, n_permutations=200).run(windows, np.array(labels), prov,
                                                    auditors={"eyetracker": np.array(gaze)})
     assert res["verdict"][0] == "NO_CORTICAL_EVIDENCE" and "GAZE_TRACKS_LABEL" in res["verdict"], res["verdict"]
+
+
+# ----------------------------------------------------------------------------------------------
+# Champion blank-cue windows, the deployed-decoder row and microsaccade auditors
+# ----------------------------------------------------------------------------------------------
+L1_DIRS = np.array([[0.0, 1.0], [0.0, -1.0], [-1.0, 0.0], [1.0, 0.0]])   # FEET, HANDS, LEFT, RIGHT
+CHAMPION_PATTERN = (("fixation_probe", "L1"), ("blind_closed_loop", "L2b"), ("cued_blank", None),
+                    ("blind_closed_loop", "J"), ("sighted", "S"))
+"""Trial cycle of the mixed champion set: three certifying kinds, then blind just-intend and sighted."""
+PER_TRIAL = 3
+
+
+def _champion_set(n_trials, seed, intent=True):
+    """Windows of a mixed champion session: trial-constant L1-style labels, the EEG carrying the label
+    on every window (or none with ``intent=False``), provenance with ``source`` as the Labeler writes it."""
+    rng = np.random.default_rng(seed)
+    labels = np.repeat(L1_DIRS[rng.integers(0, 4, n_trials)], PER_TRIAL, axis=0)
+    prov = []
+    for i in range(len(labels)):
+        block, source = CHAMPION_PATTERN[(i // PER_TRIAL) % len(CHAMPION_PATTERN)]
+        p = {"block": block, "feedback_visible": block == "sighted", "session": "s0",
+             "t": (i + 1) * DEFAULT.decoder.window_s, "trial": i // PER_TRIAL,
+             "display_goal": rng.uniform(-0.8, 0.8, 2).tolist() if block == "sighted" else None}
+        if source is not None:
+            p["source"] = source
+        prov.append(p)
+    windows = _eeg(labels if intent else np.zeros_like(labels), seed=seed + 1)
+    return windows, labels, prov, _wandering_log(rng, len(labels), DEFAULT.decoder.window_s)
+
+
+def test_certifying_windows_are_the_blank_cue_blocks_and_L1_L2b_sources():
+    """fixation_probe and blind_closed_loop certify beside cued_blank, keyed on block or source; blind
+    just-intend (J), drawn-target blocks and records whose block and source disagree do not."""
+    assert set(CERTIFYING_BLOCKS) == {"cued_blank", "fixation_probe", "blind_closed_loop"}
+    assert set(CERTIFYING_SOURCES) == {"L1", "L2b"}
+    yes = [{"block": "cued_blank"}, {"block": "fixation_probe", "source": "L1"},
+           {"block": "blind_closed_loop", "source": "L2b"}, {"source": "L1"}, {"source": "L2b"},
+           {"block": "fixation_probe"}]
+    no = [{"block": "blind_closed_loop", "source": "J"}, {"block": "sighted", "source": "S"},
+          {"block": "heldout_mapping", "source": "H"}, {"block": "closed_loop"}, {"block": "blank_feedback"},
+          {"block": "sighted", "source": "L1"}, {"source": "J"}, {}]
+    assert all(is_certifying(p) for p in yes) and not any(is_certifying(p) for p in no)
+
+
+def test_deployed_row_scores_the_shipped_decoder_on_the_same_null():
+    """A deployed decoder's out-of-sample predictions are scored beside the ridge "full" row against the
+    same label permutations, on the whole set and on the certifying windows only (L1, L2b, cued_blank:
+    J and S are left out).  An informative deployed decoder beats its floor; an uninformative one
+    (with some invalid NaN windows, scored as the loop's zero command) yields DEPLOYED_NO_EVIDENCE
+    even though the bandpower ridge decodes.  Nothing but EEG windows reaches the decoder, and the
+    deployed row changes no surrogate."""
+    windows, labels, prov, log = _champion_set(80, seed=21)
+    n = len(labels)
+    rng = np.random.default_rng(22)
+    good = labels + rng.normal(0, 0.8, labels.shape)
+    seen = set()
+
+    def useless(ws):
+        seen.update(np.shape(w) for w in ws)
+        out = rng.normal(0, 0.5, (len(ws), 2))
+        out[::7] = np.nan
+        return out
+
+    audit = PurityAudit(DEFAULT, n_permutations=200)
+    res = audit.run(windows, labels, prov, cursor_logs=log, deployed=good)
+    bad = audit.run(windows, labels, prov, cursor_logs=log, deployed=useless)
+    n_cert = sum(is_certifying(p) for p in prov)
+    assert n_cert == 3 * n // 5 and res["certification"]["n"] == n_cert
+    cert = res["certification"]
+    assert res["reports"]["deployed"]["beats_floor"] and cert["reports"]["deployed"]["beats_floor"]
+    assert cert["deployed_decodes"] and "DEPLOYED_NO_EVIDENCE" not in res["verdict"], res["verdict"]
+    assert all(cert["reports"][s]["share_of_deployed"] is not None for s in ("frontal", "slow", "occipital"))
+    assert bad["certification"]["decodes"] and bad["certification"]["deployed_decodes"] is False
+    assert "DEPLOYED_NO_EVIDENCE" in bad["verdict"] and "NO_CORTICAL_EVIDENCE" not in bad["verdict"]
+    assert bad["reports"]["deployed"]["n_zero_rows"] >= len(range(0, n, 7))
+    assert seen == {(int(DEFAULT.decoder.window_s * DEFAULT.hardware.fs), DEFAULT.hardware.n_channels)}
+    for name in ("intercept", "full", "frontal", "slow", "occipital", "display"):
+        assert {k: v for k, v in res["reports"][name].items() if k != "share_of_deployed"} == \
+               {k: v for k, v in bad["reports"][name].items() if k != "share_of_deployed"}
+    with pytest.raises(ValueError, match="deployed predictions"):
+        audit.run(windows, labels, prov, cursor_logs=log, deployed=good[:, :1])
+
+
+def test_fixed_prediction_floor_keeps_its_size_and_matches_auc():
+    """The deployed row's null (fixed predictions against circularly shifted labels) keeps the size of
+    the surrogates' floor when predictions are unrelated to trial-constant labels, even when they drift
+    (AR(1), ρ = 0.9 per window): about 5–8 % at 60 trials, the small excess of a p95 read off a few
+    dozen effectively independent shifts.  On binary labels its score is the plain AUC."""
+    n, per_trial, n_seeds = 300, 5, 200
+    prov = [{"session": "s0", "t": float(i), "trial": i // per_trial} for i in range(n)]
+    hits = 0
+    for seed in range(n_seeds):
+        rng = np.random.default_rng(seed)
+        y = np.repeat(L1_DIRS[rng.integers(0, 4, n // per_trial)], per_trial, axis=0)
+        pred = _ar_features(rng, n, 2, 0.9)
+        cv = _PermutationCV(y, False, circular_shift_permutations(prov, 200, rng), 1.0, 5, 95.0)
+        hits += cv.evaluate_fixed(pred)["beats_floor"]
+    assert hits / n_seeds <= 0.09, hits / n_seeds
+    rng = np.random.default_rng(1)
+    yb = (rng.random(n) > 0.5).astype(float)
+    score = yb + rng.normal(0, 1.0, n)
+    cv = _PermutationCV(yb, True, circular_shift_permutations(prov, 200, rng), 1.0, 5, 95.0)
+    assert cv.evaluate_fixed(score)["score"] == pytest.approx(roc_auc_score(yb, score))
+
+
+def _gaze_segment(rng, direction, n_events, fs=GAZE_FS, n=None):
+    """One fixation segment (x, y in degrees) as long as an EEG window: tracker noise on a slow random
+    walk, plus ``n_events`` 0.2–0.4° microsaccades (12 ms ramps, ≈ 25°/s) along ``direction``, each followed by a slow 0.5-s
+    drift back — the mean position stays within the fixation window."""
+    n = n or int(DEFAULT.decoder.window_s * fs)
+    xy = np.cumsum(rng.normal(0, 0.003, (n, 2)), axis=0) + rng.normal(0, 0.003, (n, 2))
+    t = np.arange(n)
+    for t0 in rng.choice(np.arange(30, n - 40, 20), n_events, replace=False):
+        ramp = np.clip((t - t0) / 6.0, 0, 1) - np.clip((t - t0 - 6) / 250.0, 0, 1)
+        xy += rng.uniform(0.2, 0.4) * ramp[:, None] * np.asarray(direction, float)
+    return xy
+
+
+def test_microsaccades_are_detected_with_their_direction():
+    """Velocity-threshold events (λ = 6 median SDs, ≥ 6 ms): injected microsaccades are found with their
+    direction, tracker noise and a one-sample spike are not events, and track loss (NaN) is tolerated."""
+    rng = np.random.default_rng(30)
+    assert MS_LAMBDA == 6.0 and MS_MIN_DURATION_S == pytest.approx(0.006)
+    for k in range(40):
+        a = rng.uniform(0, 2 * np.pi)
+        d = np.array([np.cos(a), np.sin(a)])
+        f = microsaccade_features(_gaze_segment(rng, d, 2), GAZE_FS)
+        assert f[0] == pytest.approx(2 / DEFAULT.decoder.window_s)          # 2 events per segment
+        assert f[1:] @ d > 0.95, (f, d)
+    quiet = [microsaccade_features(_gaze_segment(rng, (0, 0), 0), GAZE_FS)[0] for _ in range(40)]
+    assert max(quiet) == 0.0
+    spike = _gaze_segment(rng, (0, 0), 0)
+    spike[len(spike) // 2] += 0.5                                            # a one-sample tracker glitch
+    assert len(microsaccades(spike, GAZE_FS)) == 0
+    lost = _gaze_segment(rng, (1, 0), 1)
+    lost[:20] = np.nan                                                      # track loss before the event
+    assert len(microsaccades(lost, GAZE_FS)) >= 1
+    assert np.array_equal(microsaccade_features(np.zeros((3, 2)), GAZE_FS), np.zeros(3))
+
+
+def test_microsaccade_auditor_flags_gaze_tracking_on_fixation_probes():
+    """Fixation probes with no EEG intent, fixation held (mean gaze within a fraction of a degree), but
+    microsaccades biased toward the cued direction: with the gaze stream's rate given, the auditor's
+    microsaccade direction decodes the label and the verdict says NO_CORTICAL_EVIDENCE and
+    GAZE_TRACKS_LABEL.  A gaze rate for an auditor that was not given, or for featurised gaze, raises."""
+    rng = np.random.default_rng(31)
+    n_trials = 60
+    labels = np.repeat(L1_DIRS[rng.integers(0, 4, n_trials)], PER_TRIAL, axis=0)
+    prov = [{"block": "fixation_probe", "source": "L1", "feedback_visible": False, "session": "s0",
+             "t": (i + 1) * DEFAULT.decoder.window_s, "trial": i // PER_TRIAL, "display_goal": None}
+            for i in range(len(labels))]
+    gaze = []
+    for d in labels:
+        biased = rng.random() < 0.8
+        a = rng.uniform(0, 2 * np.pi)
+        gaze.append(_gaze_segment(rng, d if biased else (np.cos(a), np.sin(a)), 1))
+    gaze = np.stack(gaze)
+    assert np.abs(gaze.mean(axis=1)).max() < 0.5                            # inside the fixation window
+    windows = _eeg(np.zeros_like(labels), seed=32)
+    audit = PurityAudit(DEFAULT, n_permutations=200)
+    res = audit.run(windows, labels, prov, auditors={"eyetracker": gaze}, gaze_fs={"eyetracker": GAZE_FS})
+    rep = res["certification"]["reports"]["auditor:eyetracker"]
+    assert rep["beats_floor"], rep
+    assert res["verdict"][0] == "NO_CORTICAL_EVIDENCE" and "GAZE_TRACKS_LABEL" in res["verdict"], res["verdict"]
+    rate = res["reports"]["auditor:eyetracker"]["microsaccade_rate_hz"]
+    assert rate == pytest.approx(1 / DEFAULT.decoder.window_s, rel=0.1)     # one event per segment
+    feats = auditor_features(gaze, len(gaze), GAZE_FS)
+    assert feats.shape[1] == 3 * 2 + 3
+    assert np.mean(np.sum(feats[:, -2:] * labels, axis=1)) > 0.5            # direction follows the cue
+    with pytest.raises(ValueError, match="not given"):
+        audit.run(windows, labels, prov, auditors={"eyetracker": gaze}, gaze_fs={"tracker": GAZE_FS})
+    with pytest.raises(ValueError, match="raw gaze segments"):
+        auditor_features(gaze.mean(axis=1), len(gaze), GAZE_FS)

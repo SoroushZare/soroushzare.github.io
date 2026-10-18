@@ -35,6 +35,9 @@ class Preprocessing:
     reference: str = "car"       # "car" or "none"; CAR excludes gated-out channels
     gate_rms_factor: float = 5.0 # channel is bad if trial RMS > factor × session median channel RMS
     gate_exempt: tuple = ("FP1", "FP2")  # a blink is 100+ µV there and that is physiology
+    gate_low_factor: float = 0.05  # channel is bad (dead / flat) if its sample-to-sample RMS < factor ×
+                                 # the session median of that RMS: −26 dB, far below any live electrode
+                                 # (amplifier noise alone sets a floor), far above a filtered constant (~0)
     decimate_to_hz: int = 100    # features need ≤40 Hz; 100 Hz keeps the pipeline cheap
 
 
@@ -60,7 +63,8 @@ class Task:
     """Cursor dynamics and target geometry; screen units are normalised to [−1, 1]."""
     control_hz: float = 10.0
     max_speed: float = 0.6       # screen widths per second at full decoder output
-    velocity_smoothing: float = 0.7  # exponential smoothing of the decoded velocity (per 100 ms step)
+    velocity_smoothing: float = 0.7  # exponential smoothing of the decoded velocity per 100 ms (rescaled
+                                     # to the step: a**(dt / 0.1) per control step, any loop rate)
     target_radius: float = 0.08
     dwell_s: float = 0.8         # dwell to select (confirm) a target
     n_targets: int = 8           # candidate targets on screen per trial

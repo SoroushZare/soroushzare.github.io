@@ -15,13 +15,16 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from neural_cursor.body_decoder import BodyCoordinateDecoder
+from neural_cursor.body_decoder import IDLE_SOURCE, BodyCoordinateDecoder
 from neural_cursor.config import DEFAULT
+from neural_cursor.effectors import PlanarArm2Link
 from neural_cursor.mapping import BODY_VECTORS, Mapping
 from neural_cursor.signal import common_average
-from neural_cursor.sim_body import (ERD_PEAK_S, ERD_SUSTAIN, X_DEPTH_RANGE, X_RESPONDER_PROB, Y_DEPTH_RANGE,
-                                    BodyPopulation, BodySubject, erd_envelope)
+from neural_cursor.sim_body import (ERD_DECAY_S, ERD_PEAK_S, ERD_SUSTAIN, X_DEPTH_RANGE, X_ERD_LR, X_RESPONDER_PROB,
+                                    Y_DEPTH_RANGE, BodyPopulation, BodySubject, erd_envelope, rebound_envelope)
 from neural_cursor.sim_population import PopulationSim
+from neural_cursor.simulate_engine import OnlinePreprocessor
+from neural_cursor.task import Cursor
 
 HW = DEFAULT.hardware
 FS = HW.fs
@@ -133,9 +136,11 @@ def test_screen_and_body_components_separate_under_a_rotated_mapping():
     """rot+90: feet/hands move the cursor sideways and right/left hand move it up/down, so on each axis
     the body and screen regressors are orthogonal across trials.  With a leak, posterior alpha and the
     frontal gaze potential follow the SCREEN while the C3/C4 mu/beta lateralisation follows the BODY.
-    The central CP sites (inside the central-11 montage) pick up the screen signal too — the leak a
-    sighted-label shadow decoder can learn; it is isolated by pairing each trial with the same person
-    and noise at zero leak.  Without a leak no screen dependence remains anywhere."""
+    The central CP sites (inside the central-11 montage) pick up the screen signal too, on both screen
+    axes (left/right through lateralised alpha, up/down through dorsal alpha) — the leak a sighted-label
+    shadow decoder can learn, and without the vertical part a y-only participant's positive control
+    could never fire; it is isolated by pairing each trial with the same person and noise at zero leak.
+    Without a leak no screen dependence remains anywhere."""
     rot = Mapping("rot+90")
     rng = np.random.default_rng(11)
     bodies = [np.array(BODY_VECTORS[c]) for c in rng.permutation(np.repeat(CLASSES, 32))]
@@ -145,7 +150,7 @@ def test_screen_and_body_components_separate_under_a_rotated_mapping():
 
     def features(leak):
         sub = BodySubject(HW, seed=21, screen_leak=leak, x_responder=True, y_depth=0.35, x_depth=0.5)
-        f = {"posterior": [], "motor": [], "hgaze": [], "vgaze": [], "central_cp": []}
+        f = {"posterior": [], "motor": [], "hgaze": [], "vgaze": [], "central_cp": [], "central_cp_all": []}
         for x in _trials(sub, list(zip(bodies, screens))):
             w = x[FS:3 * FS]                                    # 1–3 s after the cue
             f["posterior"].append(_log_power(w, ["PO7", "PO3"], (8, 12))
@@ -156,6 +161,7 @@ def test_screen_and_body_components_separate_under_a_rotated_mapping():
             f["vgaze"].append(float(np.mean(w[:, [CH.index("FP1"), CH.index("FP2")]])))
             f["central_cp"].append(_log_power(w, ["CP5", "CP1"], (8, 12))
                                    - _log_power(w, ["CP6", "CP2"], (8, 12)))
+            f["central_cp_all"].append(_log_power(w, ["CP5", "CP1", "CP2", "CP6"], (8, 12)))
         return {k: np.array(v) for k, v in f.items()}
 
     leak, clean = features(1.0), features(0.0)
@@ -169,6 +175,8 @@ def test_screen_and_body_components_separate_under_a_rotated_mapping():
     assert t_body < -4 and abs(t_screen) < 3                    # right-hand imagery → C3 mu/beta falls
     t_body, t_screen = _ols_t(leak["central_cp"] - clean["central_cp"], [bx, sx])
     assert t_screen < -6 and abs(t_body) < 3                    # the central montage sees the screen leak
+    t_body, t_screen = _ols_t(leak["central_cp_all"] - clean["central_cp_all"], [by, sy])
+    assert t_screen > 6 and abs(t_body) < 3                     # ... on y too: attend down → CP alpha falls
 
     # without a leak the screen regressor has nothing to find (exact independence is tested above),
     # and the leak never touches the hand areas
@@ -223,6 +231,33 @@ def test_erd_time_course_is_transient():
     assert np.argmin(p) == 1 and p[0] > p[1] < p[3]
 
 
+def test_imagery_offset_gives_a_post_imagery_beta_rebound():
+    """Review: the ERD vanished at trial end, so the rest between probes (the idle gate's L0 windows) was
+    cleaner than real rest.  After the offset, beta (16–24 Hz) over the desynchronised hand areas rises
+    ABOVE the pre-cue baseline for ~1–2 s, then returns; ``rebound_gain = 0`` has none.  (Log power of
+    the C3/C4 average over the broadband background: the rebound of a 3-µV beta source shows as a few
+    tenths of a dB there.)"""
+    tau = np.linspace(0, 6, 601)
+    r = rebound_envelope(tau)
+    assert r[0] == 0 and np.isclose(r.max(), 1.0) and r[-1] < 0.02
+
+    def epochs(gain):
+        sub = BodySubject(HW, seed=4, y_depth=0.5, rebound_gain=gain)
+        base, post = [], []
+        for _ in range(30):
+            sub.cue(0.0, 0.0)
+            base.append(_log_power(sub.generate(FS), ["C3", "C4"], (16, 24)))
+            sub.cue(0.0, -1.0)                                   # HANDS: both hand generators
+            sub.generate(4 * FS)
+            sub.cue(0.0, 0.0)                                    # offset: the rebound starts
+            post.append(_log_power(sub.generate(FS), ["C3", "C4"], (16, 24)))
+            sub.generate(3 * FS)
+        return np.mean(post) - np.mean(base)
+
+    on, off = epochs(1.0), epochs(0.0)              # same seed: identical noise, only the rebound differs
+    assert on - off > 0.05 and on > 0.04 and abs(off) < 0.05, (on, off)
+
+
 def test_population_draws_responders_and_keeps_subjects_fixed():
     pop = BodyPopulation(500, seed=7)
     frac = np.mean([b.x_responder for b in pop.body])
@@ -269,3 +304,126 @@ def test_blocks_are_independent_of_earlier_blocks_and_parameters_validated():
     for bad in (dict(dry_penalty=1.0), dict(dry_penalty=-0.1), dict(screen_leak=-1.0), dict(erd_sustain=1.5)):
         with pytest.raises(ValueError):
             BodySubject(HW, seed=0, **bad)
+
+
+def test_x_time_course_and_day_depth_are_separate_knobs_with_neutral_defaults():
+    """The x pathway may follow its own (ds004362 L/R) time course, and ERD depth may vary from day to
+    day.  Defaults change nothing: x shares the y course and every day has depth factor 1."""
+    def run(**kw):
+        sub = BodySubject(HW, seed=4, **kw)
+        sub.set_day(2)
+        sub.begin_block(2, 0)
+        sub.cue(1.0, 1.0)                                          # a diagonal: both pathways on
+        return sub, sub.generate(4 * FS)
+    base, x0 = run()
+    same, x1 = run(x_time_course=(ERD_PEAK_S, ERD_DECAY_S, ERD_SUSTAIN))
+    np.testing.assert_array_equal(x0, x1)
+    lr, x2 = run(x_time_course=X_ERD_LR)
+    assert not np.array_equal(x0, x2)
+    tau = np.arange(4 * FS) / FS
+    env = erd_envelope(tau, *X_ERD_LR)
+    means = [env[(tau >= k) & (tau < k + 1)].mean() for k in range(4)]
+    assert means[0] > means[1] > means[2] > means[3]                  # early peak, then decay (L/R)
+    assert base._day_depth == 1.0
+    depths = []
+    for day in (1, 2, 3):
+        sub = BodySubject(HW, seed=4, day_depth_sd=0.3)
+        sub.set_day(day)
+        depths.append(sub._day_depth)
+    assert len(set(depths)) == 3 and all(0.3 < d < 3.0 for d in depths)
+    again = BodySubject(HW, seed=4, day_depth_sd=0.3)
+    again.set_day(2)
+    assert again._day_depth == depths[1]                               # a pure function of (seed, day)
+    with pytest.raises(ValueError):
+        BodySubject(HW, seed=4, x_time_course=(0.0, 1.0, 0.5))
+
+
+# ---------------------------------------------------------------- idle state, closed through two effectors
+def _calibrate_idle(seed=4):
+    """A person with a clear rest-vs-imagery contrast (deep ERD over a low background), calibrated as the
+    protocol does: a setup rest (re-centring reference and L0 windows), then feet/hands probes with the
+    rest between them (more L0).  Windows come from the real-time chain's own preprocessing."""
+    dec = BodyCoordinateDecoder(DEFAULT, FS)
+    cfg = dec.loop_config(DEFAULT)
+    person = BodySubject(cfg.hardware, seed=seed, noise_uv=5.0, y_depth=0.9, x_responder=False)
+    person.set_day(1)
+    person.begin_block(1, 0)
+    pre = OnlinePreprocessor(cfg)
+    pre.push(person.generate(2 * FS))
+    rest, ws, ys, prov = [], [], [], []
+    for _ in range(60):                                                  # 30 s setup rest
+        pre.push(person.generate(FS // 2))
+        rest.append(pre.window())
+    for trial in range(40):
+        vy = 1 if trial % 2 else -1
+        person.cue(0, vy)
+        for k in range(8):                                               # windows 1.5–4 s after the cue
+            pre.push(person.generate(FS // 2))
+            if k >= 3:
+                ws.append(pre.window())
+                ys.append((0, vy))
+                prov.append({"source": "L1", "session": "cal", "trial": trial, "t": 6.0 * trial + 0.5 * k})
+        person.cue(0, 0)
+        for k in range(4):                                               # inter-trial rest
+            pre.push(person.generate(FS // 2))
+            if k >= 2:
+                rest.append(pre.window())
+    reference = dec.reference_from(rest[:60])
+    dec.fit(ws, np.array(ys), prov, session_references={"cal": reference})
+    rest_t = [30.0 * i / 60 for i in range(60)] + [6.0 * t + 4.5 + 0.5 * k for t in range(40) for k in range(2)]
+    report = dec.fit_idle(rest, [{"source": IDLE_SOURCE, "session": "cal", "t": t} for t in rest_t],
+                          {"cal": reference})
+    return dec, cfg, person, report
+
+
+def _drive(decoder, person, cfg, pre, seconds, vy):
+    """``seconds`` of the person imagining body velocity (0, vy) (0: at rest) through the decoder into a
+    planar arm and a cursor at 10 Hz; returns the arm's path length (m), the cursor's path length, the
+    share of commands that were exactly zero and the mean command."""
+    person.cue(0, vy)
+    arm, cursor = PlanarArm2Link(), Cursor(cfg.task)
+    arm_path = cursor_path = 0.0
+    commands = []
+    for _ in range(int(seconds * cfg.task.control_hz)):
+        pre.push(person.generate(int(FS / cfg.task.control_hz)))
+        v = decoder.predict(pre.window())
+        commands.append(v)
+        before = arm.fk().copy()
+        arm.send(v, 1.0 / cfg.task.control_hz)
+        arm_path += float(np.linalg.norm(arm.fk() - before))
+        pos = cursor.state.pos.copy()
+        cursor.step(v, 1.0 / cfg.task.control_hz)
+        cursor_path += float(np.linalg.norm(cursor.state.pos - pos))
+    commands = np.array(commands)
+    return arm_path, cursor_path, float(np.mean(np.all(commands == 0.0, axis=1))), commands.mean(axis=0)
+
+
+def test_idle_gate_keeps_the_arm_and_the_cursor_still_at_rest_and_lets_imagery_drive_them():
+    """Without an idle state a 2p − 1 output is never 0, so at rest the arm and the cursor wander.  With
+    the gate armed on this person's rest (L0) windows, rest commands are exactly zero, so the arm and the
+    cursor move a fraction of the ungated path, while feet imagery still drives the arm up.  The same
+    windows feed both decoders (a frozen copy of the stream), so the difference is the gate alone.  A
+    per-window gate leaves the rest windows it cannot place (a few per cent here), so 'still' means a
+    path several times shorter, not zero."""
+    dec, cfg, person, report = _calibrate_idle()
+    assert report["armed"] and report["cv_auc"] > 0.85, report
+    results = {}
+    for name, decoder in (("gated", dec), ("ungated", dec.ungated())):
+        person.begin_block(1, 1)                                         # identical EEG for both decoders
+        pre = OnlinePreprocessor(cfg)
+        pre.push(person.generate(2 * FS))
+        rest_windows = []
+        for _ in range(40):
+            pre.push(person.generate(FS // 2))
+            rest_windows.append(pre.window())
+        decoder.set_reference(rest_windows)                              # the session's own rest
+        results[name] = {"rest": _drive(decoder, person, cfg, pre, 20.0, 0),
+                         "feet": _drive(decoder, person, cfg, pre, 4.0, +1)}
+    gated, ungated = results["gated"], results["ungated"]
+    assert gated["rest"][2] > 0.85 and ungated["rest"][2] == 0.0, (gated["rest"], ungated["rest"])
+    # ungated, rest reads as "not hands" and drifts up; gated, the mean command is a fraction of that
+    assert abs(gated["rest"][3][1]) < 0.25 * abs(ungated["rest"][3][1]), (gated["rest"], ungated["rest"])
+    # (the ungated arm stops at the workspace wall, so its path understates the drift it was commanded)
+    assert gated["rest"][0] < 0.35 * ungated["rest"][0] and gated["rest"][1] < 0.35 * ungated["rest"][1]
+    assert gated["feet"][2] < 0.4 and gated["feet"][3][1] > 0.2                # imagery passes the gate
+    assert gated["feet"][0] > 0.05                                             # and moves the arm (m)

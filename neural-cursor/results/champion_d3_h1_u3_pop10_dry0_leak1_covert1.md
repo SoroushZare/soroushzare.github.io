@@ -1,0 +1,79 @@
+## Champion protocol (simulated): 3 days × 1 h, 3 deep participant(s), population prior N = 10
+
+seed 20261004; screen leak 1 (targets drawn: S, H, R); covert leak 1 (blind L1/L2b blocks); replay attention 'cursor'; x-responder probability 0.2; y depth (0.1, 0.4), x depth (0.25, 0.5); user learning rate 0; assistance a = 0.5 (sighted, C2c); prior 3 min of L1 per member; label hop 0.5 s; slot minutes protocol; shadow null calibration on; runtime 761 s.
+
+x responders: 2 of 3 deep users, 5 of 10 prior members (7 of 13; the population rate is 0.2, so P(≥ 7 of 13) = 0.007): read x-axis and prior results as those of this draw, not of the stated population.
+
+**Every CERTIFIED verdict below is conditional on the covert leak of its condition.**  At covert leak 0 the deployed decoder's training data (L1/L2b, and a prior of simulated L1) contain no screen-correlated non-motor signal by construction; covert attention toward the imagined direction in blind blocks — the leak the label rule cannot exclude (skeptic C3) — is what the covert-leak sweep (`--covert-leak 0 1 2`) tests.  A screen-leak sweep at covert leak 0 measures the SHADOW positive controls' sensitivity only (they learn the leak from their display-identifiable labels; the deployed decoder's training data carry none of it); whether a display leak reaches the DEPLOYED decoder is the 'leak transfer' column: a paired probe (identical noise streams at screen leak 0 and 1, rot±90 imagery on diagonal targets) of the frozen held-out decoder, its output slope on the screen direction ÷ the external margin.
+
+Deployed decoder: trained on L1 + L2b only (+ prior), re-centred on each session's rest; its x model only on the person's own L1 probes (the windows x is earned on), and an x earner's y model treats one-hand windows as neutral.  L2b windows end ≤ 4 s after the cue and before the hidden cursor reaches the dwell radius.  Shadows: the same model on sighted ReFIT labels (positive controls, never deployed) — NOT matched-n twins: S windows only (about a third of the deployed decoder's own window count) and no prior.  L1 AUC: fixed fixation-probe test set (2 min per simulated day, never trained on), with its floor (p95 of a trial-level label permutation) in brackets; x AUC is the x model's even when x is not earned.  x earned: two consecutive passing grant tests on own L1 probes (AUC > 0.60 and > its circular-shift floor, and ≥ 70 % of the margin kept after regressing out posterior alpha lateralisation), then kept unless the floor or the purity rule rejects it.  Sighted: non-replay S trials (success, time-to-target, Fitts throughput); blind: L2b hidden-cursor success.
+
+Certification: per test unit (held-out: one deployed decoder version, i.e. one session, with its own slopes and intercepts; replay: one person), output_a = β_body·body_a + β_screen·screen_a + β_cross·body_other + c_a, CR2 cluster-robust SEs with t(G − k) intervals (trials are the clusters); units of one person combined by inverse variance, people by a person-then-trial bootstrap (t with people − 1 df).  βs are relative to the deployed decoder's EXTERNAL margin: its slope on body intent in the identity trials (0.25 of each held-out block, interleaved, never certified), whose SE is propagated into every threshold test; 'margin L1' is the secondary slope on the fixed L1 pool.  Verdict family (Holm, per axis): β_body > 0, β_body > 50 % of the margin (and the point estimate ≥ 70 %), |β_screen| < 10 % (two one-sided tests), and each shadow's β_screen above its NULL — the same shadow, same units, at screen leak 0 (in brackets).  A β_screen significantly different from 0 in EITHER direction and not bounded inside ±10 % is SCREEN_READING, any unit's own SCREEN_READING vetoes the combined verdict, and a unit whose body and screen regressors correlate |r| > 0.5 in any block is refused (max |r| block).  Trials whose keyed report (C2b, post-replay) does not confirm the intent are dropped.  Held-out blocks are rot+90 and rot−90 in every session with balanced diagonal targets; replays do not consume a goal quadrant and replay diagonal trajectories inside held-out blocks.  Regressors use the cursor at the window start; C2b and C2c are also reported separately.  Intent is an oracle (exact cued body vector; instant remapping), so β_body is an upper bound.  'Just intend' blocks are not simulated.
+
+Idle gate: rest windows (L0: setup rest and the rest between probes, which now carries the post-imagery beta rebound) against the decoder's training windows; armed only if its out-of-fold AUC ≥ 0.70, and then the output is exactly 0 when p(idle) > 0.7.  'rest gated / intent passed' are measured on the fixed pool's rest and probe windows.
+
+### dry penalty 0, covert leak 1
+
+| user | day | cum h | x earned (AUC / floor / purity kept) | L1 AUC y (floor) | L1 AUC x (floor) | L1 r y | margin y ± SE / x (I) | margin L1 y | leak transfer y / x | idle gate (AUC): rest gated / intent passed | sighted success | TTT (s) | TP (bits/s) | blind success | windows L1/L2b/S/H/R/I/L0 |
+|---:|---:|---:|---|---:|---:|---:|---|---:|---|---|---:|---:|---:|---:|---|
+| 0 | 0 (prior only) | 0 | – | 0.721 (0.633) | 0.688 (0.631) | 0.402 | – | – | – | – | – | – | – | – | – |
+| 0 | 1 | 1 | no (0.821 / 0.598 / 0.32) | 0.757 (0.626) | 0.733 (0.627) | 0.448 | 0.485 ± 0.107 / 0.000 | 0.241 | 0.29 / – | off (0.65): 0.00 / 1.00 | 0.16 | 4.5 | 1.13 | 0.35 | 420/248/653/140/54/44/540 |
+| 0 | 2 | 2 | no (0.802 / 0.580 / 0.29) | 0.758 (0.629) | 0.692 (0.611) | 0.446 | 0.154 ± 0.093 / 0.000 | 0.241 | 0.94 / – | off (0.65): 0.00 / 1.00 | 0.20 | 5.1 | 0.88 | 0.32 | 420/228/606/140/64/44/540 |
+| 0 | 3 | 3 | no (0.791 / 0.562 / 0.29) | 0.778 (0.634) | 0.719 (0.612) | 0.483 | – ± – / – | 0.258 | – / – | off (0.65): 0.00 / 1.00 | 0.19 | 5.2 | 1.27 | 0.32 | 420/248/658/361/77/133/540 |
+| 1 | 0 (prior only) | 0 | – | 0.689 (0.620) | 0.498 (0.627) | 0.336 | – | – | – | – | – | – | – | – | – |
+| 1 | 1 | 1 | no (0.664 / 0.598 / 0.15) | 0.744 (0.629) | 0.661 (0.611) | 0.431 | 0.287 ± 0.126 / 0.000 | 0.259 | 0.43 / – | off (0.67): 0.00 / 1.00 | 0.16 | 3.7 | 0.82 | 0.26 | 420/206/667/136/55/48/540 |
+| 1 | 2 | 2 | no (0.633 / 0.561 / 0.08) | 0.796 (0.634) | 0.642 (0.621) | 0.517 | 0.287 ± 0.166 / 0.000 | 0.309 | 0.51 / – | off (0.67): 0.00 / 1.00 | 0.13 | 5.0 | 0.61 | 0.29 | 420/213/643/136/61/48/540 |
+| 1 | 3 | 3 | no (0.656 / 0.563 / 0.30) | 0.827 (0.634) | 0.661 (0.625) | 0.566 | – ± – / – | 0.341 | – / – | off (0.69): 0.00 / 1.00 | 0.15 | 4.1 | 0.80 | 0.25 | 420/223/634/380/54/114/540 |
+| 2 | 0 (prior only) | 0 | – | 0.816 (0.628) | 0.578 (0.611) | 0.563 | – | – | – | – | – | – | – | – | – |
+| 2 | 1 | 1 | no (0.611 / 0.620 / 0.15) | 0.837 (0.638) | 0.565 (0.615) | 0.601 | 0.470 ± 0.139 / 0.000 | 0.375 | 0.20 / – | off (0.67): 0.00 / 1.00 | 0.23 | 3.3 | 1.08 | 0.32 | 420/209/578/136/64/48/540 |
+| 2 | 2 | 2 | no (0.713 / 0.585 / 0.35) | 0.864 (0.643) | 0.571 (0.631) | 0.628 | 0.476 ± 0.184 / 0.000 | 0.386 | 0.24 / – | off (0.67): 0.00 / 1.00 | 0.20 | 4.9 | 0.64 | 0.23 | 420/204/595/136/95/48/540 |
+| 2 | 3 | 3 | no (0.691 / 0.566 / 0.44) | 0.864 (0.641) | 0.602 (0.631) | 0.635 | – ± – / – | 0.391 | – / – | off (0.69): 0.00 / 1.00 | 0.19 | 3.8 | 0.81 | 0.14 | 420/186/573/361/84/133/540 |
+
+| user | day | test | axes | units | trials | deployed β_body/margin | deployed β_screen/margin | deployed β_cross | shadow c11 β_screen/margin (null) | shadow all32 β_screen/margin (null) | max \|r\| block | leak transfer y / x | per axis | verdict |
+|---:|---|---|---|---:|---:|---|---|---|---|---|---:|---|---|---|
+| 0 | 1 | heldout | y | 1 | 35 | y: 0.25 [-0.12, 0.74] | 0.27 [-0.10, 0.78] | 0.12 [-0.06, 0.30] | 0.09 [-0.31, 0.52] (null 0.26) | 0.86 [0.46, 1.70] (null -0.09) | 0.06 | 0.29 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 0 | 1 | replay | – | – | 9 | – | – | – | – | – | – | 0.29 / – | – | skipped: u0: 9 trials (< 30 for cluster-robust inference) |
+| 0 | 1 | heldout C2b | y | 1 | 35 | y: 0.25 [-0.12, 0.74] | 0.27 [-0.10, 0.78] | 0.12 [-0.06, 0.30] | 0.09 [-0.31, 0.52] (null 0.26) | 0.86 [0.46, 1.70] (null -0.09) | 0.06 | 0.29 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 0 | 2 | heldout | y | 1 | 35 | y: -0.25 [–, –] | 0.10 [–, –] | -0.04 [-0.16, 0.09] | -0.13 [–, –] (null -0.21) | 3.25 [–, –] (null -0.41) | 0.11 | 0.94 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 0 | 2 | replay | – | – | 9 | – | – | – | – | – | – | 0.94 / – | – | skipped: u0: 9 trials (< 30 for cluster-robust inference) |
+| 0 | 2 | heldout C2b | y | 1 | 35 | y: -0.25 [–, –] | 0.10 [–, –] | -0.04 [-0.16, 0.09] | -0.13 [–, –] (null -0.21) | 3.25 [–, –] (null -0.41) | 0.11 | 0.94 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 0 | 3 | heldout | – | – | 19 | – | – | – | – | – | – | – / – | – | skipped: u0/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 0 | 3 | replay | – | – | 10 | – | – | – | – | – | – | – / – | – | skipped: u0: 10 trials (< 30 for cluster-robust inference) |
+| 0 | 3 | heldout C2c | – | – | 19 | – | – | – | – | – | – | – / – | – | skipped: u0/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 0 | all | heldout | y | 2 | 89 | y: 0.16 [-0.17, 0.50] | 0.24 [-0.10, 0.58] | – [–, –] | 0.05 [-0.27, 0.37] (null 0.24) | 0.89 [0.40, 1.38] (null -0.11) | 0.11 | 0.62 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 0 | all | replay | – | – | 28 | – | – | – | – | – | – | 0.62 / – | – | skipped: u0: 28 trials (< 30 for cluster-robust inference) |
+| 0 | all | heldout C2b | y | 2 | 70 | y: 0.16 [-0.17, 0.50] | 0.24 [-0.10, 0.58] | – [–, –] | 0.05 [-0.27, 0.37] (null 0.24) | 0.89 [0.40, 1.38] (null -0.11) | 0.11 | 0.62 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 0 | all | heldout C2c | – | – | 19 | – | – | – | – | – | – | 0.62 / – | – | skipped: u0/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 1 | 1 | heldout | y | 1 | 34 | y: 0.86 [0.24, 10.01] | 0.30 [-0.35, 3.20] | 0.02 [-0.15, 0.18] | -0.02 [-1.29, 1.10] (null 1.30) | 1.18 [0.18, 12.40] (null 0.40) | 0.06 | 0.43 / – | y: TEST_INSENSITIVE | **TEST_INSENSITIVE** |
+| 1 | 1 | replay | – | – | 8 | – | – | – | – | – | – | 0.43 / – | – | skipped: u1: 8 trials (< 30 for cluster-robust inference) |
+| 1 | 1 | heldout C2b | y | 1 | 34 | y: 0.86 [0.24, 10.01] | 0.30 [-0.35, 3.20] | 0.02 [-0.15, 0.18] | -0.02 [-1.29, 1.10] (null 1.30) | 1.18 [0.18, 12.40] (null 0.40) | 0.06 | 0.43 / – | y: TEST_INSENSITIVE | **TEST_INSENSITIVE** |
+| 1 | 2 | heldout | y | 1 | 34 | y: 0.83 [–, –] | 0.55 [–, –] | 0.12 [-0.06, 0.30] | 0.47 [–, –] (null -0.00) | 2.46 [–, –] (null -0.02) | 0.06 | 0.51 / – | y: INCONCLUSIVE | **INCONCLUSIVE** |
+| 1 | 2 | replay | – | – | 10 | – | – | – | – | – | – | 0.51 / – | – | skipped: u1: 10 trials (< 30 for cluster-robust inference) |
+| 1 | 2 | heldout C2b | y | 1 | 34 | y: 0.83 [–, –] | 0.55 [–, –] | 0.12 [-0.06, 0.30] | 0.47 [–, –] (null -0.00) | 2.46 [–, –] (null -0.02) | 0.06 | 0.51 / – | y: INCONCLUSIVE | **INCONCLUSIVE** |
+| 1 | 3 | heldout | – | – | 20 | – | – | – | – | – | – | – / – | – | skipped: u1/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 1 | 3 | replay | – | – | 10 | – | – | – | – | – | – | – / – | – | skipped: u1: 10 trials (< 30 for cluster-robust inference) |
+| 1 | 3 | heldout C2c | – | – | 20 | – | – | – | – | – | – | – / – | – | skipped: u1/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 1 | all | heldout | y | 2 | 88 | y: 0.84 [0.14, 1.55] | 0.38 [-0.11, 0.88] | – [–, –] | 0.15 [-0.25, 0.56] (null 0.01) | 1.43 [0.18, 2.67] (null 0.04) | 0.06 | 0.47 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 1 | all | replay | – | – | 28 | – | – | – | – | – | – | 0.47 / – | – | skipped: u1: 28 trials (< 30 for cluster-robust inference) |
+| 1 | all | heldout C2b | y | 2 | 68 | y: 0.84 [0.14, 1.55] | 0.38 [-0.11, 0.88] | – [–, –] | 0.15 [-0.25, 0.56] (null 0.01) | 1.43 [0.18, 2.67] (null 0.04) | 0.06 | 0.47 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 1 | all | heldout C2c | – | – | 20 | – | – | – | – | – | – | 0.47 / – | – | skipped: u1/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 2 | 1 | heldout | y | 1 | 34 | y: 0.37 [-0.02, 1.15] | 0.25 [-0.14, 0.91] | -0.06 [-0.24, 0.11] | 0.06 [-0.28, 0.47] (null 0.05) | 1.32 [0.77, 3.75] (null 0.43) | 0.06 | 0.20 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 2 | 1 | replay | – | – | 10 | – | – | – | – | – | – | 0.20 / – | – | skipped: u2: 10 trials (< 30 for cluster-robust inference) |
+| 2 | 1 | heldout C2b | y | 1 | 34 | y: 0.37 [-0.02, 1.15] | 0.25 [-0.14, 0.91] | -0.06 [-0.24, 0.11] | 0.06 [-0.28, 0.47] (null 0.05) | 1.32 [0.77, 3.75] (null 0.43) | 0.06 | 0.20 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| 2 | 2 | heldout | y | 1 | 34 | y: 0.58 [0.14, 3.00] | 0.46 [0.05, 2.38] | -0.08 [-0.28, 0.13] | 0.49 [0.18, 2.60] (null 0.14) | 1.00 [0.44, 5.68] (null 0.37) | 0.06 | 0.24 / – | y: SCREEN_READING | **SCREEN_READING** |
+| 2 | 2 | replay | – | – | 10 | – | – | – | – | – | – | 0.24 / – | – | skipped: u2: 10 trials (< 30 for cluster-robust inference) |
+| 2 | 2 | heldout C2b | y | 1 | 34 | y: 0.58 [0.14, 3.00] | 0.46 [0.05, 2.38] | -0.08 [-0.28, 0.13] | 0.49 [0.18, 2.60] (null 0.14) | 1.00 [0.44, 5.68] (null 0.37) | 0.06 | 0.24 / – | y: SCREEN_READING | **SCREEN_READING** |
+| 2 | 3 | heldout | – | – | 19 | – | – | – | – | – | – | – / – | – | skipped: u2/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 2 | 3 | replay | – | – | 10 | – | – | – | – | – | – | – / – | – | skipped: u2: 10 trials (< 30 for cluster-robust inference) |
+| 2 | 3 | heldout C2c | – | – | 19 | – | – | – | – | – | – | – / – | – | skipped: u2/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| 2 | all | heldout | y | 2 | 87 | y: 0.44 [0.09, 0.79] | 0.33 [0.01, 0.64] | – [–, –] | 0.18 [-0.06, 0.43] (null 0.09) | 1.17 [0.59, 1.75] (null 0.41) | 0.06 | 0.22 / – | y: SCREEN_READING | **SCREEN_READING** |
+| 2 | all | replay | y | 1 | 30 | y: 0.40 [0.11, 1.04] | 0.39 [0.09, 1.03] | -0.08 [-0.23, 0.07] | 0.30 [0.08, 0.77] (no null) | 0.92 [0.50, 2.21] (no null) | – | 0.22 / – | y: SCREEN_READING | **SCREEN_READING** |
+| 2 | all | heldout C2b | y | 2 | 68 | y: 0.44 [0.09, 0.79] | 0.33 [0.01, 0.64] | – [–, –] | 0.18 [-0.06, 0.43] (null 0.09) | 1.17 [0.59, 1.75] (null 0.41) | 0.06 | 0.22 / – | y: SCREEN_READING | **SCREEN_READING** |
+| 2 | all | heldout C2c | – | – | 19 | – | – | – | – | – | – | 0.22 / – | – | skipped: u2/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+| all | all | heldout | y | 6 | 264 | y: 0.44 [-18.62, 19.49] | 0.32 [-9.26, 9.91] | – [–, –] | 0.16 [-5.22, 5.54] (null 0.26) | 1.68 [-58.10, 61.45] (null 0.11) | 0.11 | 0.44 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| all | all | replay | y | 1 | 86 | y: 0.40 [0.11, 1.04] | 0.39 [0.09, 1.03] | -0.08 [-0.23, 0.07] | 0.30 [0.08, 0.77] (no null) | 0.92 [0.50, 2.21] (no null) | – | 0.44 / – | y: SCREEN_READING | **SCREEN_READING** |
+| all | all | heldout C2b | y | 6 | 206 | y: 0.44 [-18.62, 19.49] | 0.32 [-9.26, 9.91] | – [–, –] | 0.16 [-5.22, 5.54] (null 0.26) | 1.68 [-58.10, 61.45] (null 0.11) | 0.11 | 0.44 / – | y: NO_BODY_SIGNAL | **NO_BODY_SIGNAL** |
+| all | all | heldout C2c | – | – | 58 | – | – | – | – | – | – | 0.44 / – | – | skipped: u0/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials); u1/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials); u2/d3/v3: no external y margin from identity trials (nan; needs ≥ 0.02 from ≥ 8 trials) |
+
+Trials dropped because the keyed report did not confirm the intent: held-out 0, replay 6 (the simulated person always remaps).
+

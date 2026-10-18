@@ -35,8 +35,11 @@ TRAINING_MAPPING = "identity"
 """The only mapping any decoder (deployed or shadow) is ever trained under."""
 HELDOUT_MAPPINGS: Tuple[str, ...] = ("rot+90", "rot-90", "mirror_x", "mirror_y")
 """Test-only mappings.  rot±90 is primary: it decorrelates body and screen on both axes within one
-block.  A mirror flips one axis and leaves the other identical, so on its own it separates the two
-readings only on the flipped axis, and only when the axes are pooled (see ``certify``)."""
+block, but under one rotation the screen direction on an axis equals ± the other axis's body intent,
+so cross-axis body coupling is only separable from screen reading with BOTH rotations in a test unit
+(``certify``; the protocol runs rot+90 and rot−90 every session).  A mirror flips one axis and leaves
+the other identical (body = ±screen on each), so it identifies nothing per axis; mirrors stay valid
+mappings but are not scheduled."""
 
 BODY_VECTORS: Dict[str, Tuple[float, float]] = {
     "FEET": (0.0, 1.0),
@@ -111,3 +114,34 @@ def certification_regressors(targets, cursors, mapping: Mapping,
     """
     u = unit_directions(targets, cursors)
     return mapping.screen_to_body(u), Mapping(trained_on).screen_to_body(u)
+
+
+DIAGONAL_DIRECTIONS: np.ndarray = np.array([[1.0, 1.0], [-1.0, 1.0], [-1.0, -1.0], [1.0, -1.0]]) / np.sqrt(2.0)
+"""Unit screen directions of the four diagonal targets, one per quadrant (signs (+,+), (−,+), (−,−),
+(+,−)).  Held-out blocks use them because under rot±90 a 1-D y person moves the cursor only
+horizontally: the reachable horizontal offset is the body regressor, and the unreachable vertical
+offset — the screen regressor of the y output — must vary independently of it.  With targets on the
+horizontal axis that screen regressor would be 0 on every trial and β_screen unidentified; with
+random ring positions the two offsets are uncorrelated only on average.  Independent, balanced signs of
+(dx, dy) make them uncorrelated by design, on both axes and under either rotation."""
+DIAGONAL_DIRECTIONS.setflags(write=False)
+
+
+def diagonal_targets(distance: float) -> np.ndarray:
+    """(4, 2) targets at ``distance`` from the centre along the four diagonals (``DIAGONAL_DIRECTIONS``
+    order), all drawn on every trial so the display is symmetric and the goal posterior has four
+    candidates."""
+    if not distance > 0:
+        raise ValueError(f"distance must be > 0, got {distance}")
+    return DIAGONAL_DIRECTIONS * float(distance)
+
+
+def quadrant_schedule(n_trials: int, rng: np.random.Generator) -> np.ndarray:
+    """Goal quadrant (index into ``DIAGONAL_DIRECTIONS``) per trial: every consecutive run of four
+    trials is a random permutation of the four quadrants.  Balanced within every 4 trials, so the signs
+    of dx and dy are independent and equally frequent in any block, whatever its length (a cut-off final
+    run leaves at most 3 trials of imbalance), and the order is unpredictable within a run."""
+    if n_trials < 0:
+        raise ValueError(f"n_trials must be >= 0, got {n_trials}")
+    runs = [rng.permutation(len(DIAGONAL_DIRECTIONS)) for _ in range(-(-n_trials // len(DIAGONAL_DIRECTIONS)))]
+    return np.concatenate(runs)[:n_trials] if runs else np.zeros(0, int)

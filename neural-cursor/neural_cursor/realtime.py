@@ -27,13 +27,19 @@ Failure handling (an amplifier unplugs, a driver emits NaN, the process stalls):
 * **Non-finite samples** are replaced, per channel, by that channel's last finite value before they
   reach the causal filter (one NaN would otherwise poison the IIR state of that channel for the rest
   of the run), the channel is forced "bad" for the amplitude gate while a repaired sample is inside
-  the decoder window (so CAR and the decoder ignore it), and the count is logged.  The repaired
+  the decoder window, and the count is logged.  CAR always excludes bad channels.  A held channel
+  still has samples, so a decoder that reads it would see a fake signal (high-passed, it becomes
+  ≈ −CAR, which an SMR decoder reads as ERD): decoders whose ``predict`` accepts ``good`` get the mask
+  and refuse a window with a bad channel they use (``BodyCoordinateDecoder`` returns NaN → a counted
+  zero command); a decoder without that parameter decodes the CAR'd window as before.  The repaired
   samples are what ``RunLogger`` records, so an offline replay sees exactly what the loop saw.
 * **Stale input**: if no new sample has arrived for ``stale_s`` (default two control periods), the
   tick sends a zero command instead of re-decoding the frozen window, and is counted; after
   ``stale_abort_s`` without samples the run ends early with ``stats["aborted"]`` set.
 * **Overruns**: the ``dt`` handed to the effector is capped at ``MAX_DT_PERIODS`` control periods, so a
   stall is not integrated as one burst-sized jump.
+* **Invalid output**: a non-finite decoder output (e.g. the body decoder's refusal of a flat or gated
+  window) sends a zero command and is counted (``n_invalid``).
 * **Exit**: however ``run`` ends (normally, early, or by exception) it sends a final zero command, so
   a velocity-controlled device is left stopped.  The effector is not closed (the caller owns it).
 
@@ -43,13 +49,20 @@ is written as ``cursor_source`` ("effector" / "model") in the ``realtime_start``
 engine refuses visible-cursor labels from a "model" run, because the person never saw that cursor.
 The assist uses the same position.
 
-Pure-EEG rule: the only array that reaches ``decoder.predict`` is the preprocessed EEG window.
+Screen mapping.  A body-coordinate decoder's output is body velocity; ``mapping`` (``mapping.Mapping``,
+default identity) turns it into screen velocity ``M · v`` before the assist and the effector, which is
+how the champion's held-out-mapping blocks (rot ±90) run live.  ``decoded`` stays in body coordinates
+(what certification regresses), ``sent`` is the screen command, and ``realtime_start`` logs the mapping.
+
+Pure-EEG rule: the only arrays that reach ``decoder.predict`` are the preprocessed EEG window and the
+loop's own per-channel validity mask of that window.
 ``intent_fn`` is a hook for a simulator or cue generator; its return value is logged as a label and
 never reaches the decoder, the assist or the effector.  Auditor streams (eye tracker, EMG) are not
 accepted here at all; they belong to ``purity.py``.
 """
 from __future__ import annotations
 
+import inspect
 import logging
 import threading
 import time
@@ -60,6 +73,7 @@ import numpy as np
 
 from .acquisition import LSLEEG, SimulatedEEG
 from .config import Config
+from .mapping import TRAINING_MAPPING, Mapping
 from .signal import AmplitudeGate, CausalFilter, common_average
 from .task import Cursor
 
@@ -208,6 +222,8 @@ class RealTimeLoop:
                 Default two control periods: LSL chunks arrive every few ms, so a gap of two whole
                 periods is a fault, not jitter.
     stale_abort_s no new sample for this long → the run ends early (``stats["aborted"]``).
+    mapping     screen mapping applied to the decoder's output before assist and effector (module
+                docstring); None → the identity.
     """
 
     #: a gap between consecutive sample timestamps above this many sample periods counts as a drop
@@ -218,9 +234,15 @@ class RealTimeLoop:
     def __init__(self, source, decoder, effector, cfg: Config, logger=None, assist=None,
                  rate_hz: Optional[float] = None, warmup_s: float = 1.0,
                  sample_clock: Optional[Callable[[], float]] = None,
-                 stale_s: Optional[float] = None, stale_abort_s: float = 2.0):
+                 stale_s: Optional[float] = None, stale_abort_s: float = 2.0,
+                 mapping: Optional[Mapping] = None):
         self.source = source
         self.decoder = decoder
+        self.mapping = mapping if mapping is not None else Mapping(TRAINING_MAPPING)
+        try:
+            self._predict_takes_good = "good" in inspect.signature(decoder.predict).parameters
+        except (TypeError, ValueError):                      # builtins / C extensions: no signature
+            self._predict_takes_good = False
         self.effector = effector
         self.cfg = cfg
         self.logger = logger
@@ -252,8 +274,8 @@ class RealTimeLoop:
         self.n_samples = 0
         self.dropped_samples = 0
         self.nonfinite_samples = 0
-        self.decoded: np.ndarray = np.zeros((0, 2))   # per-update decoder output (before assist)
-        self.sent: np.ndarray = np.zeros((0, 2))      # per-update command handed to the effector
+        self.decoded: np.ndarray = np.zeros((0, 2))   # per-update decoder output (body frame, before mapping)
+        self.sent: np.ndarray = np.zeros((0, 2))      # per-update command handed to the effector (screen frame)
 
     # -- acquisition --------------------------------------------------------------------------------
     def _ingest(self) -> Optional[float]:
@@ -339,17 +361,20 @@ class RealTimeLoop:
         if not np.isfinite(window).all():
             self.effector.send(np.zeros(2), dt)
             return None
-        decoded = np.asarray(self.decoder.predict(window), float).reshape(-1)
+        if self._predict_takes_good:
+            decoded = np.asarray(self.decoder.predict(window, good=good), float).reshape(-1)
+        else:
+            decoded = np.asarray(self.decoder.predict(window), float).reshape(-1)
         if not np.isfinite(decoded).all():
             self.effector.send(np.zeros(2), dt)
             return None
-        u = decoded
+        u = self.mapping.body_to_screen(decoded)              # screen velocity
         pos = self._display_pos()
         p_goal_max = float("nan")
         if self.assist is not None:
-            self.assist.update_velocity(pos, decoded)
+            self.assist.update_velocity(pos, u)
             g = self.cfg.task.assist_gain
-            u = (1 - g) * decoded + g * np.asarray(self.assist.assist_command(pos), float)
+            u = (1 - g) * u + g * np.asarray(self.assist.assist_command(pos), float)
             p_goal_max = float(np.max(self.assist.p))
         self.effector.send(u, dt)
         return decoded, u, good, p_goal_max
@@ -376,6 +401,7 @@ class RealTimeLoop:
                 lg.event("realtime_start", {"rate_hz": self.rate_hz, "window_s": self.cfg.decoder.window_s,
                                             "warmup_s": self.warmup_s,
                                             "effector": type(self.effector).__name__,
+                                            "mapping": self.mapping.name,
                                             "cursor_source": ("model" if self.effector.task_position() is None
                                                               else "effector")}, t=self.clock())
             t_start = time.monotonic()

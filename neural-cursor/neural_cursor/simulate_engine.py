@@ -753,6 +753,8 @@ def _clean(o):
         return [_clean(v) for v in o]
     if isinstance(o, np.ndarray):
         return _clean(o.tolist())
+    if isinstance(o, np.bool_):
+        return bool(o)
     if isinstance(o, (np.integer,)):
         return int(o)
     if isinstance(o, (float, np.floating)):

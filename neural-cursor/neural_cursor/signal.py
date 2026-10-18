@@ -71,26 +71,44 @@ def common_average(x: np.ndarray, good: Optional[np.ndarray] = None) -> np.ndarr
 
 @dataclass
 class AmplitudeGate:
-    """Rule 53: flag a channel whose window RMS exceeds factor × the session's median channel RMS.
+    """Rule 53: flag a channel whose window RMS exceeds factor × the session's median channel RMS, or
+    whose sample-to-sample RMS (its high-frequency content) falls below ``gate_low_factor`` × the
+    session's median of that quantity.
 
     The median is tracked online from the windows seen so far (robust to a single railed channel).
-    FP1/FP2 are exempt because blinks are physiology there, not faults.
+    FP1/FP2 are exempt from the HIGH rule because blinks are physiology there, not faults.  The LOW rule
+    applies to every channel: a dead electrode held at a constant value (a driver that does not emit
+    NaN) filters to ~0 µV, and after CAR it becomes minus the common average — an ERD-like loss of
+    8–30 Hz power at that site that the decoder's pooled validity checks cannot see (a dead C3 drove y to
+    −0.55 at rest on 93 % of ticks, review).  Flagged bad, the channel leaves the CAR and the decoder's
+    ``good`` mask refuses the window.  The low rule reads first differences, not the plain RMS: after
+    the electrode dies, the causal high-pass rings slowly from the last live value for seconds, which
+    keeps the plain RMS up while the channel already carries no 8–30 Hz signal; the differences of that
+    slow tail are ~0 at once, so the window is refused as soon as it no longer holds the step itself.
+    The low rule needs a positive median: when every channel is flat there is no reference, and the
+    decoder's own dead-signal checks refuse the window.
     """
     hw: Hardware
     pre: Preprocessing
     _history: list = field(default_factory=list)
+    _diff_history: list = field(default_factory=list)
 
     def __post_init__(self):
         self.exempt = np.array([c in self.pre.gate_exempt for c in self.hw.channels])
 
     def update(self, window: np.ndarray) -> np.ndarray:
-        rms = np.sqrt(np.mean(window.astype(np.float64) ** 2, axis=0))
-        self._history.append(rms)
-        if len(self._history) > 600:
-            self._history.pop(0)
+        w = window.astype(np.float64)
+        rms = np.sqrt(np.mean(w ** 2, axis=0))
+        diff_rms = np.sqrt(np.mean(np.diff(w, axis=0) ** 2, axis=0)) if len(w) > 1 else rms
+        for hist, value in ((self._history, rms), (self._diff_history, diff_rms)):
+            hist.append(value)
+            if len(hist) > 600:
+                hist.pop(0)
         session_median = np.median(np.stack(self._history))     # one scalar across channels and time
+        diff_median = np.median(np.stack(self._diff_history))
         bad = rms > self.pre.gate_rms_factor * max(session_median, 1e-6)
         bad &= ~self.exempt
+        bad |= diff_rms < self.pre.gate_low_factor * diff_median   # dead / flat channel (never when median is 0)
         return ~bad                                             # True = good
 
 
