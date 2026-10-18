@@ -6,7 +6,7 @@ held-out subjects, Euclidean alignment from each subject's own REST epochs (no t
 Hyperparameters of record (fixed in advance, not tuned on the test subjects):
   input 32 ch × 480 samples (0.5–3.5 s, 4–40 Hz, 160 Hz); EEGNet F1=8, D=2, F2=16, kernel 64,
   dropout 0.25; AdamW lr 1e-3, weight decay 1e-2, batch 64, 60 epochs, no early stopping;
-  seeds 0 and 1 per rung; torch threads 4.
+  seeds 0 and 1 per rung; torch threads set by --threads (default 4).
 """
 from __future__ import annotations
 
@@ -85,16 +85,23 @@ def main():
     ap.add_argument("--task", default="imag_LR")
     ap.add_argument("--rungs", default="4,8,16,32,64,all")
     ap.add_argument("--seeds", type=int, default=2)
+    ap.add_argument("--threads", type=int, default=4, help="torch threads; use fewer when the CPU is shared (oversubscription stalls training)")
+    ap.add_argument("--resume", action="store_true", help="keep rungs already in the output JSON")
     a = ap.parse_args()
-    torch.set_num_threads(4)
+    torch.set_num_threads(a.threads)
     subs = usable(a.feat, a.task)
     test, pool = split_subjects(subs)
     Xp, yp = load_aligned(a.feat, pool, a.task)
     Xt, yt = load_aligned(a.feat, test, a.task)
     out = dict(experiment=f"E2-deep EEGNet zero-shot scaling, {a.task}, 32-ch, rest-EA", test_subjects=test,
                pool_size=len(pool), rungs={})
+    prev = os.path.join(a.out, f"E2deep_scaling_{a.task}.json")
+    if a.resume and os.path.exists(prev):
+        out["rungs"] = json.load(open(prev))["rungs"]
     for r in a.rungs.split(","):
         N = len(pool) if r == "all" else int(r)
+        if str(N) in out["rungs"]:
+            continue
         vals, per = [], []
         for sd in range(a.seeds if N < len(pool) else max(1, a.seeds)):
             rng = np.random.default_rng(SEED + 7 * N + sd)
