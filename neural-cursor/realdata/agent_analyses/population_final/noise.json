@@ -1,0 +1,50 @@
+{
+ "bb|imag_LR": {
+  "mean_gain": 0.0354,
+  "obs_sd": 0.0731,
+  "sampling_sd": 0.0603,
+  "heterogeneity_sd": 0.0413,
+  "frac_sampling": 0.68,
+  "n_trials": 45
+ },
+ "bb|imag_FF": {
+  "mean_gain": 0.0422,
+  "obs_sd": 0.0931,
+  "sampling_sd": 0.061,
+  "heterogeneity_sd": 0.0704,
+  "frac_sampling": 0.43,
+  "n_trials": 45
+ },
+ "fb|imag_LR": {
+  "mean_gain": 0.032,
+  "obs_sd": 0.0792,
+  "sampling_sd": 0.0679,
+  "heterogeneity_sd": 0.0408,
+  "frac_sampling": 0.73,
+  "n_trials": 45
+ },
+ "fb|imag_FF": {
+  "mean_gain": 0.0453,
+  "obs_sd": 0.0862,
+  "sampling_sd": 0.0694,
+  "heterogeneity_sd": 0.0511,
+  "frac_sampling": 0.65,
+  "n_trials": 45
+ },
+ "E2|imag_LR": {
+  "mean_gain": 0.0459,
+  "obs_sd": 0.0683,
+  "sampling_sd": 0.062,
+  "heterogeneity_sd": 0.0288,
+  "frac_sampling": 0.82,
+  "n_trials": 45
+ },
+ "E2|imag_FF": {
+  "mean_gain": 0.0501,
+  "obs_sd": 0.1014,
+  "sampling_sd": 0.0879,
+  "heterogeneity_sd": 0.0505,
+  "frac_sampling": 0.75,
+  "n_trials": 45
+ }
+}
