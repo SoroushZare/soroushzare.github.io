@@ -15,7 +15,6 @@
   --line: #E4E1D9;
   --accent: #1F4FE0;
   --accent-soft: rgba(31, 79, 224, 0.08);
-  --ok: #1E9E5A;
   --panel: #F1EFE9;
   --plate: #FFFFFF;
 
@@ -39,7 +38,6 @@
     --line: #232A36;
     --accent: #7AA2FF;
     --accent-soft: rgba(122, 162, 255, 0.12);
-    --ok: #4CC987;
     --panel: #121722;
     --plate: #F4F3EF;
     color-scheme: dark;
@@ -54,7 +52,6 @@
   --line: #232A36;
   --accent: #7AA2FF;
   --accent-soft: rgba(122, 162, 255, 0.12);
-  --ok: #4CC987;
   --panel: #121722;
   --plate: #F4F3EF;
   color-scheme: dark;
@@ -127,12 +124,6 @@ h1 {
   color: var(--ink); text-wrap: balance;
 }
 .hero__lead em { font-style: italic; color: var(--accent); }
-.status {
-  display: inline-flex; align-items: center; gap: 10px; margin-top: 26px;
-  padding: 7px 14px 7px 12px; border: 1px solid var(--line); border-radius: 999px;
-  background: var(--surface); font-size: 0.875rem; color: var(--ink);
-}
-.status__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 20%, transparent); }
 .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px;
@@ -332,8 +323,7 @@ a.pub__fig, .pub__fig a { cursor: zoom-in; }
 }
 @media (max-width: 640px) {
   h1 { margin-top: 12px; }
-  .hero__lead, .status, .links { margin-top: 18px; }
-  .status { font-size: 0.8125rem; }
+  .hero__lead, .links { margin-top: 18px; }
   .links { gap: 8px; }
   .btn { padding: 0 13px; }
   .two-col { grid-template-columns: 1fr; gap: 0; }
